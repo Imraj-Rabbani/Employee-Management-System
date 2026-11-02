@@ -1,5 +1,6 @@
 <?php
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -12,6 +13,14 @@ Route::view('dashboard', 'dashboard')
     ->name('dashboard');
 
 Route::middleware(['auth'])->group(function () {
+    // Demo for task 1.2e: proves PDF generation works. Remove once real payslips exist.
+    Route::get('hello-pdf', function () {
+        return Pdf::loadView('pdf.hello', [
+            'name' => auth()->user()->name,
+            'generatedAt' => now()->format('d M Y, H:i'),
+        ])->stream('hello.pdf');
+    })->name('hello-pdf');
+
     Route::redirect('settings', 'settings/profile');
 
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
