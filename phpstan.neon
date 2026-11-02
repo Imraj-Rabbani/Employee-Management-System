@@ -1,0 +1,9 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app/
+
+    # 0 = loosest, 10 = strictest. PRD asks for level 6+.
+    level: 6
