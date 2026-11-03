@@ -79,6 +79,7 @@ return [
             ['label' => 'Company Settings', 'route' => null],
             ['label' => 'Fiscal Years', 'route' => null],
             ['label' => 'Roles & Permissions', 'route' => null],
+            ['label' => 'UI Kit', 'route' => 'core.ui-kit'],
         ],
     ],
 

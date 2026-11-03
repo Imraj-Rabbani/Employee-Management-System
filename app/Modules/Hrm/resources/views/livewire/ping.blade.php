@@ -1,4 +1,4 @@
-<div class="mt-6 flex items-center gap-4">
+<div class="flex flex-wrap items-center gap-4">
     <flux:button wire:click="increment">Click me</flux:button>
     <flux:text>Clicked {{ $count }} times</flux:text>
 
