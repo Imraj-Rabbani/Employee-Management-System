@@ -4,6 +4,7 @@ namespace App\Core\Support;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 /**
  * Shared boot logic for every module in app/Modules.
@@ -28,6 +29,17 @@ abstract class ModuleServiceProvider extends ServiceProvider
 
         // Lets us write view('{name}::ping') for resources/views/ping.blade.php.
         $this->loadViewsFrom($path.'/resources/views', $this->name);
+
+        // `php artisan migrate` also runs the files in Database/Migrations.
+        $this->loadMigrationsFrom($path.'/Database/Migrations');
+
+        // Lets us write <livewire:{name}::ping /> for Livewire/Ping.php.
+        Livewire::addNamespace(
+            $this->name,
+            classNamespace: (new \ReflectionClass($this))->getNamespaceName().'\\Livewire',
+            classPath: $path.'/Livewire',
+            classViewPath: $path.'/resources/views/livewire',
+        );
     }
 
     /** The folder of the child class, e.g. app/Modules/Hrm. */
