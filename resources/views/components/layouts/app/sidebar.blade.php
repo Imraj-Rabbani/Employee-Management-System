@@ -8,26 +8,24 @@
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
             <a href="{{ route('dashboard') }}" class="mr-5 flex items-center space-x-2" wire:navigate>
-                <x-app-logo class="size-8" href="#"></x-app-logo>
+                <x-app-logo />
             </a>
 
             <flux:navlist variant="outline">
                 <flux:navlist.group heading="Platform" class="grid">
-                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>Dashboard</flux:navlist.item>
+                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                </flux:navlist.group>
+
+                {{-- One group per module. Links point to the ping pages until real screens exist. --}}
+                <flux:navlist.group heading="Modules" class="grid">
+                    <flux:navlist.item icon="users" :href="route('hrm.ping')" :current="request()->routeIs('hrm.*')" wire:navigate>{{ __('HR') }}</flux:navlist.item>
+                    <flux:navlist.item icon="banknotes" :href="route('payroll.ping')" :current="request()->routeIs('payroll.*')" wire:navigate>{{ __('Payroll') }}</flux:navlist.item>
+                    <flux:navlist.item icon="check-circle" :href="route('workflow.ping')" :current="request()->routeIs('workflow.*')" wire:navigate>{{ __('Approvals') }}</flux:navlist.item>
+                    <flux:navlist.item icon="cog-6-tooth" :href="route('core.ping')" :current="request()->routeIs('core.*')" wire:navigate>{{ __('Setup') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
             <flux:spacer />
-
-            <flux:navlist variant="outline">
-                <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                    Repository
-                </flux:navlist.item>
-
-                <flux:navlist.item icon="book-open-text" href="https://laravel.com/docs/starter-kits" target="_blank">
-                    Documentation
-                </flux:navlist.item>
-            </flux:navlist>
 
             <!-- Desktop User Menu -->
             <flux:dropdown position="bottom" align="start">

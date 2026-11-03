@@ -24,4 +24,16 @@ class DashboardTest extends TestCase
         $response = $this->get('/dashboard');
         $response->assertStatus(200);
     }
+
+    public function test_sidebar_links_to_every_module(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->get('/dashboard')
+            ->assertSee(route('hrm.ping'))
+            ->assertSee(route('payroll.ping'))
+            ->assertSee(route('workflow.ping'))
+            ->assertSee(route('core.ping'))
+            ->assertDontSee('livewire-starter-kit');
+    }
 }

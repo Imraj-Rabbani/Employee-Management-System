@@ -1,6 +1,4 @@
-<div class="flex aspect-square size-8 items-center justify-center rounded-md bg-accent-content text-accent-foreground">
-    <x-app-logo-icon class="size-5 fill-current text-white dark:text-black" />
-</div>
-<div class="ml-1 grid flex-1 text-left text-sm">
-    <span class="mb-0.5 truncate leading-none font-semibold">Laravel Starter Kit</span>
-</div>
+{{-- The logo is navy on transparent, so in dark mode it sits on a light chip to stay readable. --}}
+<span class="inline-flex items-center rounded-lg dark:bg-white/90 dark:px-2 dark:py-1">
+    <img src="{{ asset('images/erp2all-logo.png') }}" alt="{{ config('app.name') }}" class="h-8 w-auto">
+</span>

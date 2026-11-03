@@ -9,8 +9,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Inter is close to Apple's San Francisco font. */
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
+    /* Neutral greys used by Flux for borders, text and backgrounds. */
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
     --color-zinc-200: #e5e5e5;
@@ -23,16 +25,43 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
+    /* ERP2ALL navy (logo: #2c3e50 = brand-800). Main color: buttons, links, active menu. */
+    --color-brand-50: #f3f6f9;
+    --color-brand-100: #e3e9ef;
+    --color-brand-200: #c7d2de;
+    --color-brand-300: #9dafc3;
+    --color-brand-400: #6d86a1;
+    --color-brand-500: #4d6884;
+    --color-brand-600: #3c536c;
+    --color-brand-700: #334a60;
+    --color-brand-800: #2c3e50;
+    --color-brand-900: #233140;
+    --color-brand-950: #16202b;
+
+    /* ERP2ALL red (logo: #bf3b2b = ember-600). Highlights only, used sparingly. */
+    --color-ember-50: #fdf4f3;
+    --color-ember-100: #fbe6e4;
+    --color-ember-200: #f7d1cd;
+    --color-ember-300: #f0b0a9;
+    --color-ember-400: #e58378;
+    --color-ember-500: #d75c4e;
+    --color-ember-600: #bf3b2b;
+    --color-ember-700: #a12f23;
+    --color-ember-800: #852a21;
+    --color-ember-900: #6f2821;
+    --color-ember-950: #3c110d;
+
+    /* Flux reads these three to color its components. */
+    --color-accent: var(--color-brand-800);
+    --color-accent-content: var(--color-brand-800);
     --color-accent-foreground: var(--color-white);
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent: var(--color-brand-200);
+        --color-accent-content: var(--color-brand-200);
+        --color-accent-foreground: var(--color-brand-950);
     }
 }
 
