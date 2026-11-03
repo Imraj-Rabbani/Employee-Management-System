@@ -65,6 +65,29 @@
     }
 }
 
+/*
+ * Glassmorphism: a see-through panel that blurs whatever is behind it.
+ * Use it like any Tailwind class: <div class="glass rounded-2xl">.
+ */
+@utility glass {
+    background-color: rgb(255 255 255 / 0.55);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgb(255 255 255 / 0.6);
+    box-shadow: 0 8px 32px rgb(44 62 80 / 0.08);
+
+    @variant dark {
+        background-color: rgb(22 32 43 / 0.55);
+        border-color: rgb(255 255 255 / 0.08);
+        box-shadow: 0 8px 32px rgb(0 0 0 / 0.3);
+    }
+}
+
+/* Alpine: hide x-cloak elements until Alpine has started, so they do not flash on load. */
+[x-cloak] {
+    display: none !important;
+}
+
 @layer base {
 
     *,
