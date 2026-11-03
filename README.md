@@ -15,7 +15,7 @@ alias php=/Applications/MAMP/bin/php/php8.4.15/bin/php
 
 composer install
 cp .env.example .env && php artisan key:generate
-# create databases hrm_central (app) and hrm_testing (tests) in MySQL
+# create databases ems_clients (app) and hrm_testing (tests) in MySQL
 php artisan migrate
 npm install && npm run build
 
