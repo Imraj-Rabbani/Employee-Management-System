@@ -2,13 +2,14 @@
 
 namespace Tests\Feature\Modules;
 
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 class ModulePingTest extends TestCase
 {
+    use ActsAsTenantUser;
     use RefreshDatabase;
 
     /** @return array<string, array{string}> */
@@ -31,7 +32,7 @@ class ModulePingTest extends TestCase
     #[DataProvider('modules')]
     public function test_module_renders_its_ping_view(string $prefix): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAsTenantUser();
 
         $this->get("/{$prefix}/ping")
             ->assertOk()

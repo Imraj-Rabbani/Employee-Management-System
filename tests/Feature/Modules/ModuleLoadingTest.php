@@ -2,14 +2,15 @@
 
 namespace Tests\Feature\Modules;
 
-use App\Models\User;
 use App\Modules\Hrm\Livewire\Ping;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 class ModuleLoadingTest extends TestCase
 {
+    use ActsAsTenantUser;
     use RefreshDatabase;
 
     public function test_module_migration_folders_are_registered(): void
@@ -31,7 +32,7 @@ class ModuleLoadingTest extends TestCase
 
     public function test_ping_page_renders_the_livewire_component(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAsTenantUser();
 
         $this->get('/hrm/ping')->assertSeeLivewire(Ping::class);
     }

@@ -2,10 +2,12 @@
 
 namespace Tests\Feature\Modules;
 
+use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Core\Livewire\UsersTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
@@ -14,16 +16,19 @@ use Tests\TestCase;
  */
 class UsersTableTest extends TestCase
 {
+    use ActsAsTenantUser;
     use RefreshDatabase;
 
     private User $me;
+
+    private Tenant $tenant;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->me = User::factory()->create(['name' => 'Admin Person', 'email' => 'admin@example.com']);
-        $this->actingAs($this->me);
+        $this->me = $this->actingAsTenantUser(['name' => 'Admin Person', 'email' => 'admin@example.com']);
+        $this->tenant = $this->me->tenant;
     }
 
     public function test_users_page_renders_the_table(): void
@@ -36,8 +41,8 @@ class UsersTableTest extends TestCase
 
     public function test_search_matches_name_or_email(): void
     {
-        User::factory()->create(['name' => 'Rahim Uddin', 'email' => 'rahim@example.com']);
-        User::factory()->create(['name' => 'Karim Ali', 'email' => 'karim@test.org']);
+        User::factory()->for($this->tenant)->create(['name' => 'Rahim Uddin', 'email' => 'rahim@example.com']);
+        User::factory()->for($this->tenant)->create(['name' => 'Karim Ali', 'email' => 'karim@test.org']);
 
         Livewire::test(UsersTable::class)
             ->set('search', 'rahim')
@@ -50,7 +55,7 @@ class UsersTableTest extends TestCase
 
     public function test_search_treats_percent_as_text_not_a_wildcard(): void
     {
-        User::factory()->create(['name' => 'Rahim Uddin']);
+        User::factory()->for($this->tenant)->create(['name' => 'Rahim Uddin']);
 
         Livewire::test(UsersTable::class)
             ->set('search', '%')
@@ -59,8 +64,8 @@ class UsersTableTest extends TestCase
 
     public function test_sorting_toggles_direction_and_ignores_unknown_fields(): void
     {
-        User::factory()->create(['name' => 'Zara Khan']);
-        User::factory()->create(['name' => 'Anika Das']);
+        User::factory()->for($this->tenant)->create(['name' => 'Zara Khan']);
+        User::factory()->for($this->tenant)->create(['name' => 'Anika Das']);
 
         Livewire::test(UsersTable::class)
             ->call('sort', 'name')
@@ -75,7 +80,7 @@ class UsersTableTest extends TestCase
 
     public function test_status_filter(): void
     {
-        User::factory()->unverified()->create(['name' => 'Pending Person']);
+        User::factory()->for($this->tenant)->unverified()->create(['name' => 'Pending Person']);
 
         Livewire::test(UsersTable::class)
             ->set('filters.verified', 'no')
@@ -91,7 +96,7 @@ class UsersTableTest extends TestCase
 
     public function test_pagination_and_page_size(): void
     {
-        User::factory()->count(14)->create();
+        User::factory()->for($this->tenant)->count(14)->create();
 
         Livewire::test(UsersTable::class)
             ->assertSee('Showing')
@@ -124,7 +129,7 @@ class UsersTableTest extends TestCase
 
     public function test_select_page_selects_visible_rows(): void
     {
-        User::factory()->count(2)->create();
+        User::factory()->for($this->tenant)->count(2)->create();
 
         Livewire::test(UsersTable::class)
             ->set('selectPage', true)
@@ -136,7 +141,7 @@ class UsersTableTest extends TestCase
 
     public function test_bulk_verify(): void
     {
-        $pending = User::factory()->unverified()->create();
+        $pending = User::factory()->for($this->tenant)->unverified()->create();
 
         Livewire::test(UsersTable::class)
             ->set('selected', [(string) $pending->id])
@@ -149,7 +154,7 @@ class UsersTableTest extends TestCase
 
     public function test_bulk_delete_never_deletes_yourself(): void
     {
-        $other = User::factory()->create();
+        $other = User::factory()->for($this->tenant)->create();
 
         Livewire::test(UsersTable::class)
             ->set('selected', [(string) $other->id, (string) $this->me->id])
@@ -175,11 +180,33 @@ class UsersTableTest extends TestCase
 
     public function test_search_is_kept_in_the_url(): void
     {
-        User::factory()->create(['name' => 'Rahim Uddin']);
+        User::factory()->for($this->tenant)->create(['name' => 'Rahim Uddin']);
 
         Livewire::withQueryParams(['q' => 'rahim'])
             ->test(UsersTable::class)
             ->assertSet('search', 'rahim')
             ->assertDontSee('Admin Person');
+    }
+
+    public function test_users_of_other_companies_are_not_listed(): void
+    {
+        User::factory()->for(Tenant::factory())->create(['name' => 'Other Company Person']);
+        User::factory()->create(['name' => 'Platform Admin']);
+
+        Livewire::test(UsersTable::class)
+            ->assertSee('Admin Person')
+            ->assertDontSee('Other Company Person')
+            ->assertDontSee('Platform Admin');
+    }
+
+    public function test_bulk_delete_cannot_touch_users_of_other_companies(): void
+    {
+        $outsider = User::factory()->for(Tenant::factory())->create();
+
+        Livewire::test(UsersTable::class)
+            ->set('selected', [(string) $outsider->id])
+            ->call('runBulkAction', 'delete');
+
+        $this->assertModelExists($outsider);
     }
 }

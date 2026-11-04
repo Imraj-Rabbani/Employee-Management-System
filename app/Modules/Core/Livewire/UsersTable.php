@@ -15,10 +15,20 @@ use Illuminate\Support\HtmlString;
  */
 class UsersTable extends DataTable
 {
-    /** @return Builder<User> */
+    /**
+     * Only the users of the current company. Users live in the central database,
+     * so they are filtered by tenant_id (the tenant connection is not involved here).
+     *
+     * @return Builder<User>
+     */
     protected function query(): Builder
     {
-        return User::query();
+        $tenant = tenant();
+
+        // Without a company, where('tenant_id', null) would list the platform users. Refuse instead.
+        abort_if($tenant === null, 403);
+
+        return User::query()->where('tenant_id', $tenant->id);
     }
 
     protected function columns(): array
@@ -60,7 +70,7 @@ class UsersTable extends DataTable
     /** @param  list<string>  $ids */
     public function bulkVerify(array $ids): void
     {
-        $count = User::whereKey($ids)->whereNull('email_verified_at')->update(['email_verified_at' => now()]);
+        $count = $this->query()->whereKey($ids)->whereNull('email_verified_at')->update(['email_verified_at' => now()]);
 
         $this->dispatch('toast', message: trans_choice(':count user verified|:count users verified', $count), variant: 'success');
     }
@@ -69,7 +79,7 @@ class UsersTable extends DataTable
     public function bulkDelete(array $ids): void
     {
         // Never delete yourself from here.
-        $count = User::whereKey($ids)->whereKeyNot(auth()->id())->delete();
+        $count = $this->query()->whereKey($ids)->whereKeyNot(auth()->id())->delete();
 
         $this->dispatch('toast', message: trans_choice(':count user deleted|:count users deleted', $count), variant: 'success');
     }

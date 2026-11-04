@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Tenancy\IdentifyTenant;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -11,7 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        // Route::middleware(['auth', 'tenant']) switches to the user's company database.
+        $middleware->alias([
+            'tenant' => IdentifyTenant::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

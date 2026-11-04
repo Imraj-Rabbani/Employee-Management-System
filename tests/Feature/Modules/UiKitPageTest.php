@@ -2,20 +2,21 @@
 
 namespace Tests\Feature\Modules;
 
-use App\Models\User;
 use App\Modules\Core\Livewire\UiKit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Livewire\Livewire;
+use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 class UiKitPageTest extends TestCase
 {
+    use ActsAsTenantUser;
     use RefreshDatabase;
 
     public function test_ui_kit_page_renders(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAsTenantUser();
 
         $this->get('/core/ui-kit')
             ->assertOk()

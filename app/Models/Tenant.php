@@ -6,10 +6,26 @@ use Database\Factories\TenantFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * A company using the app. Lives in the central database (ems_clients).
  * Each tenant has its own database, named in $database (e.g. ems_tenant_sss).
+ *
+ * @property int $id
+ * @property string $code
+ * @property string $name
+ * @property string $database
+ * @property string|null $db_host
+ * @property int|null $db_port
+ * @property string|null $db_username
+ * @property string|null $db_password
+ * @property list<string>|null $modules
+ * @property array<string, mixed>|null $plugins
+ * @property bool $is_active
+ * @property Carbon|null $expires_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 class Tenant extends Model
 {
@@ -51,17 +67,15 @@ class Tenant extends Model
     }
 
     /**
-     * Settings for the "tenant" connection when this tenant is active: the tenant
-     * connection from config/database.php, with this tenant's database (and its own
-     * host/login, if set) filled in.
+     * Settings for the "tenant" connection when this tenant is active: the base
+     * settings (the original "tenant" connection from config/database.php) with this
+     * tenant's database, and its own host/login if set, filled in.
      *
+     * @param  array<string, mixed>  $base
      * @return array<string, mixed>
      */
-    public function connectionConfig(): array
+    public function connectionConfig(array $base): array
     {
-        /** @var array<string, mixed> $base */
-        $base = config('database.connections.tenant');
-
         return array_merge($base, array_filter([
             'database' => $this->database,
             'host' => $this->db_host,

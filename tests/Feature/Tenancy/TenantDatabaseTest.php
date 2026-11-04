@@ -3,6 +3,7 @@
 namespace Tests\Feature\Tenancy;
 
 use App\Core\Tenancy\TenantDatabase;
+use App\Core\Tenancy\TenantManager;
 use App\Models\Tenant;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -30,7 +31,7 @@ class TenantDatabaseTest extends TestCase
     protected function tearDown(): void
     {
         // Always remove the real database this test created, even if the test failed.
-        DB::purge('tenant');
+        app(TenantManager::class)->forget();
         $this->databases->drop($this->tenant);
 
         // MySQL commits the open transaction on CREATE/DROP DATABASE, so RefreshDatabase
@@ -55,9 +56,7 @@ class TenantDatabaseTest extends TestCase
     {
         $this->databases->create($this->tenant);
 
-        // This is what TenantManager will do in task 2.2.
-        config(['database.connections.tenant' => $this->tenant->connectionConfig()]);
-        DB::purge('tenant');
+        app(TenantManager::class)->switchTo($this->tenant);
 
         Schema::connection('tenant')->create('notes', function (Blueprint $table) {
             $table->id();
@@ -74,12 +73,14 @@ class TenantDatabaseTest extends TestCase
 
     public function test_connection_config_uses_the_tenant_overrides_only_when_set(): void
     {
-        $config = $this->tenant->connectionConfig();
+        $base = ['host' => '127.0.0.1', 'database' => null];
+
+        $config = $this->tenant->connectionConfig($base);
         $this->assertSame($this->tenant->database, $config['database']);
-        $this->assertSame(config('database.connections.central.host'), $config['host']);
+        $this->assertSame('127.0.0.1', $config['host']);
 
         $this->tenant->db_host = 'db2.example.com';
-        $this->assertSame('db2.example.com', $this->tenant->connectionConfig()['host']);
+        $this->assertSame('db2.example.com', $this->tenant->connectionConfig($base)['host']);
     }
 
     public function test_unsafe_database_names_are_refused(): void

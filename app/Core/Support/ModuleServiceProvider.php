@@ -20,8 +20,9 @@ abstract class ModuleServiceProvider extends ServiceProvider
         $path = $this->modulePath();
 
         // Every URL starts with /{name} and every route name with "{name}.".
+        // Module pages need a logged-in user AND their company ("tenant").
         if (file_exists($path.'/routes/web.php')) {
-            Route::middleware(['web', 'auth'])
+            Route::middleware(['web', 'auth', 'tenant'])
                 ->prefix($this->name)
                 ->name($this->name.'.')
                 ->group($path.'/routes/web.php');

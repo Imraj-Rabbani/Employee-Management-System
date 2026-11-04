@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Core\Tenancy\IdentifyTenant;
+use App\Core\Tenancy\TenantManager;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -11,7 +14,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // One TenantManager per request or queued job ("scoped"), so a long-running
+        // queue worker never carries one company's tenant over into the next job.
+        $this->app->scoped(TenantManager::class);
     }
 
     /**
@@ -19,6 +24,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Livewire clicks (wire:click, wire:model...) are separate requests to /livewire/update.
+        // This re-runs IdentifyTenant on them too, so actions use the same company database as the page.
+        Livewire::addPersistentMiddleware([
+            IdentifyTenant::class,
+        ]);
     }
 }
