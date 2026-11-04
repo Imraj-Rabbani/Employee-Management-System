@@ -2,6 +2,7 @@
 
 namespace App\Core\Support;
 
+use App\Core\Tenancy\TenantMigrationPaths;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -31,8 +32,9 @@ abstract class ModuleServiceProvider extends ServiceProvider
         // Lets us write view('{name}::ping') for resources/views/ping.blade.php.
         $this->loadViewsFrom($path.'/resources/views', $this->name);
 
-        // `php artisan migrate` also runs the files in Database/Migrations.
-        $this->loadMigrationsFrom($path.'/Database/Migrations');
+        // Module tables belong to each company, so Database/Migrations holds TENANT migrations.
+        // They run with `php artisan tenants:migrate`, not with the central `php artisan migrate`.
+        $this->app->make(TenantMigrationPaths::class)->add($path.'/Database/Migrations');
 
         // Lets us write <livewire:{name}::ping /> for Livewire/Ping.php.
         Livewire::addNamespace(

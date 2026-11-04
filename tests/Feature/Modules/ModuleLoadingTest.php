@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Modules;
 
+use App\Core\Tenancy\TenantMigrationPaths;
 use App\Modules\Hrm\Livewire\Ping;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -13,12 +14,14 @@ class ModuleLoadingTest extends TestCase
     use ActsAsTenantUser;
     use RefreshDatabase;
 
-    public function test_module_migration_folders_are_registered(): void
+    public function test_module_migration_folders_are_tenant_migrations_only(): void
     {
-        $paths = app('migrator')->paths();
+        $tenantPaths = app(TenantMigrationPaths::class)->all();
+        $centralPaths = app('migrator')->paths();
 
         foreach (['Core', 'Workflow', 'Hrm', 'Payroll'] as $module) {
-            $this->assertContains(app_path("Modules/{$module}/Database/Migrations"), $paths);
+            $this->assertContains(app_path("Modules/{$module}/Database/Migrations"), $tenantPaths);
+            $this->assertNotContains(app_path("Modules/{$module}/Database/Migrations"), $centralPaths);
         }
     }
 

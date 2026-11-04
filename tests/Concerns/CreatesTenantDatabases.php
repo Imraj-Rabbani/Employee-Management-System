@@ -1,0 +1,55 @@
+<?php
+
+namespace Tests\Concerns;
+
+use App\Core\Tenancy\TenantDatabase;
+use App\Core\Tenancy\TenantManager;
+use App\Models\Tenant;
+use Closure;
+
+/**
+ * For tests that need REAL tenant databases.
+ *
+ * MySQL commits the open transaction on CREATE/DROP DATABASE, so RefreshDatabase
+ * cannot undo the rows these tests create. tearDownCreatesTenantDatabases() cleans
+ * up instead: it drops every database made here and deletes the tenants and their users.
+ * (Laravel calls setUp{TraitName}/tearDown{TraitName} methods of test traits automatically.)
+ */
+trait CreatesTenantDatabases
+{
+    /** @var list<Tenant> */
+    private array $createdTenants = [];
+
+    /**
+     * Create a tenant with its own database. $schema builds tables in it, e.g.
+     * fn () => Schema::connection('tenant')->create('notes', ...).
+     */
+    protected function createTenantWithDatabase(?Closure $schema = null): Tenant
+    {
+        $tenant = Tenant::factory()->create(['code' => 't'.strtolower(str()->random(8))]);
+        $this->createdTenants[] = $tenant;
+
+        app(TenantDatabase::class)->create($tenant);
+
+        if ($schema) {
+            app(TenantManager::class)->switchTo($tenant);
+            $schema();
+            app(TenantManager::class)->forget();
+        }
+
+        return $tenant;
+    }
+
+    protected function tearDownCreatesTenantDatabases(): void
+    {
+        app(TenantManager::class)->forget();
+
+        foreach ($this->createdTenants as $tenant) {
+            app(TenantDatabase::class)->drop($tenant);
+            $tenant->users()->delete();
+            $tenant->delete();
+        }
+
+        $this->createdTenants = [];
+    }
+}

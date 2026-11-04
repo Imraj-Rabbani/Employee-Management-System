@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Core\Tenancy\IdentifyTenant;
 use App\Core\Tenancy\TenantManager;
+use App\Core\Tenancy\TenantMigrationPaths;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
@@ -17,6 +18,9 @@ class AppServiceProvider extends ServiceProvider
         // One TenantManager per request or queued job ("scoped"), so a long-running
         // queue worker never carries one company's tenant over into the next job.
         $this->app->scoped(TenantManager::class);
+
+        // The list of tenant migration folders is the same for the whole app: one shared instance.
+        $this->app->singleton(TenantMigrationPaths::class);
     }
 
     /**
