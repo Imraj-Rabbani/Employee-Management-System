@@ -35,6 +35,16 @@ class Tenant extends Model
     /** Always the central database, whichever connection is the default. */
     protected $connection = 'central';
 
+    /**
+     * Modules a super admin can switch on or off per company (key => label).
+     * Core (settings, users, roles) and Self Service are always on, so they are not listed.
+     */
+    public const OPTIONAL_MODULES = [
+        'hrm' => 'HRM',
+        'payroll' => 'Payroll',
+        'workflow' => 'Workflow',
+    ];
+
     protected $fillable = [
         'code',
         'name',
@@ -83,6 +93,19 @@ class Tenant extends Model
             'username' => $this->db_username,
             'password' => $this->db_password,
         ], fn ($value) => $value !== null && $value !== ''));
+    }
+
+    /**
+     * Can this company use the module? Modules that are not optional (core) are always on.
+     * "hrm", "payroll", "workflow" must be switched on by the super admin (Platform admin → Edit company).
+     */
+    public function hasModule(string $module): bool
+    {
+        if (! array_key_exists($module, self::OPTIONAL_MODULES)) {
+            return true;
+        }
+
+        return in_array($module, $this->modules ?? [], true);
     }
 
     /** The database name every new tenant gets: ems_tenant_{code}. */

@@ -28,4 +28,9 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 });
 
+// Super-admin (platform) area: manage companies. No "tenant" middleware: it works on the central database only.
+Route::middleware(['auth', 'can:super-admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::view('/', 'admin.dashboard')->name('dashboard');
+});
+
 require __DIR__.'/auth.php';

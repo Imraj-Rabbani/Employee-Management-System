@@ -19,6 +19,16 @@ class User extends Authenticatable // implements MustVerifyEmail
     protected $connection = 'central';
 
     /**
+     * Defaults for a new User object, matching the column defaults in the migration.
+     * (Without this, is_super_admin is null on a user just created in PHP, until it is re-read from the DB.)
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'is_super_admin' => false,
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -49,7 +59,17 @@ class User extends Authenticatable // implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_super_admin' => 'boolean',
         ];
+    }
+
+    /**
+     * Platform owner: can open the /admin area (create companies, enable modules).
+     * is_super_admin is deliberately not in $fillable: set it by hand, never from a form.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->is_super_admin;
     }
 
     /**

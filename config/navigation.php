@@ -12,6 +12,9 @@
 | An item with 'route' => null has no page yet and is shown as "Soon".
 | When the screen is built, put its route name here, e.g. 'hrm.employees.index'.
 |
+| 'module' => 'hrm' hides the whole group when the company does not have
+| that module switched on (Tenant::hasModule). Groups without it always show.
+|
 */
 
 return [
@@ -31,6 +34,7 @@ return [
 
     [
         'heading' => 'HRM',
+        'module' => 'hrm',
         'active' => 'hrm.*',
         'items' => [
             ['label' => 'Employees', 'route' => null],
@@ -49,6 +53,7 @@ return [
 
     [
         'heading' => 'Payroll',
+        'module' => 'payroll',
         'active' => 'payroll.*',
         'items' => [
             ['label' => 'Salary Setup', 'route' => null],
@@ -65,6 +70,7 @@ return [
 
     [
         'heading' => 'Workflow',
+        'module' => 'workflow',
         'active' => 'workflow.*',
         'items' => [
             ['label' => 'My Approvals', 'route' => null],
@@ -74,6 +80,7 @@ return [
 
     [
         'heading' => 'Setup',
+        'module' => 'core',
         'active' => 'core.*',
         'items' => [
             ['label' => 'Company Settings', 'route' => null],

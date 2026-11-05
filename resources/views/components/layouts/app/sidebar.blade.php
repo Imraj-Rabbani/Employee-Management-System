@@ -20,11 +20,20 @@
 
             <flux:navlist variant="outline">
                 <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+
+                {{-- Platform owners only (Gate "super-admin" in AppServiceProvider). --}}
+                @can('super-admin')
+                    <flux:navlist.item icon="building-office-2" :href="route('admin.dashboard')" :current="request()->routeIs('admin.*')" wire:navigate>{{ __('Platform admin') }}</flux:navlist.item>
+                @endcan
             </flux:navlist>
 
             {{-- Self Service + modules, defined in config/navigation.php --}}
             <flux:navlist variant="outline">
                 @foreach (config('navigation') as $group)
+                    {{-- Skip modules the user's company has not switched on. (auth()->user()->tenant, not tenant():
+                         pages like /dashboard don't run the "tenant" middleware.) --}}
+                    @continue(isset($group['module']) && ! auth()->user()?->tenant?->hasModule($group['module']))
+
                     <flux:navlist.group expandable :heading="__($group['heading'])" :expanded="request()->routeIs($group['active'])" class="grid">
                         @foreach ($group['items'] as $item)
                             @if ($item['route'])
