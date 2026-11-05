@@ -25,8 +25,9 @@ class IdentifyTenant
         $tenant = $user?->tenant;
 
         abort_if($tenant === null, 403, __('Your account is not linked to a company.'));
-        abort_unless($tenant->is_active, 403, __('This company account is inactive.'));
-        abort_if($tenant->expires_at?->isPast(), 403, __('This company subscription has expired.'));
+
+        $problem = $tenant->accessProblem();
+        abort_if($problem !== null, 403, (string) $problem);
 
         $this->tenants->switchTo($tenant);
 

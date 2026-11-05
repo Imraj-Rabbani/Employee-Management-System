@@ -8,6 +8,7 @@ use App\Core\Tenancy\IdentifyTenant;
 use App\Core\Tenancy\TenantManager;
 use App\Core\Tenancy\TenantMigrationPaths;
 use App\Models\User;
+use Illuminate\Auth\Middleware\RequirePassword;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Support\Facades\Gate;
@@ -45,6 +46,8 @@ class AppServiceProvider extends ServiceProvider
         Livewire::addPersistentMiddleware([
             IdentifyTenant::class,
             EnsureModuleEnabled::class,
+            // "password.confirm": pages that asked for the password (e.g. 2FA settings) keep asking once it expires.
+            RequirePassword::class,
         ]);
 
         // Gate "super-admin": used as ->middleware('can:super-admin') on /admin routes and @can('super-admin') in Blade.

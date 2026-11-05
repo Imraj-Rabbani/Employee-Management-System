@@ -108,6 +108,23 @@ class Tenant extends Model
         return in_array($module, $this->modules ?? [], true);
     }
 
+    /**
+     * Why this company's users may not work right now, or null when they may.
+     * Used at login (FortifyServiceProvider) and on every request (IdentifyTenant).
+     */
+    public function accessProblem(): ?string
+    {
+        if (! $this->is_active) {
+            return __('This company account is inactive.');
+        }
+
+        if ($this->expires_at?->isPast()) {
+            return __('This company subscription has expired.');
+        }
+
+        return null;
+    }
+
     /** The database name every new tenant gets: ems_tenant_{code}. */
     public static function databaseNameFor(string $code): string
     {

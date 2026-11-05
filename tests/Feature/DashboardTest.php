@@ -18,13 +18,18 @@ class DashboardTest extends TestCase
         $response->assertRedirect('/login');
     }
 
-    public function test_authenticated_users_can_visit_the_dashboard(): void
+    public function test_company_users_can_visit_the_dashboard(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $this->actingAsTenantUser();
 
-        $response = $this->get('/dashboard');
-        $response->assertStatus(200);
+        $this->get('/dashboard')->assertOk();
+    }
+
+    public function test_users_without_a_company_cannot_open_the_dashboard(): void
+    {
+        $this->actingAs(User::factory()->create(['tenant_id' => null]));
+
+        $this->get('/dashboard')->assertForbidden();
     }
 
     public function test_sidebar_shows_self_service_and_module_groups(): void

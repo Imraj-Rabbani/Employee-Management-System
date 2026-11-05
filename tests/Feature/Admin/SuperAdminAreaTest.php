@@ -44,7 +44,7 @@ class SuperAdminAreaTest extends TestCase
     public function test_the_sidebar_link_shows_only_for_super_admins(): void
     {
         $this->actingAs(User::factory()->superAdmin()->create())
-            ->get('/dashboard')
+            ->get('/admin')
             ->assertSee(route('admin.dashboard'));
 
         $this->actingAs(User::factory()->for(Tenant::factory())->create())

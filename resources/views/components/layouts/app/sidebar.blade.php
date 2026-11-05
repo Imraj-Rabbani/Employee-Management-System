@@ -14,12 +14,12 @@
         <flux:sidebar sticky stashable class="glass !border-y-0 !border-l-0">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-            <a href="{{ route('dashboard') }}" class="mr-5 flex items-center space-x-2" wire:navigate>
+            <a href="{{ route('home') }}" class="mr-5 flex items-center space-x-2" wire:navigate>
                 <x-app-logo />
             </a>
 
             <flux:navlist variant="outline">
-                <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                <flux:navlist.item icon="home" :href="route('home')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
 
                 {{-- Platform owners only (Gate "super-admin" in AppServiceProvider). --}}
                 @can('super-admin')

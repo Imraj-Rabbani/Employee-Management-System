@@ -6,16 +6,16 @@ use App\Modules\Payroll\PayrollServiceProvider;
 use App\Modules\Workflow\WorkflowServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Providers\FolioServiceProvider;
+use App\Providers\FortifyServiceProvider;
 use App\Providers\VoltServiceProvider;
 
 return [
-    AppServiceProvider::class,
-    FolioServiceProvider::class,
-    VoltServiceProvider::class,
-
-    // Modules (app/Modules)
     CoreServiceProvider::class,
-    WorkflowServiceProvider::class,
     HrmServiceProvider::class,
     PayrollServiceProvider::class,
+    WorkflowServiceProvider::class,
+    AppServiceProvider::class,
+    FolioServiceProvider::class,
+    FortifyServiceProvider::class,
+    VoltServiceProvider::class,
 ];
