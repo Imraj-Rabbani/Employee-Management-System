@@ -2,6 +2,7 @@
 
 namespace App\Core\Support;
 
+use App\Core\Permissions\PermissionRegistry;
 use App\Core\Tenancy\TenantMigrationPaths;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -36,6 +37,11 @@ abstract class ModuleServiceProvider extends ServiceProvider
         // Module tables belong to each company, so Database/Migrations holds TENANT migrations.
         // They run with `php artisan tenants:migrate`, not with the central `php artisan migrate`.
         $this->app->make(TenantMigrationPaths::class)->add($path.'/Database/Migrations');
+
+        // The module's permission keys (permissions.php), shown on the Roles screen and checked by the Gate.
+        if (file_exists($path.'/permissions.php')) {
+            $this->app->make(PermissionRegistry::class)->addModule($this->name, require $path.'/permissions.php');
+        }
 
         // Lets us write <livewire:{name}::ping /> for Livewire/Ping.php.
         Livewire::addNamespace(

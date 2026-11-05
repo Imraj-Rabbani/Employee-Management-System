@@ -21,6 +21,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  *     columns()      which columns (Column::make(...))
  *     filters()      optional dropdown filters (SelectFilter::make(...))
  *     bulkActions()  optional actions for selected rows, each handled by a bulk{Key}(array $ids) method
+ *     defaultSort()  optional order before the user sorts, e.g. ['start_date' => 'desc']
  *
  * Search, sorting, filters, pagination, column toggle, selection and Excel export come from here.
  * Search, sort, filters and page size are kept in the URL, so a filtered list can be bookmarked or shared.
@@ -62,6 +63,16 @@ abstract class DataTable extends Component
 
     /** @return list<Column> */
     abstract protected function columns(): array;
+
+    /**
+     * Order used until the user clicks a column header, e.g. ['start_date' => 'desc'].
+     *
+     * @return array<string, 'asc'|'desc'>
+     */
+    protected function defaultSort(): array
+    {
+        return [];
+    }
 
     /** @return list<SelectFilter> */
     protected function filters(): array
@@ -190,6 +201,10 @@ abstract class DataTable extends Component
 
         if (in_array($this->sortBy, $this->sortableFields(), true)) {
             $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            foreach ($this->defaultSort() as $field => $direction) {
+                $query->orderBy($field, $direction);
+            }
         }
 
         return $query;

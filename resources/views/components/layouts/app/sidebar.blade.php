@@ -36,6 +36,9 @@
 
                     <flux:navlist.group expandable :heading="__($group['heading'])" :expanded="request()->routeIs($group['active'])" class="grid">
                         @foreach ($group['items'] as $item)
+                            {{-- Hide items the user has no permission for. --}}
+                            @continue(isset($item['can']) && ! auth()->user()?->can($item['can']))
+
                             @if ($item['route'])
                                 <flux:navlist.item :href="route($item['route'])" :current="request()->routeIs($item['route'])" wire:navigate>{{ __($item['label']) }}</flux:navlist.item>
                             @else

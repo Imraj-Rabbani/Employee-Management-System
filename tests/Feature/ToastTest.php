@@ -2,19 +2,19 @@
 
 namespace Tests\Feature;
 
-use App\Models\Tenant;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 class ToastTest extends TestCase
 {
+    use ActsAsTenantUser;
     use RefreshDatabase;
 
     public function test_layout_contains_the_toast_container(): void
     {
-        $this->actingAs(User::factory()->for(Tenant::factory())->create());
+        $this->actingAsTenantUser();
 
         $this->get('/dashboard')->assertSee('x-on:toast.window', false);
     }
@@ -28,7 +28,7 @@ class ToastTest extends TestCase
 
     public function test_flashed_toast_is_shown_after_a_redirect(): void
     {
-        $this->actingAs(User::factory()->for(Tenant::factory())->create());
+        $this->actingAsTenantUser();
 
         $this->withSession(['toast' => ['message' => 'Employee saved', 'variant' => 'success']])
             ->get('/dashboard')

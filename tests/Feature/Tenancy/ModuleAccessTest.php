@@ -5,6 +5,7 @@ namespace Tests\Feature\Tenancy;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
@@ -12,6 +13,7 @@ use Tests\TestCase;
  */
 class ModuleAccessTest extends TestCase
 {
+    use ActsAsTenantUser;
     use RefreshDatabase;
 
     public function test_has_module_follows_the_tenant_modules_and_core_is_always_on(): void
@@ -28,7 +30,7 @@ class ModuleAccessTest extends TestCase
 
     public function test_pages_of_switched_off_modules_are_forbidden(): void
     {
-        $this->actingAs($this->userOfCompanyWith(['hrm']));
+        $this->userOfCompanyWith(['hrm']);
 
         $this->get('/hrm/ping')->assertOk();
         $this->get('/core/ping')->assertOk();
@@ -39,7 +41,7 @@ class ModuleAccessTest extends TestCase
     public function test_switching_a_module_on_opens_its_pages(): void
     {
         $user = $this->userOfCompanyWith([]);
-        $this->actingAs($user)->get('/payroll/ping')->assertForbidden();
+        $this->get('/payroll/ping')->assertForbidden();
 
         $user->tenant?->update(['modules' => ['payroll']]);
 
@@ -48,8 +50,9 @@ class ModuleAccessTest extends TestCase
 
     public function test_the_sidebar_hides_switched_off_modules(): void
     {
-        $this->actingAs($this->userOfCompanyWith(['hrm']))
-            ->get('/dashboard')
+        $this->userOfCompanyWith(['hrm']);
+
+        $this->get('/dashboard')
             ->assertOk()
             ->assertSee('Employees')        // HRM item
             ->assertSee('Users')            // Setup (core) item
@@ -60,6 +63,7 @@ class ModuleAccessTest extends TestCase
     /** @param  list<string>  $modules */
     private function userOfCompanyWith(array $modules): User
     {
-        return User::factory()->for(Tenant::factory()->state(['modules' => $modules]))->create();
+        // A company Administrator, so only the module switch decides.
+        return $this->actingAsTenantUser(tenant: $this->createMigratedTenant(['modules' => $modules]));
     }
 }

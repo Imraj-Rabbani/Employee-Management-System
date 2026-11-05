@@ -74,6 +74,9 @@ class CreateTenantTest extends TestCase
         $this->assertSame($tenant->id, $admin->tenant_id);
         $this->assertFalse($admin->isSuperAdmin());
         $this->assertTrue(Hash::check('secret-password', $admin->password));
+
+        // ...and has the company's Administrator role (task 2.9a). We are still switched to the tenant here.
+        $this->assertTrue($admin->role()?->is_admin);
     }
 
     public function test_the_code_is_saved_in_lowercase(): void

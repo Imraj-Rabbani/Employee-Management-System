@@ -4,6 +4,7 @@ namespace App\Core\Tenancy;
 
 use App\Models\Tenant;
 use App\Models\User;
+use App\Modules\Core\Models\Role;
 use Illuminate\Support\Facades\Artisan;
 use RuntimeException;
 use Throwable;
@@ -14,7 +15,8 @@ use Throwable;
  *   1. saves the tenant row in the central DB (ems_clients.tenants)
  *   2. creates its database ems_tenant_{code}
  *   3. runs the tenant migrations and TenantDatabaseSeeder in it
- *   4. creates the company's first login (admin user) in the central users table
+ *   4. creates the company's first login (admin user) in the central users table,
+ *      and gives it the company's Administrator role (seeded in step 3)
  *
  *     $tenant = app(CreateTenant::class)->handle(
  *         code: 'sss', name: 'SSS Ltd',
@@ -33,6 +35,7 @@ class CreateTenant
     public function __construct(
         private TenantDatabase $databases,
         private TenantMigrationPaths $migrationPaths,
+        private TenantManager $tenants,
     ) {}
 
     /** @param  list<string>  $modules */
@@ -72,12 +75,13 @@ class CreateTenant
             }
             $this->artisan('tenants:seed', ['--tenant' => [$code]]);
 
-            // Step 4. The company's first login. (Its "Admin" role is added in task 2.9.)
-            $tenant->users()->create([
+            // Step 4. The company's first login, with the Administrator role.
+            $admin = $tenant->users()->create([
                 'name' => $adminName,
                 'email' => $adminEmail,
                 'password' => $adminPassword,   // hashed by the User model's "hashed" cast
             ]);
+            $this->makeAdministrator($tenant, $admin);
         } catch (Throwable $e) {
             $this->undo($tenant, $databaseCreated);
 
@@ -85,6 +89,20 @@ class CreateTenant
         }
 
         return $tenant;
+    }
+
+    /** Role rows live in the tenant DB: switch there for a moment, then back to where we were. */
+    private function makeAdministrator(Tenant $tenant, User $user): void
+    {
+        $previous = $this->tenants->current();
+        $this->tenants->switchTo($tenant);
+
+        try {
+            $role = Role::administrator() ?? throw new RuntimeException('The Administrator role was not seeded.');
+            $role->assignTo($user);
+        } finally {
+            $previous !== null ? $this->tenants->switchTo($previous) : $this->tenants->forget();
+        }
     }
 
     /** @param  array<string, mixed>  $parameters */

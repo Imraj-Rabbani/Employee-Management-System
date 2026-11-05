@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Modules\Core\Models\Role;
+use App\Modules\Core\Models\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -65,6 +67,19 @@ class User extends Authenticatable // implements MustVerifyEmail
             'is_super_admin' => 'boolean',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * This login's role in the CURRENT company (tenant DB, table user_roles), or null.
+     * Null as well when no company is active or the user belongs to another company.
+     */
+    public function role(): ?Role
+    {
+        if ($this->tenant_id === null || tenant()?->id !== $this->tenant_id) {
+            return null;
+        }
+
+        return UserRole::where('user_id', $this->id)->first()?->role;
     }
 
     /**

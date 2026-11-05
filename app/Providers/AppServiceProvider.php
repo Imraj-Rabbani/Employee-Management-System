@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Core\Permissions\PermissionRegistry;
 use App\Core\Plugins\PluginRegistry;
 use App\Core\Tenancy\EnsureModuleEnabled;
 use App\Core\Tenancy\IdentifyTenant;
@@ -30,6 +31,9 @@ class AppServiceProvider extends ServiceProvider
 
         // The list of tenant migration folders is the same for the whole app: one shared instance.
         $this->app->singleton(TenantMigrationPaths::class);
+
+        // Permission keys from every module's permissions.php: one shared list.
+        $this->app->singleton(PermissionRegistry::class);
 
         // Plugin slots and plugins are declared once by the module providers: one shared instance.
         $this->app->singleton(PluginRegistry::class);

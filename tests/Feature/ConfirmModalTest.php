@@ -2,19 +2,19 @@
 
 namespace Tests\Feature;
 
-use App\Models\Tenant;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 class ConfirmModalTest extends TestCase
 {
+    use ActsAsTenantUser;
     use RefreshDatabase;
 
     public function test_layout_contains_the_confirm_modal(): void
     {
-        $this->actingAs(User::factory()->for(Tenant::factory())->create());
+        $this->actingAsTenantUser();
 
         $this->get('/dashboard')
             ->assertSee('x-on:confirm.window', false)

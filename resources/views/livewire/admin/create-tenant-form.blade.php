@@ -22,9 +22,6 @@
         </form>
 
         <x-slot:footer>
-            <flux:modal.close>
-                <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
-            </flux:modal.close>
             <flux:button type="submit" form="create-tenant-form" variant="primary">
                 <span wire:loading.remove wire:target="save">{{ __('Create company') }}</span>
                 <span wire:loading wire:target="save">{{ __('Creating…') }}</span>

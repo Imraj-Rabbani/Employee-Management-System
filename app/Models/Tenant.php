@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Modules\Core\Models\FiscalYear;
 use Database\Factories\TenantFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use LogicException;
 
 /**
  * A company using the app. Lives in the central database (ems_clients).
@@ -123,6 +125,19 @@ class Tenant extends Model
         }
 
         return null;
+    }
+
+    /**
+     * This company's active fiscal year (from its own database). Only works for the current tenant,
+     * because only the current tenant's database is connected.
+     */
+    public function activeFiscalYear(): ?FiscalYear
+    {
+        if (tenant()?->id !== $this->id) {
+            throw new LogicException("Tenant [{$this->code}] is not the current tenant.");
+        }
+
+        return FiscalYear::active();
     }
 
     /** The database name every new tenant gets: ems_tenant_{code}. */

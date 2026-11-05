@@ -40,9 +40,6 @@
         </form>
 
         <x-slot:footer>
-            <flux:modal.close>
-                <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
-            </flux:modal.close>
             <flux:button type="submit" form="edit-tenant-form" variant="primary">{{ __('Save') }}</flux:button>
         </x-slot:footer>
     </x-ui.modal>

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Modules\Core\Database\Seeders\RolesSeeder;
 use Illuminate\Database\Seeder;
 
 /**
@@ -17,9 +18,8 @@ class TenantDatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            RolesSeeder::class,
             // Added as the modules are built, e.g.:
-            // \App\Modules\Core\Database\Seeders\SettingsSeeder::class,      (2.8)
-            // \App\Modules\Core\Database\Seeders\RolesSeeder::class,         (2.9)
             // \App\Modules\Hrm\Database\Seeders\LeaveTypeSeeder::class,      (Phase 5)
         ]);
     }

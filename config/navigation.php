@@ -12,6 +12,8 @@
 | An item with 'route' => null has no page yet and is shown as "Soon".
 | When the screen is built, put its route name here, e.g. 'hrm.employees.index'.
 |
+| 'can' => 'core.users.view' on an item hides it from users without that permission.
+|
 | 'module' => 'hrm' hides the whole group when the company does not have
 | that module switched on (Tenant::hasModule). Groups without it always show.
 |
@@ -83,10 +85,10 @@ return [
         'module' => 'core',
         'active' => 'core.*',
         'items' => [
-            ['label' => 'Company Settings', 'route' => null],
-            ['label' => 'Fiscal Years', 'route' => null],
-            ['label' => 'Users', 'route' => 'core.users'],
-            ['label' => 'Roles & Permissions', 'route' => null],
+            ['label' => 'Company Settings', 'route' => 'core.settings', 'can' => 'core.settings.manage'],
+            ['label' => 'Fiscal Years', 'route' => 'core.fiscal-years', 'can' => 'core.fiscal_years.manage'],
+            ['label' => 'Users', 'route' => 'core.users', 'can' => 'core.users.view'],
+            ['label' => 'Roles & Permissions', 'route' => 'core.roles', 'can' => 'core.roles.manage'],
             ['label' => 'UI Kit', 'route' => 'core.ui-kit'],
         ],
     ],
