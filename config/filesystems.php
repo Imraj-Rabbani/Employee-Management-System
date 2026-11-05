@@ -45,6 +45,14 @@ return [
             'throw' => false,
         ],
 
+        // The current company's own files: storage/app/tenants/{tenant code}.
+        // The folder is chosen when the disk is first used (see AppServiceProvider),
+        // and using it with no company active throws an error.
+        'tenant' => [
+            'driver' => 'tenant',
+            'throw' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

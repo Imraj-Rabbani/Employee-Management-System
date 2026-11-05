@@ -4,6 +4,7 @@ namespace App\Core\Tenancy;
 
 use App\Models\Tenant;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Knows which tenant (company) the current request or job is working for,
@@ -35,6 +36,9 @@ class TenantManager
         // Laravel keeps a connection open once used. Close it so the next query reconnects with the new settings.
         DB::purge('tenant');
 
+        // Same for the "tenant" disk: Laravel keeps a disk once built. Drop it so it is rebuilt for this tenant.
+        Storage::forgetDisk('tenant');
+
         $this->current = $tenant;
     }
 
@@ -43,6 +47,7 @@ class TenantManager
     {
         config(['database.connections.tenant' => $this->baseConfig]);
         DB::purge('tenant');
+        Storage::forgetDisk('tenant');
 
         $this->current = null;
     }

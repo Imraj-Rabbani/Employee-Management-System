@@ -4,6 +4,7 @@ includes:
 parameters:
     paths:
         - app/
+        - tests/Fixtures/   # test-only models/jobs; also lets Larastan check traits no app class uses yet
 
     # 0 = loosest, 10 = strictest. PRD asks for level 6+.
     level: 6

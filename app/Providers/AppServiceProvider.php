@@ -5,8 +5,12 @@ namespace App\Providers;
 use App\Core\Tenancy\IdentifyTenant;
 use App\Core\Tenancy\TenantManager;
 use App\Core\Tenancy\TenantMigrationPaths;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Filesystem\FilesystemManager;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
+use LogicException;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -33,5 +37,15 @@ class AppServiceProvider extends ServiceProvider
         Livewire::addPersistentMiddleware([
             IdentifyTenant::class,
         ]);
+
+        // Storage::disk('tenant'): a local disk inside the current company's own folder.
+        Storage::extend('tenant', function (Application $app, array $config) {
+            $tenant = tenant() ?? throw new LogicException('Storage::disk(\'tenant\') was used with no tenant active.');
+
+            /** @var FilesystemManager $storage */
+            $storage = $app['filesystem'];
+
+            return $storage->createLocalDriver([...$config, 'root' => storage_path('app/tenants/'.$tenant->code)], 'tenant');
+        });
     }
 }
