@@ -10,7 +10,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * A currency the company works with (legacy `currencies`). [ORG-01]
  *
- *     Currency::default()     the row of the company's default currency (setting "currency"), or null
+ *     Currency::defaultCode() "BDT": the company's default currency (setting "currency", BDT if not chosen yet)
+ *     Currency::default()     its row, or null
  *
  * @property int $id
  * @property string $code ISO 4217, e.g. BDT
@@ -35,8 +36,13 @@ class Currency extends TenantModel
         return ['exchange_rate' => 'decimal:6', 'is_active' => 'boolean'];
     }
 
+    public static function defaultCode(): string
+    {
+        return (string) (settings('currency') ?: 'BDT');
+    }
+
     public static function default(): ?self
     {
-        return static::where('code', settings('currency', 'BDT'))->first();
+        return static::where('code', static::defaultCode())->first();
     }
 }

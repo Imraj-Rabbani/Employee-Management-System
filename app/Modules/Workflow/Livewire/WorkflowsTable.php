@@ -18,7 +18,7 @@ class WorkflowsTable extends DataTable
     /** @return Builder<Workflow> */
     protected function query(): Builder
     {
-        return Workflow::query()->with('approvalType')->withCount('steps');
+        return Workflow::query()->with(['approvalType', 'scopeOrgUnit', 'scopeEmploymentType'])->withCount('steps');
     }
 
     protected function defaultSort(): array
@@ -44,9 +44,11 @@ class WorkflowsTable extends DataTable
             Column::make(__('Type'), 'approval_type_id')
                 ->format(fn (Workflow $w) => $w->approvalType->name),
             Column::make(__('Applies to'), 'min_amount')
-                ->format(fn (Workflow $w) => $w->min_amount !== null
-                    ? __('Amount from :amount', ['amount' => number_format((float) $w->min_amount, 2)])
-                    : __('Everything')),
+                ->format(fn (Workflow $w) => collect([
+                    $w->scopeOrgUnit?->name,
+                    $w->scopeEmploymentType?->name,
+                    $w->min_amount !== null ? __('from :amount', ['amount' => number_format((float) $w->min_amount, 2)]) : null,
+                ])->filter()->implode(' · ') ?: __('Everything')),
             Column::make(__('Levels'), 'steps_count')->sortable(),
             Column::make(__('Email'), 'send_email')
                 ->format(fn (Workflow $w) => $w->send_email ? __('Yes') : __('No')),

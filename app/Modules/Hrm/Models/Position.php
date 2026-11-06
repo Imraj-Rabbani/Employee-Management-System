@@ -65,6 +65,27 @@ class Position extends TenantModel
         return $this->hasMany(self::class, 'parent_id');
     }
 
+    /**
+     * Would reporting to $parentId create a loop (A reports to B, B reports to ... A)?
+     * Walks up from $parentId; true if it reaches this position.
+     */
+    public function wouldLoopUnder(int $parentId): bool
+    {
+        $parents = static::query()->pluck('parent_id', 'id')->all();
+        $current = $parentId;
+        $seen = [];
+
+        while ($current !== null && ! in_array($current, $seen, true)) {
+            if ($current === $this->id) {
+                return true;
+            }
+            $seen[] = $current;
+            $current = $parents[$current] ?? null;
+        }
+
+        return false;
+    }
+
     /** @return BelongsTo<OrgUnit, $this> */
     public function orgUnit(): BelongsTo
     {

@@ -3,6 +3,8 @@
 namespace App\Modules\Workflow\Models;
 
 use App\Core\Models\TenantModel;
+use App\Modules\Hrm\Models\EmploymentType;
+use App\Modules\Hrm\Models\OrgUnit;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -48,6 +50,18 @@ class Workflow extends TenantModel
     public function approvalType(): BelongsTo
     {
         return $this->belongsTo(ApprovalType::class);
+    }
+
+    /** @return BelongsTo<OrgUnit, $this> */
+    public function scopeOrgUnit(): BelongsTo
+    {
+        return $this->belongsTo(OrgUnit::class, 'scope_org_unit_id');
+    }
+
+    /** @return BelongsTo<EmploymentType, $this> */
+    public function scopeEmploymentType(): BelongsTo
+    {
+        return $this->belongsTo(EmploymentType::class, 'scope_employment_type_id');
     }
 
     /**

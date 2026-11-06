@@ -10,3 +10,4 @@ Route::view('users', 'core::users')->middleware('can:core.users.view')->name('us
 Route::view('settings', 'core::company-settings')->middleware('can:core.settings.manage')->name('settings');
 Route::view('fiscal-years', 'core::fiscal-years')->middleware('can:core.fiscal_years.manage')->name('fiscal-years');
 Route::view('roles', 'core::roles')->middleware('can:core.roles.manage')->name('roles');
+Route::view('currencies', 'core::currencies')->middleware('can:core.settings.manage')->name('currencies');

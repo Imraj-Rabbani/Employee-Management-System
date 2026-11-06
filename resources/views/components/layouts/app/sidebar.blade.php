@@ -40,7 +40,7 @@
                             @continue(isset($item['can']) && ! auth()->user()?->can($item['can']))
 
                             @if ($item['route'])
-                                <flux:navlist.item :href="route($item['route'])" :current="request()->routeIs($item['route'])" wire:navigate>{{ __($item['label']) }}</flux:navlist.item>
+                                <flux:navlist.item :href="route($item['route'])" :current="request()->routeIs($item['current'] ?? $item['route'])" wire:navigate>{{ __($item['label']) }}</flux:navlist.item>
                             @else
                                 <flux:navlist.item badge="Soon" class="pointer-events-none opacity-60">{{ __($item['label']) }}</flux:navlist.item>
                             @endif

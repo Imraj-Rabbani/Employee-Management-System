@@ -162,6 +162,37 @@ class OrgUnit extends TenantModel
     }
 
     /**
+     * Every unit's full path, for dropdowns: [id => "Head Office › Finance"], sorted by path.
+     * Two queries in total, however many units there are.
+     *
+     * @param  list<int>  $except  ids to leave out (e.g. a unit and its own sub-units)
+     * @return array<int, string>
+     */
+    public static function pathOptions(array $except = []): array
+    {
+        $units = static::query()->get(['id', 'parent_id', 'name'])->keyBy('id');
+        $paths = [];
+
+        foreach ($units as $id => $unit) {
+            $names = [$unit->name];
+            $seen = [$id];
+            $parentId = $unit->parent_id;
+            while ($parentId !== null && isset($units[$parentId]) && ! in_array($parentId, $seen, true)) {
+                $seen[] = $parentId;
+                array_unshift($names, $units[$parentId]->name);
+                $parentId = $units[$parentId]->parent_id;
+            }
+            if (! in_array($id, $except, true)) {
+                $paths[$id] = implode(' › ', $names);
+            }
+        }
+
+        asort($paths, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return $paths;
+    }
+
+    /**
      * Every unit's parent: [id => parent_id]. One small query; org trees have hundreds of rows, not millions.
      *
      * @return array<int, int|null>

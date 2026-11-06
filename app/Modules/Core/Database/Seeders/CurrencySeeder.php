@@ -18,7 +18,7 @@ class CurrencySeeder extends Seeder
 
     public function run(): void
     {
-        $code = (string) settings('currency', 'BDT');
+        $code = Currency::defaultCode();
 
         Currency::firstOrCreate(['code' => $code], [
             'name' => config("currencies.{$code}", $code),

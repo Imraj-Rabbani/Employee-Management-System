@@ -14,6 +14,8 @@
 |
 | 'can' => 'core.users.view' on an item hides it from users without that permission.
 |
+| 'current' => 'hrm.org.*' keeps the item highlighted on several pages (default: its own route).
+|
 | 'module' => 'hrm' hides the whole group when the company does not have
 | that module switched on (Tenant::hasModule). Groups without it always show.
 |
@@ -40,7 +42,7 @@ return [
         'active' => 'hrm.*',
         'items' => [
             ['label' => 'Employees', 'route' => null],
-            ['label' => 'Organization', 'route' => null],
+            ['label' => 'Organization', 'route' => 'hrm.org.units', 'current' => 'hrm.org.*', 'can' => 'hrm.organization.manage'],
             ['label' => 'Attendance', 'route' => null],
             ['label' => 'Leave', 'route' => null],
             ['label' => 'Confirmation', 'route' => null],
@@ -87,6 +89,7 @@ return [
         'items' => [
             ['label' => 'Company Settings', 'route' => 'core.settings', 'can' => 'core.settings.manage'],
             ['label' => 'Fiscal Years', 'route' => 'core.fiscal-years', 'can' => 'core.fiscal_years.manage'],
+            ['label' => 'Currencies', 'route' => 'core.currencies', 'can' => 'core.settings.manage'],
             ['label' => 'Users', 'route' => 'core.users', 'can' => 'core.users.view'],
             ['label' => 'Roles & Permissions', 'route' => 'core.roles', 'can' => 'core.roles.manage'],
             ['label' => 'UI Kit', 'route' => 'core.ui-kit'],

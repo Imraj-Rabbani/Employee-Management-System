@@ -3,6 +3,8 @@
 namespace App\Modules\Workflow\Livewire;
 
 use App\Modules\Core\Models\Role;
+use App\Modules\Hrm\Models\EmploymentType;
+use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Models\ApprovalType;
 use App\Modules\Workflow\Models\Workflow;
@@ -22,7 +24,8 @@ use Livewire\Component;
  * On save, level N keeps the database row of the old level N (so approval history keeps
  * pointing at it); extra old levels are removed, which is refused if they have history.
  *
- * Scope by org unit / employment type is not on the form yet: those tables come in Phase 4.
+ * Scope: org unit and employment type (exact match for now: a workflow for "Finance" does not
+ * cover its sub-units yet), and a minimum amount.
  */
 class WorkflowForm extends Component
 {
@@ -34,6 +37,10 @@ class WorkflowForm extends Component
     public string $name = '';
 
     public string $minAmount = '';
+
+    public string $scopeOrgUnitId = '';
+
+    public string $scopeEmploymentTypeId = '';
 
     public bool $sendEmail = true;
 
@@ -65,6 +72,8 @@ class WorkflowForm extends Component
         $this->approvalTypeId = (string) $workflow->approval_type_id;
         $this->name = $workflow->name;
         $this->minAmount = $workflow->min_amount ?? '';
+        $this->scopeOrgUnitId = (string) $workflow->scope_org_unit_id;
+        $this->scopeEmploymentTypeId = (string) $workflow->scope_employment_type_id;
         $this->sendEmail = $workflow->send_email;
         $this->allowReview = $workflow->allow_review;
         $this->allowReject = $workflow->allow_reject;
@@ -103,6 +112,8 @@ class WorkflowForm extends Component
             'approvalTypeId' => ['required', Rule::exists(ApprovalType::class, 'id')],
             'name' => ['required', 'string', 'max:100'],
             'minAmount' => ['nullable', 'numeric', 'min:0', 'max:9999999999999'],
+            'scopeOrgUnitId' => ['nullable', Rule::exists(OrgUnit::class, 'id')],
+            'scopeEmploymentTypeId' => ['nullable', Rule::exists(EmploymentType::class, 'id')],
             'sendEmail' => ['boolean'],
             'allowReview' => ['boolean'],
             'allowReject' => ['boolean'],
@@ -121,6 +132,8 @@ class WorkflowForm extends Component
         return [
             'approvalTypeId' => __('type'),
             'minAmount' => __('minimum amount'),
+            'scopeOrgUnitId' => __('org unit'),
+            'scopeEmploymentTypeId' => __('employment type'),
             'steps' => __('levels'),
             'steps.*.approver_role_id' => __('role'),
             'steps.*.approver_type' => __('approver'),
@@ -147,6 +160,8 @@ class WorkflowForm extends Component
                 'approval_type_id' => (int) $this->approvalTypeId,
                 'name' => $this->name,
                 'min_amount' => $this->minAmount === '' ? null : $this->minAmount,
+                'scope_org_unit_id' => $this->scopeOrgUnitId === '' ? null : (int) $this->scopeOrgUnitId,
+                'scope_employment_type_id' => $this->scopeEmploymentTypeId === '' ? null : (int) $this->scopeEmploymentTypeId,
                 'send_email' => $this->sendEmail,
                 'allow_review' => $this->allowReview,
                 'allow_reject' => $this->allowReject,
@@ -178,6 +193,8 @@ class WorkflowForm extends Component
         return view('workflow::livewire.workflow-form', [
             'types' => ApprovalType::orderBy('name')->pluck('name', 'id')->all(),
             'roles' => Role::orderBy('name')->pluck('name', 'id')->all(),
+            'orgUnits' => OrgUnit::pathOptions(),
+            'employmentTypes' => EmploymentType::where('is_active', true)->orderBy('name')->pluck('name', 'id')->all(),
             'approverTypes' => ApproverType::cases(),
         ]);
     }
