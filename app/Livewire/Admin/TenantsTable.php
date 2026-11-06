@@ -58,7 +58,7 @@ class TenantsTable extends DataTable
                 ))),
             Column::make(__('Created'), 'created_at')
                 ->sortable()
-                ->format(fn (Tenant $tenant) => $tenant->created_at?->format('d M Y')),
+                ->format(fn (Tenant $tenant) => format_date($tenant->created_at)),
         ];
     }
 

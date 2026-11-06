@@ -54,7 +54,7 @@ class UsersTable extends DataTable
                 ))),
             Column::make(__('Joined'), 'created_at')
                 ->sortable()
-                ->format(fn (User $user) => $user->created_at?->format('d M Y')),
+                ->format(fn (User $user) => format_date($user->created_at)),
         ];
     }
 

@@ -61,6 +61,8 @@ class Role extends TenantModel
     public function syncPermissions(array $keys): void
     {
         $keys = array_values(array_unique($keys));
+        sort($keys);
+        $old = $this->permissionKeys();
 
         $this->getConnection()->transaction(function () use ($keys) {
             $this->permissions()->whereNotIn('permission', $keys)->delete();
@@ -70,6 +72,13 @@ class Role extends TenantModel
                 $this->permissions()->create(['permission' => $key]);
             }
         });
+
+        // One readable history entry on the role, instead of one per permission row.
+        if ($old !== $keys) {
+            activity()->performedOn($this)->event('updated')
+                ->withChanges(['old' => ['permissions' => $old], 'attributes' => ['permissions' => $keys]])
+                ->log('updated');
+        }
 
         app(Permissions::class)->flush();
     }

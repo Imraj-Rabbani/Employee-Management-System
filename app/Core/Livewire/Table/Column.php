@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  * One column of a DataTable.
  *
  *     Column::make(__('Name'), 'name')->sortable()->searchable()
- *     Column::make(__('Joined'), 'created_at')->format(fn (User $u) => $u->created_at->format('d M Y'))
+ *     Column::make(__('Joined'), 'created_at')->format(fn (User $u) => format_date($u->created_at))
  */
 class Column
 {

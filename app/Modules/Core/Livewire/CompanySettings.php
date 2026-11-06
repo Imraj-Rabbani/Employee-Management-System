@@ -16,16 +16,23 @@ class CompanySettings extends Component
     public const DEFAULTS = [
         'timezone' => 'Asia/Dhaka',
         'currency' => 'BDT',
+        'date_format' => 'd M Y',
     ];
+
+    /** PHP date formats a company can choose (format => example is built in render()). */
+    public const DATE_FORMATS = ['d M Y', 'd/m/Y', 'm/d/Y', 'Y-m-d', 'd.m.Y'];
 
     public string $timezone = '';
 
     public string $currency = '';
 
+    public string $dateFormat = '';
+
     public function mount(): void
     {
         $this->timezone = settings('timezone', self::DEFAULTS['timezone']);
         $this->currency = settings('currency', self::DEFAULTS['currency']);
+        $this->dateFormat = settings('date_format', self::DEFAULTS['date_format']);
     }
 
     /** @return array<string, mixed> */
@@ -34,6 +41,7 @@ class CompanySettings extends Component
         return [
             'timezone' => ['required', 'timezone:all'],
             'currency' => ['required', Rule::in(array_keys(config()->array('currencies')))],
+            'dateFormat' => ['required', Rule::in(self::DATE_FORMATS)],
         ];
     }
 
@@ -44,6 +52,7 @@ class CompanySettings extends Component
         settings()->setMany([
             'timezone' => $this->timezone,
             'currency' => $this->currency,
+            'date_format' => $this->dateFormat,
         ]);
 
         $this->dispatch('toast', message: __('Company settings saved.'), variant: 'success');
@@ -62,6 +71,8 @@ class CompanySettings extends Component
             'companyName' => tenant()?->name,
             'timezones' => array_combine($timezones, array_map(fn (string $zone) => str_replace('_', ' ', $zone), $timezones)),
             'currencies' => $currencies,
+            // e.g. "d/m/Y" => "05/11/2026"
+            'dateFormats' => collect(self::DATE_FORMATS)->mapWithKeys(fn (string $format) => [$format => now()->format($format)])->all(),
         ]);
     }
 }

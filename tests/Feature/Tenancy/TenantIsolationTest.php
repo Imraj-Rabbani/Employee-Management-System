@@ -35,8 +35,8 @@ class TenantIsolationTest extends TestCase
             $table->string('text');
         });
 
-        $this->alpha = $this->createTenantWithDatabase($notesTable);
-        $this->beta = $this->createTenantWithDatabase($notesTable);
+        $this->alpha = $this->createMigratedTenant(schema: $notesTable);
+        $this->beta = $this->createMigratedTenant(schema: $notesTable);
 
         $this->addNotes($this->alpha, ['Alpha note 1', 'Alpha note 2']);
         $this->addNotes($this->beta, ['Beta note 1']);

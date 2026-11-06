@@ -2,7 +2,6 @@
 
 use Spatie\Activitylog\Actions\CleanActivityLogAction;
 use Spatie\Activitylog\Actions\LogActivityAction;
-use Spatie\Activitylog\Models\Activity;
 
 return [
 
@@ -40,7 +39,8 @@ return [
      * It should implement the Spatie\Activitylog\Contracts\Activity interface
      * and extend Illuminate\Database\Eloquent\Model.
      */
-    'activity_model' => Activity::class,
+    // Our model: stores entries in the current company's database (connection "tenant").
+    'activity_model' => App\Modules\Core\Models\Activity::class,
 
     /*
      * These attributes will be excluded from logging for all models.

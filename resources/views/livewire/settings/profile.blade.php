@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\SetLocale;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -9,6 +10,7 @@ use Livewire\Volt\Component;
 new class extends Component {
     public string $name = '';
     public string $email = '';
+    public string $locale = 'en';
 
     /**
      * Mount the component.
@@ -17,6 +19,7 @@ new class extends Component {
     {
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
+        $this->locale = Auth::user()->locale;
     }
 
     /**
@@ -37,7 +40,11 @@ new class extends Component {
                 'max:255',
                 Rule::unique(User::class)->ignore($user->id)
             ],
+
+            'locale' => ['required', Rule::in(array_keys(SetLocale::LOCALES))],
         ]);
+
+        $languageChanged = $user->locale !== $validated['locale'];
 
         $user->fill($validated);
 
@@ -46,6 +53,13 @@ new class extends Component {
         }
 
         $user->save();
+
+        // A new language needs a full page load, so every text on the page is translated.
+        if ($languageChanged) {
+            $this->redirect(route('settings.profile'));
+
+            return;
+        }
 
         $this->dispatch('profile-updated', name: $user->name);
     }
@@ -100,6 +114,8 @@ new class extends Component {
                     </div>
                 @endif
             </div>
+
+            <x-form.select wire:model="locale" :label="__('Language')" :options="\App\Http\Middleware\SetLocale::LOCALES" :hint="__('The language the app is shown in for you.')" required />
 
             <div class="flex items-center gap-4">
                 <div class="flex items-center justify-end">

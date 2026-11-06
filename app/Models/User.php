@@ -29,6 +29,7 @@ class User extends Authenticatable // implements MustVerifyEmail
      */
     protected $attributes = [
         'is_super_admin' => false,
+        'locale' => 'en',
     ];
 
     /**
@@ -40,6 +41,7 @@ class User extends Authenticatable // implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'locale',
     ];
 
     /**

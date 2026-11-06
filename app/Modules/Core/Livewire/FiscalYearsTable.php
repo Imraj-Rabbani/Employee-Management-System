@@ -37,9 +37,9 @@ class FiscalYearsTable extends DataTable
                     ['id' => $year->id, 'name' => $year->name],
                 ))),
             Column::make(__('Starts'), 'start_date')->sortable()
-                ->format(fn (FiscalYear $year) => $year->start_date->format('d M Y')),
+                ->format(fn (FiscalYear $year) => format_date($year->start_date)),
             Column::make(__('Ends'), 'end_date')->sortable()
-                ->format(fn (FiscalYear $year) => $year->end_date->format('d M Y')),
+                ->format(fn (FiscalYear $year) => format_date($year->end_date)),
             Column::make(__('Status'), 'is_active')
                 ->format(fn (FiscalYear $year) => new HtmlString($year->is_active
                     ? Blade::render('<x-ui.badge color="success" dot>{{ __(\'Active\') }}</x-ui.badge>')

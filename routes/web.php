@@ -17,7 +17,7 @@ Route::get('/', function () {
 
 // The company dashboard runs inside the user's company ("tenant"), like module pages.
 Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified', 'tenant'])
+    ->middleware(['auth', 'verified', 'tenant', 'tenant.settings'])
     ->name('dashboard');
 
 Route::middleware(['auth'])->group(function () {

@@ -45,8 +45,9 @@ trait CreatesTenantDatabases
      * and the starting data seeded (e.g. the Administrator role).
      *
      * @param  array<string, mixed>  $attributes  tenant attributes, e.g. ['modules' => ['hrm']]
+     * @param  Closure|null  $schema  extra test tables, e.g. fn () => Schema::connection('tenant')->create('notes', ...)
      */
-    protected function createMigratedTenant(array $attributes = []): Tenant
+    protected function createMigratedTenant(array $attributes = [], ?Closure $schema = null): Tenant
     {
         $tenant = $this->createTenantWithDatabase();
         if ($attributes !== []) {
@@ -54,6 +55,12 @@ trait CreatesTenantDatabases
         }
 
         $this->artisan('tenants:migrate', ['--tenant' => [$tenant->code], '--seed' => true])->assertSuccessful();
+
+        if ($schema) {
+            app(TenantManager::class)->switchTo($tenant);
+            $schema();
+            app(TenantManager::class)->forget();
+        }
 
         return $tenant;
     }

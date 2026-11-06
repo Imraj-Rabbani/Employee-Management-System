@@ -39,8 +39,8 @@ class TenantAwareJobTest extends TestCase
             $table->string('text');
         });
 
-        $this->alpha = $this->createTenantWithDatabase($notesTable);
-        $this->beta = $this->createTenantWithDatabase($notesTable);
+        $this->alpha = $this->createMigratedTenant(schema: $notesTable);
+        $this->beta = $this->createMigratedTenant(schema: $notesTable);
         $this->tenants = app(TenantManager::class);
     }
 

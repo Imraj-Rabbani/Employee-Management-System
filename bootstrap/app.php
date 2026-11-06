@@ -2,6 +2,8 @@
 
 use App\Core\Tenancy\EnsureModuleEnabled;
 use App\Core\Tenancy\IdentifyTenant;
+use App\Http\Middleware\SetLocale;
+use App\Modules\Core\Http\Middleware\ApplyTenantSettings;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,7 +20,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant' => IdentifyTenant::class,
             // Route::middleware('module:payroll') blocks the page when the company lacks that module.
             'module' => EnsureModuleEnabled::class,
+            // Applies the company's timezone (Setup → Company Settings). Runs right after "tenant".
+            'tenant.settings' => ApplyTenantSettings::class,
         ]);
+
+        // Every page: the logged-in user's language (Settings → Profile).
+        $middleware->web(append: [SetLocale::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

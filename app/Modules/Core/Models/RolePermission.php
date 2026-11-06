@@ -18,6 +18,12 @@ class RolePermission extends TenantModel
 
     protected $fillable = ['permission'];
 
+    /** No log entry per row: Role::syncPermissions() writes ONE entry on the role (old list → new list). */
+    protected function shouldLogEvent(string $eventName): bool
+    {
+        return false;
+    }
+
     /** @return BelongsTo<Role, $this> */
     public function role(): BelongsTo
     {

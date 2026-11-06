@@ -3,6 +3,7 @@
 namespace App\Core\Tenancy;
 
 use App\Models\Tenant;
+use App\Modules\Core\Services\TenantPreferences;
 use Closure;
 use LogicException;
 
@@ -35,12 +36,20 @@ class TenantAware
         $previous = $tenants->current();
 
         $tenants->switchTo(Tenant::findOrFail($job->tenantId));
+        $preferences = app(TenantPreferences::class);
+        $preferences->apply();   // the company's timezone, like ApplyTenantSettings does for web requests
 
         try {
             return $next($job);
         } finally {
             // Always clean up, even when the job throws, so the next job starts clean.
-            $previous !== null ? $tenants->switchTo($previous) : $tenants->forget();
+            if ($previous !== null) {
+                $tenants->switchTo($previous);
+                $preferences->apply();
+            } else {
+                $tenants->forget();
+                $preferences->reset();
+            }
         }
     }
 }

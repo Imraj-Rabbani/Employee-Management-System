@@ -109,6 +109,7 @@ class RoleForm extends Component
     public function render(): View
     {
         return view('core::livewire.role-form', [
+            'role' => $this->roleId ? Role::find($this->roleId) : null,
             'modules' => $this->moduleGroups(),
         ]);
     }

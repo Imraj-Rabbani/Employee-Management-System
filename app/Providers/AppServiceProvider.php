@@ -9,6 +9,7 @@ use App\Core\Tenancy\IdentifyTenant;
 use App\Core\Tenancy\TenantManager;
 use App\Core\Tenancy\TenantMigrationPaths;
 use App\Models\User;
+use App\Modules\Core\Http\Middleware\ApplyTenantSettings;
 use Illuminate\Auth\Middleware\RequirePassword;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Filesystem\FilesystemManager;
@@ -49,6 +50,7 @@ class AppServiceProvider extends ServiceProvider
         // EnsureModuleEnabled too, so a module's Livewire actions stop working when the module is switched off.
         Livewire::addPersistentMiddleware([
             IdentifyTenant::class,
+            ApplyTenantSettings::class,
             EnsureModuleEnabled::class,
             // "password.confirm": pages that asked for the password (e.g. 2FA settings) keep asking once it expires.
             RequirePassword::class,

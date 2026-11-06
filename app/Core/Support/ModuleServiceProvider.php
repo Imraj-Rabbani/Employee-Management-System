@@ -25,7 +25,7 @@ abstract class ModuleServiceProvider extends ServiceProvider
         // Module pages need a logged-in user, their company ("tenant"),
         // and the module switched on for that company ("module:hrm"; core is always on).
         if (file_exists($path.'/routes/web.php')) {
-            Route::middleware(['web', 'auth', 'tenant', 'module:'.$this->name])
+            Route::middleware(['web', 'auth', 'tenant', 'tenant.settings', 'module:'.$this->name])
                 ->prefix($this->name)
                 ->name($this->name.'.')
                 ->group($path.'/routes/web.php');

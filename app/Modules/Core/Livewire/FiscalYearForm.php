@@ -86,8 +86,8 @@ class FiscalYearForm extends Component
         if ($clash) {
             $this->addError('startDate', __('These dates overlap :name (:start – :end).', [
                 'name' => $clash->name,
-                'start' => $clash->start_date->format('d M Y'),
-                'end' => $clash->end_date->format('d M Y'),
+                'start' => format_date($clash->start_date),
+                'end' => format_date($clash->end_date),
             ]));
 
             return;
@@ -111,6 +111,8 @@ class FiscalYearForm extends Component
 
     public function render(): View
     {
-        return view('core::livewire.fiscal-year-form');
+        return view('core::livewire.fiscal-year-form', [
+            'year' => $this->yearId ? FiscalYear::find($this->yearId) : null,
+        ]);
     }
 }
