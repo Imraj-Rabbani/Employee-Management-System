@@ -241,6 +241,8 @@ abstract class DataTable extends Component
             'allColumns' => $this->columns(),
             'filterList' => $this->filters(),
             'bulkActionList' => $this->bulkActions(),
+            // No searchable column (e.g. values computed in PHP) → no search box.
+            'hasSearch' => array_filter($this->columns(), fn (Column $c) => $c->searchable) !== [],
             'hasActiveFilters' => trim($this->search) !== '' || array_filter($this->filters) !== [],
         ]);
     }

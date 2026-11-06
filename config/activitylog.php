@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Core\Models\Activity;
 use Spatie\Activitylog\Actions\CleanActivityLogAction;
 use Spatie\Activitylog\Actions\LogActivityAction;
 
@@ -40,7 +41,7 @@ return [
      * and extend Illuminate\Database\Eloquent\Model.
      */
     // Our model: stores entries in the current company's database (connection "tenant").
-    'activity_model' => App\Modules\Core\Models\Activity::class,
+    'activity_model' => Activity::class,
 
     /*
      * These attributes will be excluded from logging for all models.

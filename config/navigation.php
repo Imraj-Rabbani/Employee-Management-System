@@ -75,8 +75,8 @@ return [
         'module' => 'workflow',
         'active' => 'workflow.*',
         'items' => [
-            ['label' => 'My Approvals', 'route' => null],
-            ['label' => 'Workflow Setup', 'route' => null],
+            ['label' => 'My Approvals', 'route' => 'workflow.inbox'],
+            ['label' => 'Workflow Setup', 'route' => 'workflow.setup', 'can' => 'workflow.setup.manage'],
         ],
     ],
 

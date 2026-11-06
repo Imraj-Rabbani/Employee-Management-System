@@ -58,6 +58,11 @@
 
             <flux:spacer />
 
+            {{-- In-app notifications (approvals ...). Only inside a company: they link to company pages. --}}
+            @if (tenant())
+                <livewire:core::notification-bell />
+            @endif
+
             {{-- $flux.dark is Flux's Alpine helper. It switches the theme and remembers the choice. --}}
             <flux:button x-data x-on:click="$flux.dark = ! $flux.dark" variant="subtle" square class="mr-2" aria-label="{{ __('Toggle dark mode') }}">
                 <flux:icon.moon variant="mini" x-show="! $flux.dark" />

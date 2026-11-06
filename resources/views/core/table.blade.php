@@ -3,9 +3,11 @@
     <x-ui.card :padding="false">
         {{-- Toolbar: search, filters, columns, export --}}
         <div class="flex flex-wrap items-center gap-3 border-b border-white/50 p-4 dark:border-white/10">
-            <div class="w-full sm:w-72">
-                <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search…')" clearable />
-            </div>
+            @if ($hasSearch)
+                <div class="w-full sm:w-72">
+                    <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search…')" clearable />
+                </div>
+            @endif
 
             @foreach ($filterList as $filter)
                 <div class="w-full sm:w-44">

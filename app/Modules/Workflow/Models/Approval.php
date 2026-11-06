@@ -30,6 +30,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $responded_at
  * @property string|null $comment
  * @property string|null $attachment_path
+ * @property Carbon|null $created_at when the approver was asked
+ * @property Carbon|null $updated_at
  */
 class Approval extends TenantModel
 {
