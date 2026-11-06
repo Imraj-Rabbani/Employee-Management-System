@@ -7,6 +7,8 @@ use App\Core\Tenancy\TenantMigrationPaths;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Core\Models\Role;
+use App\Modules\Hrm\Models\EmploymentType;
+use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Workflow\Enums\ApprovalStatus;
 use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Exceptions\WorkflowException;
@@ -64,22 +66,26 @@ class WorkflowStartTest extends TestCase
 
     public function test_the_most_specific_matching_workflow_wins(): void
     {
+        $unit = OrgUnit::factory()->create();
+        $permanent = EmploymentType::factory()->create();
+        $contract = EmploymentType::factory()->create();
+
         $this->workflow('Any');
-        $unit7 = $this->workflow('Unit 7', ['scope_org_unit_id' => 7]);
-        $unit7Permanent = $this->workflow('Unit 7, permanent', ['scope_org_unit_id' => 7, 'scope_employment_type_id' => 1]);
+        $unitOnly = $this->workflow('Unit', ['scope_org_unit_id' => $unit->id]);
+        $unitPermanent = $this->workflow('Unit, permanent', ['scope_org_unit_id' => $unit->id, 'scope_employment_type_id' => $permanent->id]);
 
         $engine = app(WorkflowEngine::class);
 
-        $this->assertTrue($unit7->is($engine->findWorkflow($this->note(['org_unit_id' => 7, 'employment_type_id' => 2]))));
-        $this->assertTrue($unit7Permanent->is($engine->findWorkflow($this->note(['org_unit_id' => 7, 'employment_type_id' => 1]))));
+        $this->assertTrue($unitOnly->is($engine->findWorkflow($this->note(['org_unit_id' => $unit->id, 'employment_type_id' => $contract->id]))));
+        $this->assertTrue($unitPermanent->is($engine->findWorkflow($this->note(['org_unit_id' => $unit->id, 'employment_type_id' => $permanent->id]))));
     }
 
     public function test_a_workflow_scoped_to_another_unit_is_ignored(): void
     {
         $any = $this->workflow('Any');
-        $this->workflow('Unit 7', ['scope_org_unit_id' => 7]);
+        $this->workflow('Unit A', ['scope_org_unit_id' => OrgUnit::factory()->create()->id]);
 
-        $this->assertTrue($any->is(app(WorkflowEngine::class)->findWorkflow($this->note(['org_unit_id' => 8]))));
+        $this->assertTrue($any->is(app(WorkflowEngine::class)->findWorkflow($this->note(['org_unit_id' => OrgUnit::factory()->create()->id]))));
     }
 
     public function test_min_amount_picks_the_big_amount_workflow_only_above_the_limit(): void

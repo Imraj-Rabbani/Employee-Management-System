@@ -7,6 +7,8 @@ use App\Core\Tenancy\TenantMigrationPaths;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Core\Models\Role;
+use App\Modules\Hrm\Models\EmploymentType;
+use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Workflow\Enums\ApprovalStatus;
 use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Exceptions\WorkflowException;
@@ -151,18 +153,22 @@ class WorkflowEndToEndTest extends TestCase
 
     public function test_unit_and_amount_together_beat_either_alone(): void
     {
-        $this->workflow('Unit 3', attributes: ['scope_org_unit_id' => 3]);
+        $unit = OrgUnit::factory()->create();
+        $this->workflow('Unit', attributes: ['scope_org_unit_id' => $unit->id]);
         $this->workflow('Big', attributes: ['min_amount' => 1000]);
-        $both = $this->workflow('Unit 3, big', attributes: ['scope_org_unit_id' => 3, 'min_amount' => 1000]);
+        $both = $this->workflow('Unit, big', attributes: ['scope_org_unit_id' => $unit->id, 'min_amount' => 1000]);
 
-        $this->assertTrue($both->is(app(WorkflowEngine::class)->findWorkflow($this->note(['org_unit_id' => 3, 'amount' => 5000]))));
+        $this->assertTrue($both->is(app(WorkflowEngine::class)->findWorkflow($this->note(['org_unit_id' => $unit->id, 'amount' => 5000]))));
     }
 
     public function test_an_employment_type_mismatch_falls_back_to_the_general_workflow(): void
     {
-        $this->workflow('Contract staff', attributes: ['scope_employment_type_id' => 2]);
+        $contract = EmploymentType::factory()->create(['name' => 'Contract']);
+        $permanent = EmploymentType::factory()->create(['name' => 'Permanent']);
+        $this->workflow('Contract staff', attributes: ['scope_employment_type_id' => $contract->id]);
 
-        $found = app(WorkflowEngine::class)->findWorkflow($this->note(['employment_type_id' => '1']));
+        // The id as a string (as it comes from a form) is compared correctly too.
+        $found = app(WorkflowEngine::class)->findWorkflow($this->note(['employment_type_id' => (string) $permanent->id]));
 
         $this->assertTrue($this->workflow->is($found));
     }
