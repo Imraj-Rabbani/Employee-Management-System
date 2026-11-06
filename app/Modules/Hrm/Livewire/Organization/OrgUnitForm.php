@@ -11,10 +11,8 @@ use Illuminate\Validation\Rule;
 /**
  * New / Edit / Delete org unit (modal "org-unit-form"). [ORG-01]
  *
- * Extra rules (check()):
- *   - not under itself or one of its own sub-units (a loop)
- *   - if the unit's level "sits under" another level, the parent must be of that level
- *     (e.g. a Department must be under a Division)
+ * Extra rules (check()) come from OrgUnit::placementProblem(): no loops, the level rule
+ * (a Department must be under a Division), no duplicate name under one parent.
  */
 class OrgUnitForm extends LookupForm
 {
@@ -56,20 +54,17 @@ class OrgUnitForm extends LookupForm
 
     protected function check(array $values): bool
     {
-        $parent = $values['parent_id'] ? OrgUnit::with('type')->find($values['parent_id']) : null;
+        // The same rules as drag-and-drop in the tree: OrgUnit::placementProblem().
+        $unit = $this->recordId ? OrgUnit::findOrFail($this->recordId) : new OrgUnit;
+        $unit->name = (string) $values['name'];
 
-        if ($this->recordId && $parent
-            && ($parent->id === $this->recordId || in_array($parent->id, OrgUnit::findOrFail($this->recordId)->descendantIds(), true))) {
-            $this->addError('form.parent_id', __('A unit cannot be placed under itself or one of its own sub-units.'));
+        $problem = $unit->placementProblem(
+            $values['parent_id'] ? OrgUnit::find($values['parent_id']) : null,
+            OrgUnitType::with('parentType')->findOrFail($values['org_unit_type_id']),
+        );
 
-            return false;
-        }
-
-        $type = OrgUnitType::with('parentType')->findOrFail($values['org_unit_type_id']);
-        if ($type->parentType && $parent?->org_unit_type_id !== $type->parent_type_id) {
-            $this->addError('form.parent_id', __('A :level must be placed under a :parent.', [
-                'level' => $type->name, 'parent' => $type->parentType->name,
-            ]));
+        if ($problem !== null) {
+            $this->addError('form.parent_id', $problem);
 
             return false;
         }

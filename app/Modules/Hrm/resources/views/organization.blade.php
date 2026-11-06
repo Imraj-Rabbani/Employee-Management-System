@@ -34,6 +34,18 @@
             <flux:button variant="primary" icon="plus" x-on:click="$dispatch('{{ $createEvent }}')">{{ $createLabel }}</flux:button>
         </div>
 
+        {{-- Org units: Tree (default) or List, chosen with ?view=list. --}}
+        @if ($section === 'units')
+            @php $view = request()->query('view') === 'list' ? 'list' : 'tree'; @endphp
+            <div class="flex gap-1">
+                <flux:button size="sm" :variant="$view === 'tree' ? 'filled' : 'ghost'" icon="share" :href="route('hrm.org.units')" wire:navigate>{{ __('Tree') }}</flux:button>
+                <flux:button size="sm" :variant="$view === 'list' ? 'filled' : 'ghost'" icon="list-bullet" :href="route('hrm.org.units', ['view' => 'list'])" wire:navigate>{{ __('List') }}</flux:button>
+            </div>
+            @if ($view === 'tree')
+                @php $table = 'org-unit-tree'; @endphp
+            @endif
+        @endif
+
         @livewire('hrm::organization.'.$table, key($table))
         @livewire('hrm::organization.'.$form, key($form))
     </div>

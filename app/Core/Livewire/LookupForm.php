@@ -75,10 +75,13 @@ abstract class LookupForm extends Component
         return ["create-{$this->key()}" => 'create', "edit-{$this->key()}" => 'edit'];
     }
 
-    public function create(): void
+    /**
+     * @param  array<string, mixed>  $preset  start values, e.g. $dispatch('create-org-unit', { preset: { parent_id: 5 } })
+     */
+    public function create(array $preset = []): void
     {
         $this->recordId = null;
-        $this->form = $this->defaults();
+        $this->form = array_replace($this->defaults(), array_intersect_key($preset, $this->defaults()));
         $this->resetValidation();
 
         Flux::modal($this->modalName())->show();

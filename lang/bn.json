@@ -109,5 +109,21 @@
     "Log in to your account": "আপনার অ্যাকাউন্টে লগ ইন করুন",
     "Email address": "ইমেইল ঠিকানা",
     "Forgot your password?": "পাসওয়ার্ড ভুলে গেছেন?",
-    "Remember me": "মনে রাখুন"
+    "Remember me": "মনে রাখুন",
+
+    "Male": "পুরুষ",
+    "Female": "নারী",
+    "Islam": "ইসলাম",
+    "Hinduism": "হিন্দু",
+    "Christianity": "খ্রিস্টান",
+    "Buddhism": "বৌদ্ধ",
+    "Other": "অন্যান্য",
+    "Single": "অবিবাহিত",
+    "Married": "বিবাহিত",
+    "Divorced": "তালাকপ্রাপ্ত",
+    "Widow/Widower": "বিধবা/বিপত্নীক",
+    "Cash": "নগদ",
+    "Bank": "ব্যাংক",
+    "Suspended": "সাময়িক বরখাস্ত",
+    "Separated": "চাকরি থেকে অব্যাহতি"
 }

@@ -23,6 +23,8 @@ use LogicException;
  *     $unit->path()                  "Head Office › Finance › Accounts"
  *     OrgUnit::roots()->get()        the top units
  *
+ *     $unit->placementProblem($parent)   why it cannot go under $parent (null = top level), or null if it can
+ *
  * Saving a unit under itself or under one of its own children is refused (it would make a loop).
  *
  * @property int $id
@@ -59,6 +61,40 @@ class OrgUnit extends TenantModel
                 throw new LogicException(__(':name cannot be placed under itself or one of its own sub-units.', ['name' => $unit->name]));
             }
         });
+    }
+
+    /**
+     * Can this unit be placed under $parent (null = top level)? Returns the reason it cannot,
+     * or null when it can. Used by the edit form AND by drag-and-drop in the tree, so both follow
+     * the same rules:
+     *   1. no loops: not under itself or one of its own sub-units
+     *   2. the level rule: a Department must sit under a Division (OrgUnitType::parentType)
+     *   3. no two units with the same name under one parent
+     *
+     * $type: the level to check with; defaults to the unit's current level (the form passes the new one).
+     */
+    public function placementProblem(?self $parent, ?OrgUnitType $type = null): ?string
+    {
+        if ($parent !== null && $this->exists
+            && ($parent->id === $this->id || in_array($parent->id, $this->descendantIds(), true))) {
+            return __('A unit cannot be placed under itself or one of its own sub-units.');
+        }
+
+        $type ??= $this->type;
+        $required = $type->parentType;
+        if ($required !== null && $parent?->org_unit_type_id !== $required->id) {
+            return __('A :level must be placed under a :parent.', ['level' => $type->name, 'parent' => $required->name]);
+        }
+
+        $clash = static::where('name', $this->name)
+            ->where('parent_id', $parent?->id)   // where(…, null) becomes "IS NULL"
+            ->when($this->exists, fn ($q) => $q->whereKeyNot($this->id))
+            ->exists();
+        if ($clash) {
+            return __('There is already a unit called :name there.', ['name' => $this->name]);
+        }
+
+        return null;
     }
 
     /** @return BelongsTo<self, $this> */
