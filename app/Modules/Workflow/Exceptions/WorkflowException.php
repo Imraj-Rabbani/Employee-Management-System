@@ -3,6 +3,7 @@
 namespace App\Modules\Workflow\Exceptions;
 
 use App\Modules\Workflow\Contracts\Approvable;
+use App\Modules\Workflow\Enums\ApprovalStatus;
 use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Models\WorkflowStep;
 use RuntimeException;
@@ -48,5 +49,37 @@ class WorkflowException extends RuntimeException
     public static function approverTypeNotReady(ApproverType $type): self
     {
         return new self(__('":type" approvers need employee records, which are not available yet.', ['type' => $type->label()]));
+    }
+
+    // ---------------------------------------------------------------- respond() (task 3.4)
+
+    public static function invalidDecision(): self
+    {
+        return new self(__('Choose approve, reject or send back.'));
+    }
+
+    public static function alreadyAnswered(): self
+    {
+        return new self(__('This approval has already been answered.'));
+    }
+
+    public static function notYourApproval(): self
+    {
+        return new self(__('You are not the approver of this request.'));
+    }
+
+    public static function notAllowed(ApprovalStatus $decision): self
+    {
+        return new self(__('":action" is not allowed in this workflow.', ['action' => $decision->label()]));
+    }
+
+    public static function commentRequired(ApprovalStatus $decision): self
+    {
+        return new self(__('Please give a reason (":action").', ['action' => $decision->label()]));
+    }
+
+    public static function attachmentRequired(): self
+    {
+        return new self(__('An attachment is required at this level.'));
     }
 }

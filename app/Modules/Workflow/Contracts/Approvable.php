@@ -2,6 +2,7 @@
 
 namespace App\Modules\Workflow\Contracts;
 
+use App\Modules\Workflow\Enums\ApprovalStatus;
 use App\Modules\Workflow\Models\Approval;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -46,4 +47,7 @@ interface Approvable
      * @return MorphMany<Approval, covariant Model>
      */
     public function approvals(): MorphMany;
+
+    /** Provided by the HasApprovals trait: null (never submitted), Pending, Approved, Rejected or Review. */
+    public function approvalStatus(): ?ApprovalStatus;
 }

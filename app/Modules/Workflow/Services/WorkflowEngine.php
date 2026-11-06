@@ -7,10 +7,14 @@ use App\Modules\Workflow\Contracts\Approvable;
 use App\Modules\Workflow\Contracts\ResolvesApprovers;
 use App\Modules\Workflow\Enums\ApprovalStatus;
 use App\Modules\Workflow\Enums\ApproverType;
+use App\Modules\Workflow\Events\ApprovalAnswered;
+use App\Modules\Workflow\Events\ApprovalCompleted;
+use App\Modules\Workflow\Events\ApprovalRequested;
 use App\Modules\Workflow\Exceptions\WorkflowException;
 use App\Modules\Workflow\Models\Approval;
 use App\Modules\Workflow\Models\ApprovalType;
 use App\Modules\Workflow\Models\Workflow;
+use App\Modules\Workflow\Models\WorkflowStep;
 use App\Modules\Workflow\Resolvers\RoleApprovers;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -21,8 +25,9 @@ use Illuminate\Database\Eloquent\Model;
  *     $leave->submitForApproval();                       (HasApprovals calls start())
  *     app(WorkflowEngine::class)->start($leave, $user);  same, with an explicit requester
  *     app(WorkflowEngine::class)->findWorkflow($leave);  which workflow would be used (or null)
+ *     app(WorkflowEngine::class)->respond($approval, ApprovalStatus::Approved, $user, 'OK');   [WF-04]
  *
- * respond() (approve / reject / send back) comes in task 3.4, notifications in 3.5.
+ * After each commit it fires ApprovalRequested / ApprovalAnswered; their listeners send notifications.
  */
 class WorkflowEngine
 {
@@ -60,8 +65,147 @@ class WorkflowEngine
         $requesterId = $requesterId === null ? null : (int) $requesterId;
 
         // Resolve EVERY approver before writing anything: if one level has nobody, nothing is saved.
+        $rows = $this->rowsFor($firstSteps, $document, $requesterId);
+
+        // A transaction: all rows are saved, or (on any error) none.
+        /** @var Collection<int, Approval> $created */
+        $created = $document->getConnection()->transaction(
+            fn () => new Collection(array_map(fn (array $row) => $document->approvals()->create($row), $rows))
+        );
+
+        // Committed: now it is safe to tell the approvers (task 3.5).
+        $created->each(fn (Approval $approval) => ApprovalRequested::dispatch($approval));
+
+        return $created;
+    }
+
+    /**
+     * One approver answers one approval row. [WF-04, WF-05]
+     *
+     *   Approved  → other approvers of the same level are no longer asked; then either the next
+     *               level is asked (chained), or we wait for other levels (not chained), or it was
+     *               the last answer: ApprovalCompleted fires → the document's onApproved() runs.
+     *   Rejected  → every other open row is removed; ApprovalCompleted fires → onRejected() runs.
+     *   Review    → "send back": every other open row is removed. The requester fixes the document
+     *               and calls submitForApproval() again (a new round starts at level 1).
+     *
+     * Everything happens in ONE database transaction, including the document's onApproved():
+     * if that fails (e.g. a salary cannot be updated), the answer is undone as well.
+     *
+     * @throws WorkflowException (message is meant for the user)
+     */
+    public function respond(
+        Approval $approval,
+        ApprovalStatus $decision,
+        User $responder,
+        ?string $comment = null,
+        ?string $attachmentPath = null,
+    ): void {
+        if ($decision === ApprovalStatus::Pending) {
+            throw WorkflowException::invalidDecision();
+        }
+
+        $comment = trim((string) $comment) ?: null;
+
+        /** @var list<Approval> $nextRows rows created for the next level */
+        $nextRows = [];
+
+        $approval->getConnection()->transaction(function () use ($approval, $decision, $responder, $comment, $attachmentPath, &$nextRows) {
+            // Lock the row: if two people click at the same moment, the second waits here,
+            // then sees it is no longer pending.
+            $row = Approval::whereKey($approval->id)->lockForUpdate()->with('step.workflow.approvalType')->first();
+
+            if ($row === null || $row->status !== ApprovalStatus::Pending) {
+                throw WorkflowException::alreadyAnswered();
+            }
+            if ($row->approver_user_id !== $responder->id) {
+                throw WorkflowException::notYourApproval();
+            }
+
+            $step = $row->step;
+            $workflow = $step->workflow;
+
+            if ($decision === ApprovalStatus::Rejected && ! $workflow->allow_reject) {
+                throw WorkflowException::notAllowed($decision);
+            }
+            if ($decision === ApprovalStatus::Review && ! $workflow->allow_review) {
+                throw WorkflowException::notAllowed($decision);
+            }
+            if ($decision !== ApprovalStatus::Approved && $comment === null) {
+                throw WorkflowException::commentRequired($decision);
+            }
+            if ($decision === ApprovalStatus::Approved && $step->attachment_required && $attachmentPath === null) {
+                throw WorkflowException::attachmentRequired();
+            }
+
+            $row->update([
+                'status' => $decision,
+                'responded_by' => $responder->id,
+                'responded_at' => now(),
+                'comment' => $comment,
+                'attachment_path' => $attachmentPath,
+            ]);
+
+            $document = $row->approvable;
+            if (! $document instanceof Approvable) {
+                throw new \LogicException('Approval '.$row->id.' points to a model that is not Approvable.');
+            }
+
+            // Rows nobody needs to answer any more: same level (approve) or all levels (reject / send back).
+            $document->approvals()->pending()
+                ->when($decision === ApprovalStatus::Approved, fn ($q) => $q->where('level', $row->level))
+                ->get()
+                ->each(fn (Approval $open) => $open->delete());
+
+            if ($decision === ApprovalStatus::Review) {
+                return;
+            }
+
+            if ($decision === ApprovalStatus::Approved) {
+                // Not chained: other levels may still be open.
+                if ($document->approvals()->pending()->exists()) {
+                    return;
+                }
+
+                // Chained: ask the next level, if there is one.
+                $next = $workflow->approvalType->is_chained
+                    ? $workflow->steps->where('level', '>', $row->level)->sortBy('level')->first()
+                    : null;
+
+                if ($next !== null) {
+                    foreach ($this->rowsFor([$next], $document, $row->requester_user_id) as $newRow) {
+                        $nextRows[] = $document->approvals()->create($newRow);
+                    }
+
+                    return;
+                }
+            }
+
+            // Final answer. The listener runs NOW, inside this transaction.
+            ApprovalCompleted::dispatch($document, $row->fresh() ?? $row);
+        });
+
+        $approval->refresh();
+
+        // Committed: notify (task 3.5). If anything above threw, we never get here and nobody is told.
+        ApprovalAnswered::dispatch($approval);
+        foreach ($nextRows as $newRow) {
+            ApprovalRequested::dispatch($newRow);
+        }
+    }
+
+    /**
+     * Pending approval rows for these steps: one per approver.
+     *
+     * @param  iterable<WorkflowStep>  $steps
+     * @return list<array<string, mixed>>
+     *
+     * @throws WorkflowException when a step has nobody to approve it
+     */
+    private function rowsFor(iterable $steps, Approvable $document, ?int $requesterId): array
+    {
         $rows = [];
-        foreach ($firstSteps as $step) {
+        foreach ($steps as $step) {
             $approverIds = $this->resolverFor($step->approver_type)->approvers($step, $document, $requesterId);
             if ($approverIds === []) {
                 throw WorkflowException::noApprovers($step);
@@ -78,13 +222,7 @@ class WorkflowEngine
             }
         }
 
-        // All rows or none (task 3.4 explains transactions in more detail).
-        /** @var Collection<int, Approval> $created */
-        $created = $document->getConnection()->transaction(
-            fn () => new Collection(array_map(fn (array $row) => $document->approvals()->create($row), $rows))
-        );
-
-        return $created;
+        return $rows;
     }
 
     /**

@@ -3,9 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Http\Middleware\SetLocale;
 use App\Modules\Core\Models\Role;
 use App\Modules\Core\Models\UserRole;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -13,7 +15,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-class User extends Authenticatable // implements MustVerifyEmail
+class User extends Authenticatable implements HasLocalePreference // , MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
@@ -91,6 +93,16 @@ class User extends Authenticatable // implements MustVerifyEmail
     public function isSuperAdmin(): bool
     {
         return $this->is_super_admin;
+    }
+
+    /**
+     * Laravel sends notifications and mail in this language (Settings → Profile → Language).
+     */
+    public function preferredLocale(): string
+    {
+        $locale = $this->getAttribute('locale');
+
+        return is_string($locale) && array_key_exists($locale, SetLocale::LOCALES) ? $locale : 'en';
     }
 
     /**

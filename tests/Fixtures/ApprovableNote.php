@@ -28,6 +28,13 @@ class ApprovableNote extends TenantModel implements Approvable
      */
     public array $context = [];
 
+    /**
+     * Every onApproved / onRejected call, e.g. ['approved:3'], so tests can check it ran exactly once.
+     *
+     * @var list<string>
+     */
+    public static array $handled = [];
+
     public function approvalType(): string
     {
         return 'note';
@@ -45,11 +52,17 @@ class ApprovableNote extends TenantModel implements Approvable
 
     public function onApproved(Approval $final): void
     {
+        if ($this->getAttribute('text') === 'explode') {
+            throw new \RuntimeException('The handler failed.');   // tests the rollback
+        }
+
+        static::$handled[] = 'approved:'.$this->getKey();
         $this->update(['text' => 'approved']);
     }
 
     public function onRejected(Approval $final): void
     {
+        static::$handled[] = 'rejected:'.$this->getKey();
         $this->update(['text' => 'rejected']);
     }
 }
