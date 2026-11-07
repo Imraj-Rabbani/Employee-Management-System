@@ -24,7 +24,7 @@ use Illuminate\Support\Str;
  */
 class Permissions
 {
-    /** @var array<int, array{admin: bool, keys: array<string, true>}> user id => what they may do */
+    /** @var array<int, array{role: bool, admin: bool, keys: array<string, true>, org_unit_id: int|null}> user id => what they may do */
     private array $resolved = [];
 
     public function check(User $user, string $key): bool
@@ -40,24 +40,45 @@ class Permissions
         return $access['admin'] || isset($access['keys'][$key]);
     }
 
+    /**
+     * The org unit this login's DATA is limited to (the role's org-unit scope, legacy profiles.entity). [FND-05]
+     * Used by the VisibleToCurrentUser scope on employees (Phase 5).
+     *
+     *   null   no limit: Administrator, or a role without an org unit
+     *   int    only this org unit and the units below it
+     *   false  no role in this company: no one else's data at all
+     */
+    public function orgUnitLimit(User $user): int|false|null
+    {
+        $access = $this->resolved[$user->id] ??= $this->resolve($user);
+
+        if (! $access['role']) {
+            return false;
+        }
+
+        return $access['admin'] ? null : $access['org_unit_id'];
+    }
+
     /** Forget what was looked up, e.g. after a role's permissions were changed. */
     public function flush(): void
     {
         $this->resolved = [];
     }
 
-    /** @return array{admin: bool, keys: array<string, true>} */
+    /** @return array{role: bool, admin: bool, keys: array<string, true>, org_unit_id: int|null} */
     private function resolve(User $user): array
     {
         $role = $user->role();
 
         if ($role === null) {
-            return ['admin' => false, 'keys' => []];
+            return ['role' => false, 'admin' => false, 'keys' => [], 'org_unit_id' => null];
         }
 
         return [
+            'role' => true,
             'admin' => $role->is_admin,
             'keys' => array_fill_keys($role->is_admin ? [] : $role->permissionKeys(), true),
+            'org_unit_id' => $role->org_unit_id,
         ];
     }
 }

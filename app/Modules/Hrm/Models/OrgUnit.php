@@ -128,6 +128,16 @@ class OrgUnit extends TenantModel
     }
 
     /**
+     * Employees currently in this unit (employees.org_unit_id), not the units below.
+     *
+     * @return HasMany<Employee, $this>
+     */
+    public function employees(): HasMany
+    {
+        return $this->hasMany(Employee::class);
+    }
+
+    /**
      * @param  Builder<self>  $query
      */
     public function scopeRoots(Builder $query): void
