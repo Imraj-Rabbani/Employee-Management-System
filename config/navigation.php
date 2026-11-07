@@ -41,7 +41,7 @@ return [
         'module' => 'hrm',
         'active' => 'hrm.*',
         'items' => [
-            ['label' => 'Employees', 'route' => null],
+            ['label' => 'Employees', 'route' => 'hrm.employees.index', 'current' => 'hrm.employees.*', 'can' => 'hrm.employee.view'],
             ['label' => 'Organization', 'route' => 'hrm.org.units', 'current' => 'hrm.org.*', 'can' => 'hrm.organization.manage'],
             ['label' => 'Attendance', 'route' => null],
             ['label' => 'Leave', 'route' => null],

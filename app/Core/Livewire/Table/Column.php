@@ -22,6 +22,9 @@ class Column
 
     public bool $searchable = false;
 
+    /** @var list<string> database columns the search box looks in for this column (default: just) */
+    public array $searchFields = [];
+
     public bool $toggleable = true;
 
     public bool $alignRight = false;
@@ -46,9 +49,14 @@ class Column
         return $this;
     }
 
-    public function searchable(): self
+    /**
+     * The search box looks in this column. Extra columns can be added for one displayed value,
+     * e.g. a "Name" cell built from two columns:  Column::make(__('Name'), 'first_name')->searchable('last_name')
+     */
+    public function searchable(string ...$alsoFields): self
     {
         $this->searchable = true;
+        $this->searchFields = [$this->field, ...array_values($alsoFields)];
 
         return $this;
     }

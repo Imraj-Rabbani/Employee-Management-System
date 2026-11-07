@@ -182,7 +182,7 @@ abstract class DataTable extends Component
         if (($term = trim($this->search)) !== '') {
             // Escape LIKE wildcards so a search for "50%" means the text "50%".
             $like = '%'.addcslashes($term, '%_\\').'%';
-            $fields = array_map(fn (Column $c) => $c->field, array_filter($this->columns(), fn (Column $c) => $c->searchable));
+            $fields = array_merge(...array_map(fn (Column $c) => $c->searchFields, $this->columns()));
 
             $query->where(function (Builder $q) use ($fields, $like) {
                 foreach ($fields as $field) {
