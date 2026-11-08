@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 
 /**
  * A person employed by the company (legacy `employees`). [EMP-01]
@@ -185,6 +186,35 @@ class Employee extends TenantModel
     {
         return Attribute::get(fn () => $this->photo_path === null ? null
             : route('hrm.employees.photo', ['employee' => $this, 'v' => substr(md5($this->photo_path), 0, 8)]));
+    }
+
+    /**
+     * Validation rules for the personal fields, shared by HR's Personal form (5.3) and the employee's
+     * profile update request (5.8), so both check exactly the same. $ignoreId = the employee being changed.
+     *
+     * @return array<string, list<mixed>>
+     */
+    public static function personalRules(?int $ignoreId): array
+    {
+        return [
+            'title' => ['nullable', 'string', 'max:20'],
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['nullable', 'string', 'max:100'],
+            'name_local' => ['nullable', 'string', 'max:200'],
+            'gender' => ['nullable', Rule::enum(Gender::class)],
+            'birth_date' => ['nullable', 'date', 'before:today'],
+            'marital_status' => ['nullable', Rule::enum(MaritalStatus::class)],
+            'blood_group' => ['nullable', Rule::enum(BloodGroup::class)],
+            'religion' => ['nullable', Rule::enum(Religion::class)],
+            'nationality' => ['nullable', 'string', 'max:50'],
+            // unique ... ignore(): no OTHER employee may have the same number (this one may keep its own).
+            'national_id' => ['nullable', 'string', 'max:30', Rule::unique(self::class, 'national_id')->ignore($ignoreId)],
+            'tin' => ['nullable', 'string', 'max:30', Rule::unique(self::class, 'tin')->ignore($ignoreId)],
+            'passport_no' => ['nullable', 'string', 'max:30'],
+            'mobile' => ['nullable', 'string', 'max:30'],
+            'personal_email' => ['nullable', 'email', 'max:255'],
+            'office_email' => ['nullable', 'email', 'max:255', Rule::unique(self::class, 'office_email')->ignore($ignoreId)],
+        ];
     }
 
     /** @param  Builder<self>  $query */

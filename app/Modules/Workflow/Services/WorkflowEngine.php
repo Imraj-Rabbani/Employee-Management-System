@@ -15,7 +15,10 @@ use App\Modules\Workflow\Models\Approval;
 use App\Modules\Workflow\Models\ApprovalType;
 use App\Modules\Workflow\Models\Workflow;
 use App\Modules\Workflow\Models\WorkflowStep;
+use App\Modules\Workflow\Resolvers\EmployeeApprovers;
+use App\Modules\Workflow\Resolvers\OrgHeadApprovers;
 use App\Modules\Workflow\Resolvers\RoleApprovers;
+use App\Modules\Workflow\Resolvers\SupervisorApprovers;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
@@ -297,8 +300,9 @@ class WorkflowEngine
     {
         return match ($type) {
             ApproverType::Role => app(RoleApprovers::class),
-            // Phase 5 (employees): EmployeeApprovers, SupervisorApprovers, OrgHeadApprovers.
-            ApproverType::Employee, ApproverType::Supervisor, ApproverType::OrgHead => throw WorkflowException::approverTypeNotReady($type),
+            ApproverType::Employee => app(EmployeeApprovers::class),       // 5.8
+            ApproverType::Supervisor => app(SupervisorApprovers::class),
+            ApproverType::OrgHead => app(OrgHeadApprovers::class),
         };
     }
 }

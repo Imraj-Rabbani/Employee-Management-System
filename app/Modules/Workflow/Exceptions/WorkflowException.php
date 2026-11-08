@@ -4,7 +4,6 @@ namespace App\Modules\Workflow\Exceptions;
 
 use App\Modules\Workflow\Contracts\Approvable;
 use App\Modules\Workflow\Enums\ApprovalStatus;
-use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Models\WorkflowStep;
 use RuntimeException;
 
@@ -44,11 +43,6 @@ class WorkflowException extends RuntimeException
             'level' => $step->level,
             'type' => $step->approver_type->label(),
         ]));
-    }
-
-    public static function approverTypeNotReady(ApproverType $type): self
-    {
-        return new self(__('":type" approvers need employee records, which are not available yet.', ['type' => $type->label()]));
     }
 
     // ---------------------------------------------------------------- respond() (task 3.4)

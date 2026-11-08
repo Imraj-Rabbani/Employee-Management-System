@@ -27,12 +27,12 @@ return [
         'heading' => 'Self Service',
         'active' => 'ess.*',
         'items' => [
-            ['label' => 'My Profile', 'route' => null],
+            ['label' => 'My Profile', 'route' => 'ess.profile'],
             ['label' => 'My Attendance', 'route' => null],
             ['label' => 'My Leave Requests', 'route' => null],
             ['label' => 'My Payslips', 'route' => null],
             ['label' => 'My Tax Card', 'route' => null],
-            ['label' => 'My Profile Update Requests', 'route' => null],
+            ['label' => 'My Profile Update Requests', 'route' => 'ess.profile-requests'],
         ],
     ],
 
@@ -42,6 +42,7 @@ return [
         'active' => 'hrm.*',
         'items' => [
             ['label' => 'Employees', 'route' => 'hrm.employees.index', 'current' => 'hrm.employees.*', 'can' => 'hrm.employee.view'],
+            ['label' => 'Org Chart', 'route' => 'hrm.org-chart', 'can' => 'hrm.employee.view'],
             ['label' => 'Organization', 'route' => 'hrm.org.units', 'current' => 'hrm.org.*', 'can' => 'hrm.organization.manage'],
             ['label' => 'Attendance', 'route' => null],
             ['label' => 'Leave', 'route' => null],

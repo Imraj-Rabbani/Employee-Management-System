@@ -177,12 +177,13 @@ class WorkflowStartTest extends TestCase
         $this->assertRefused($this->note(), 'Nobody can approve level 1');
     }
 
-    public function test_employee_based_approver_types_are_not_available_before_phase_5(): void
+    public function test_a_supervisor_step_without_an_employee_finds_nobody(): void
     {
+        // Employee-based approvers work since 5.8; a note has no employee, so there is no supervisor.
         $workflow = $this->workflow('Supervisor');
         WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Supervisor]);
 
-        $this->assertRefused($this->note(), 'need employee records');
+        $this->assertRefused($this->note(), 'Nobody can approve level 1');
     }
 
     public function test_logins_of_other_companies_are_never_approvers(): void

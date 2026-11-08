@@ -34,6 +34,7 @@ class EmailApprovalController
 
         return view('workflow::email.respond', [
             'approval' => $row,
+            'document' => $document,
             'approver' => $approver,
             'subject' => $document->approvalSubject(),
             'typeName' => $row->step->workflow->approvalType->name,

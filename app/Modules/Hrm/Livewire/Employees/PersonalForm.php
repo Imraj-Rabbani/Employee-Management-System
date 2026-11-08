@@ -7,7 +7,6 @@ use App\Modules\Hrm\Enums\Gender;
 use App\Modules\Hrm\Enums\MaritalStatus;
 use App\Modules\Hrm\Enums\Religion;
 use App\Modules\Hrm\Models\Employee;
-use Illuminate\Validation\Rule;
 
 /**
  * Profile → Personal → Edit: name, personal details, identity and contact. [EMP-01]
@@ -21,25 +20,7 @@ class PersonalForm extends EmployeeSectionForm
 
     protected function fieldRules(): array
     {
-        return [
-            'title' => ['nullable', 'string', 'max:20'],
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['nullable', 'string', 'max:100'],
-            'name_local' => ['nullable', 'string', 'max:200'],
-            'gender' => ['nullable', Rule::enum(Gender::class)],
-            'birth_date' => ['nullable', 'date', 'before:today'],
-            'marital_status' => ['nullable', Rule::enum(MaritalStatus::class)],
-            'blood_group' => ['nullable', Rule::enum(BloodGroup::class)],
-            'religion' => ['nullable', Rule::enum(Religion::class)],
-            'nationality' => ['nullable', 'string', 'max:50'],
-            // unique ... ignore(): no OTHER employee may have the same number (this one may keep its own).
-            'national_id' => ['nullable', 'string', 'max:30', Rule::unique(Employee::class, 'national_id')->ignore($this->employeeId)],
-            'tin' => ['nullable', 'string', 'max:30', Rule::unique(Employee::class, 'tin')->ignore($this->employeeId)],
-            'passport_no' => ['nullable', 'string', 'max:30'],
-            'mobile' => ['nullable', 'string', 'max:30'],
-            'personal_email' => ['nullable', 'email', 'max:255'],
-            'office_email' => ['nullable', 'email', 'max:255', Rule::unique(Employee::class, 'office_email')->ignore($this->employeeId)],
-        ];
+        return Employee::personalRules($this->employeeId);   // shared with profile update requests (5.8)
     }
 
     protected function labels(): array

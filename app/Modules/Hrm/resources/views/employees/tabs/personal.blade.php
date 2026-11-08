@@ -5,6 +5,11 @@
             <flux:button icon="pencil-square" x-on:click="$dispatch('edit-employee-personal')">{{ __('Edit personal details') }}</flux:button>
         </div>
         <livewire:hrm::employees.personal-form :$employee />
+    @elseif ($employee->user_id !== null && $employee->user_id === auth()->id())
+        {{-- Your own record: changes go through approval (5.8). --}}
+        <div class="flex justify-end">
+            <flux:button icon="pencil-square" :href="route('ess.profile-requests')" wire:navigate>{{ __('Request a change') }}</flux:button>
+        </div>
     @endcan
 
     <x-ui.card :heading="__('Personal details')">

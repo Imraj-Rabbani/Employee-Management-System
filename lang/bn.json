@@ -138,5 +138,10 @@
     "Visa": "ভিসা",
     "Medical certificate": "মেডিকেল সনদ",
     "Police clearance": "পুলিশ ক্লিয়ারেন্স",
-    "Appointment letter": "নিয়োগপত্র"
+    "Appointment letter": "নিয়োগপত্র",
+    "Org Chart": "অর্গানোগ্রাম",
+    "People": "কর্মী",
+    "Positions": "পদসমূহ",
+    "Vacant": "শূন্য",
+    "Show in org chart": "অর্গানোগ্রামে দেখুন"
 }

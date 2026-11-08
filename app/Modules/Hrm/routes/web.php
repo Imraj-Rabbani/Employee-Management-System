@@ -45,6 +45,11 @@ Route::get('employees/{employee}', function (Employee $employee) {
     return view('hrm::employees.show', compact('employee', 'tabs', 'tab'));
 })->middleware('can:view,employee')->whereNumber('employee')->name('employees.show');
 
+// HRM → Org Chart: reporting lines (people) or the position tree. [ORG-02]
+Route::view('org-chart', 'hrm::org-chart')
+    ->middleware('can:viewAny,'.Employee::class)
+    ->name('org-chart');
+
 // HRM → Organization: one page view, one URL per section (hrm.org.units, hrm.org.grades ...). [ORG-01]
 Route::middleware('can:hrm.organization.manage')->prefix('org')->name('org.')->group(function () {
     foreach (['units', 'positions', 'designations', 'grades', 'branches', 'cost-centers', 'employment-types', 'unit-levels'] as $section) {

@@ -32,6 +32,11 @@
                         · {{ $employee->designation->name ?? __('No designation') }}
                         · {{ $employee->orgUnit?->path() ?? __('No org unit') }}
                     </flux:text>
+                    @can('viewAny', App\Modules\Hrm\Models\Employee::class)
+                        <flux:link :href="route('hrm.org-chart', ['focus' => $employee->id])" wire:navigate class="mt-1 inline-flex items-center gap-1 text-sm">
+                            <flux:icon.share variant="micro" /> {{ __('Show in org chart') }}
+                        </flux:link>
+                    @endcan
                 </div>
 
                 <livewire:hrm::employees.login-box :$employee />
