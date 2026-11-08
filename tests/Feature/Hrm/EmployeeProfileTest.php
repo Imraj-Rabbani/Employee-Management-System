@@ -68,11 +68,11 @@ class EmployeeProfileTest extends TestCase
             ->assertSee(route('hrm.employees.show', $this->salma), false);
     }
 
-    public function test_tabs_not_built_yet_show_coming_soon_and_unknown_tabs_fall_back(): void
+    public function test_every_tab_renders_and_unknown_tabs_fall_back(): void
     {
-        $this->get(route('hrm.employees.show', ['employee' => $this->rahim, 'tab' => 'bank']))
-            ->assertOk()
-            ->assertSee('Bank is coming soon');
+        foreach (['personal', 'job', 'family', 'education', 'work-history', 'documents', 'bank', 'history'] as $tab) {
+            $this->get(route('hrm.employees.show', ['employee' => $this->rahim, 'tab' => $tab]))->assertOk();
+        }
 
         $this->get(route('hrm.employees.show', ['employee' => $this->rahim, 'tab' => 'nonsense']))
             ->assertOk()

@@ -46,3 +46,14 @@ Route::get('employees/{employee}/photo', function (Employee $employee, TenantUpl
 
     return $uploads->show($employee->photo_path);
 })->middleware('can:view,employee')->name('employees.photo');
+
+// An attachment of a profile row (education certificate, experience letter ...). {section} must be listed
+// in Employee::ATTACHMENT_SECTIONS, and the row is looked up THROUGH the employee, so neither another table
+// nor another employee's file can be reached. Downloads under the name the file had when uploaded.
+Route::get('employees/{employee}/attachments/{section}/{id}', function (Employee $employee, string $section, int $id, TenantUploads $uploads) {
+    $relation = Employee::ATTACHMENT_SECTIONS[$section] ?? abort(404);
+    $row = $employee->{$relation}()->findOrFail($id);
+    abort_if($row->attachment_path === null || ! $uploads->exists($row->attachment_path), 404);
+
+    return $uploads->download($row->attachment_path, $row->attachment_name);
+})->middleware('can:view,employee')->whereNumber('id')->name('employees.attachment');

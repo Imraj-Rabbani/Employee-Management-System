@@ -32,6 +32,9 @@ use Illuminate\Support\Carbon;
  *     $employee->supervisor              another Employee (self-referencing)
  *     $employee->subordinates            employees who report to this one
  *     $employee->orgAssignments          org unit history, newest first (5.4)
+ *     $employee->familyMembers / nominees   family and nominees (5.5)
+ *     $employee->educations / workHistories education and earlier jobs (5.5)
+ *     $employee->documents / bankAccounts   documents with expiry, bank accounts (5.5)
  *     $employee->user                    the login (central DB), set in 5.7
  *     Employee::active()->get()          only Active ones
  *
@@ -110,6 +113,16 @@ class Employee extends TenantModel
         'shift_id', 'has_shifting', 'weekend_profile_id', 'holiday_profile_id', 'leave_profile_id',
         'salary_profile_id', 'pay_scale_profile_id', 'tax_profile_id', 'payment_method',
         'status', 'separation_date',
+    ];
+
+    /**
+     * Profile sections whose rows may have an attachment: URL segment => relation method.
+     * Used by the hrm.employees.attachment route (only these can be downloaded).
+     */
+    public const ATTACHMENT_SECTIONS = [
+        'educations' => 'educations',
+        'work-histories' => 'workHistories',
+        'documents' => 'documents',
     ];
 
     protected $attributes = [
@@ -215,6 +228,66 @@ class Employee extends TenantModel
     public function orgAssignments(): HasMany
     {
         return $this->hasMany(EmployeeOrgAssignment::class)->latestFirst();
+    }
+
+    /**
+     * Family members: parents first, then spouse, children ... (by relation number), oldest first. [EMP-02]
+     *
+     * @return HasMany<EmployeeFamilyMember, $this>
+     */
+    public function familyMembers(): HasMany
+    {
+        return $this->hasMany(EmployeeFamilyMember::class)->orderBy('relation')->orderBy('birth_date');
+    }
+
+    /**
+     * Nominees, in the order they were added. Their shares must total 100%. [EMP-02]
+     *
+     * @return HasMany<EmployeeNominee, $this>
+     */
+    public function nominees(): HasMany
+    {
+        return $this->hasMany(EmployeeNominee::class)->orderBy('id');
+    }
+
+    /**
+     * Education, newest first. [EMP-03]
+     *
+     * @return HasMany<EmployeeEducation, $this>
+     */
+    public function educations(): HasMany
+    {
+        return $this->hasMany(EmployeeEducation::class)->orderByDesc('passing_year')->orderByDesc('id');
+    }
+
+    /**
+     * Jobs before this company, newest first. [EMP-03]
+     *
+     * @return HasMany<EmployeeWorkHistory, $this>
+     */
+    public function workHistories(): HasMany
+    {
+        return $this->hasMany(EmployeeWorkHistory::class)->orderByDesc('from_date')->orderByDesc('id');
+    }
+
+    /**
+     * Documents: those expiring first on top, documents without expiry last. [EMP-03]
+     *
+     * @return HasMany<EmployeeDocument, $this>
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(EmployeeDocument::class)->orderByRaw('expiry_date IS NULL')->orderBy('expiry_date')->orderBy('type');
+    }
+
+    /**
+     * Bank accounts, primary first. [EMP-01]
+     *
+     * @return HasMany<EmployeeBankAccount, $this>
+     */
+    public function bankAccounts(): HasMany
+    {
+        return $this->hasMany(EmployeeBankAccount::class)->orderByDesc('is_primary')->orderBy('id');
     }
 
     /** @return BelongsTo<EmploymentType, $this> */

@@ -51,14 +51,6 @@
             @endforeach
         </nav>
 
-        @if (view()->exists('hrm::employees.tabs.'.$tab))
-            @include('hrm::employees.tabs.'.$tab)
-        @else
-            {{-- Filled in by later tasks: History = 5.4, the others = 5.5. --}}
-            <x-ui.card>
-                <x-ui.empty icon="wrench-screwdriver" :heading="__(':tab is coming soon', ['tab' => $tabs[$tab]])"
-                    :description="__('This section is built in a later step.')" />
-            </x-ui.card>
-        @endif
+        @include('hrm::employees.tabs.'.$tab)
     </div>
 </x-layouts.app>
