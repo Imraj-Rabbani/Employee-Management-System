@@ -31,6 +31,7 @@ use Illuminate\Support\Carbon;
  *     $employee->grade->name             org data (Phase 4) through belongsTo relations
  *     $employee->supervisor              another Employee (self-referencing)
  *     $employee->subordinates            employees who report to this one
+ *     $employee->orgAssignments          org unit history, newest first (5.4)
  *     $employee->user                    the login (central DB), set in 5.7
  *     Employee::active()->get()          only Active ones
  *
@@ -116,6 +117,22 @@ class Employee extends TenantModel
         'has_shifting' => false,
     ];
 
+    /**
+     * Model events. booted() runs once per class; created() fires after every INSERT of an employee,
+     * however it is made (form, factory, import), so the org unit history always has a first row.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (Employee $employee) {
+            if ($employee->org_unit_id !== null) {
+                $employee->orgAssignments()->create([
+                    'org_unit_id' => $employee->org_unit_id,
+                    'effective_from' => $employee->join_date,
+                ]);
+            }
+        });
+    }
+
     /** @return array<string, string> */
     protected function casts(): array
     {
@@ -188,6 +205,16 @@ class Employee extends TenantModel
     public function orgUnit(): BelongsTo
     {
         return $this->belongsTo(OrgUnit::class);
+    }
+
+    /**
+     * Org unit history, newest first. Change it only through ChangeOrgUnit. [EMP-04]
+     *
+     * @return HasMany<EmployeeOrgAssignment, $this>
+     */
+    public function orgAssignments(): HasMany
+    {
+        return $this->hasMany(EmployeeOrgAssignment::class)->latestFirst();
     }
 
     /** @return BelongsTo<EmploymentType, $this> */

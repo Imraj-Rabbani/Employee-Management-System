@@ -11,18 +11,15 @@ use App\Modules\Hrm\Models\EmploymentType;
 use App\Modules\Hrm\Models\Grade;
 use App\Modules\Hrm\Models\Position;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
-use App\Modules\Hrm\Services\EmployeeVisibility;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 /**
  * Profile → Job → Edit: code, placement, reporting lines, dates, payment method. [EMP-01]
  *
- * Not here on purpose: status and separation (Lifecycle, Phase 13).
- * The org unit is edited directly for now; 5.4 turns a change into a dated assignment (history).
+ * Not here on purpose: status and separation (Lifecycle, Phase 13), and the org unit: that is changed on
+ * the History tab (OrgHistory → ChangeOrgUnit) so every move is dated and kept. (5.4)
  *
  * Extra rules:
- *   - org unit: only units the user may see
  *   - supervisor / dotted-line manager: not the employee themself, and no loop (A → B → A)
  *   - position: not held by another employee; the old seat becomes vacant, the new one filled
  */
@@ -38,7 +35,6 @@ class JobForm extends EmployeeSectionForm
         return [
             'code' => ['required', 'string', 'max:50', Rule::unique(Employee::class, 'code')->ignore($this->employeeId)],
             'access_code' => ['nullable', 'string', 'max:50'],
-            'org_unit_id' => ['required', Rule::in(array_keys($this->orgUnits()))],
             'designation_id' => ['nullable', Rule::exists(Designation::class, 'id')],
             'grade_id' => ['nullable', Rule::exists(Grade::class, 'id')],
             'position_id' => ['nullable', Rule::exists(Position::class, 'id')],
@@ -57,7 +53,7 @@ class JobForm extends EmployeeSectionForm
     protected function labels(): array
     {
         return [
-            'code' => __('employee code'), 'access_code' => __('attendance ID'), 'org_unit_id' => __('org unit'),
+            'code' => __('employee code'), 'access_code' => __('attendance ID'),
             'position_id' => __('position'), 'cost_center_id' => __('cost center'), 'employment_type_id' => __('employment type'),
             'supervisor_id' => __('supervisor'), 'dotted_line_manager_id' => __('dotted-line manager'),
             'join_date' => __('join date'), 'planned_confirmation_date' => __('planned confirmation'),
@@ -106,10 +102,7 @@ class JobForm extends EmployeeSectionForm
 
     protected function viewData(): array
     {
-        $units = $this->orgUnits();
-
         return [
-            'units' => $units,
             'designations' => Designation::orderBy('name')->pluck('name', 'id')->all(),
             'grades' => Grade::ordered()->pluck('name', 'id')->all(),
             'positions' => Position::where('is_active', true)->orderBy('name')->get()
@@ -142,12 +135,6 @@ class JobForm extends EmployeeSectionForm
         }
 
         return $people;
-    }
-
-    /** @return array<int, string> */
-    private function orgUnits(): array
-    {
-        return app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user());
     }
 
     protected function view(): string

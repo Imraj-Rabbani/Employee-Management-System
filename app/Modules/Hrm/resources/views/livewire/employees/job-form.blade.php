@@ -7,8 +7,8 @@
             </div>
 
             <flux:separator :text="__('Placement')" />
+            <flux:text class="text-sm">{{ __('The org unit is changed on the History tab, so every move is kept with its date.') }}</flux:text>
             <div class="grid gap-4 sm:grid-cols-2">
-                <x-form.select wire:model="form.org_unit_id" :label="__('Org unit')" :options="$units" :placeholder="__('Choose…')" required />
                 <x-form.select wire:model="form.designation_id" :label="__('Designation')" :options="$designations" :placeholder="__('None')" />
                 <x-form.select wire:model="form.grade_id" :label="__('Grade')" :options="$grades" :placeholder="__('None')" />
                 <x-form.select wire:model="form.position_id" :label="__('Position')" :options="$positions" :placeholder="__('None')" />

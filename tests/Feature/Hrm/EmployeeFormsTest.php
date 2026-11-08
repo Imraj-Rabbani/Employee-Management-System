@@ -241,17 +241,6 @@ class EmployeeFormsTest extends TestCase
             ->assertHasErrors('form.position_id');
     }
 
-    public function test_a_finance_user_cannot_move_someone_to_sales(): void
-    {
-        $this->financeUser(['hrm.employee.view', 'hrm.employee.update']);
-
-        Livewire::test(JobForm::class, ['employee' => $this->rahim])
-            ->call('open')
-            ->set('form.org_unit_id', (string) $this->sales->id)
-            ->call('save')
-            ->assertHasErrors(['form.org_unit_id' => 'in']);
-    }
-
     // ---- Photo (5.3d) --------------------------------------------------------------------
 
     public function test_a_photo_is_uploaded_shown_replaced_and_removed(): void
