@@ -44,6 +44,15 @@ class TenantUploads
         return $this->disk()->download($path, $name);
     }
 
+    /**
+     * Send the file to be SHOWN in the page (e.g. <img src>), not saved. Check permission before calling.
+     * private + 1 hour: the browser may cache it, shared proxies may not.
+     */
+    public function show(string $path): StreamedResponse
+    {
+        return $this->disk()->response($path, null, ['Cache-Control' => 'private, max-age=3600']);
+    }
+
     /** Delete the file. Does nothing for an empty path (e.g. no photo was ever uploaded). */
     public function delete(?string $path): void
     {

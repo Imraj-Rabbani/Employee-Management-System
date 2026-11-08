@@ -59,7 +59,10 @@ class EmployeeTable extends DataTable
         return [
             Column::make(__('Code'), 'code')->sortable()->searchable()->alwaysVisible(),
             Column::make(__('Name'), 'first_name')->sortable()->searchable('last_name', 'name_local')->alwaysVisible()
-                ->format(fn (Employee $e) => $e->name),
+                ->format(fn (Employee $e) => new HtmlString(Blade::render(
+                    '<a href="{{ route(\'hrm.employees.show\', $e) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $e->name }}</a>',
+                    ['e' => $e],
+                ))),
             Column::make(__('Designation'), 'designation_id')->format(fn (Employee $e) => $e->designation->name ?? '-'),
             Column::make(__('Org unit'), 'org_unit_id')->format(fn (Employee $e) => $e->orgUnit->name ?? '-'),
             Column::make(__('Grade'), 'grade_id')->format(fn (Employee $e) => $e->grade->name ?? '-'),
@@ -82,15 +85,7 @@ class EmployeeTable extends DataTable
      */
     private function orgUnitOptions(): array
     {
-        $paths = OrgUnit::pathOptions();
-        $user = Auth::user();
-        $visible = $user ? app(EmployeeVisibility::class)->orgUnitIdsFor($user) : null;
-
-        if ($visible !== null) {
-            $paths = array_intersect_key($paths, array_flip($visible));
-        }
-
-        return $this->stringKeys($paths);
+        return $this->stringKeys(app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user()));
     }
 
     /**

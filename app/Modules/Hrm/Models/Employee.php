@@ -46,6 +46,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $last_name
  * @property string|null $name_local
  * @property-read string $name
+ * @property-read string|null $photo_url
  * @property Gender|null $gender
  * @property Carbon|null $birth_date
  * @property MaritalStatus|null $marital_status
@@ -144,10 +145,43 @@ class Employee extends TenantModel
         return Attribute::get(fn () => trim($this->first_name.' '.$this->last_name));
     }
 
+    /**
+     * URL of the photo, or null (then show initials). ?v= changes when the photo changes, so the
+     * browser does not keep showing the old cached one. Read as $employee->photo_url.
+     *
+     * @return Attribute<string|null, never>
+     */
+    protected function photoUrl(): Attribute
+    {
+        return Attribute::get(fn () => $this->photo_path === null ? null
+            : route('hrm.employees.photo', ['employee' => $this, 'v' => substr(md5($this->photo_path), 0, 8)]));
+    }
+
     /** @param  Builder<self>  $query */
     public function scopeActive(Builder $query): void
     {
         $query->where('status', EmployeeStatus::Active);
+    }
+
+    /**
+     * Would reporting to $supervisorId create a loop (A reports to B, B reports to ... A)?
+     * Walks up the supervisor chain. withoutGlobalScope: the chain may pass through units you cannot see.
+     */
+    public function wouldLoopUnder(int $supervisorId): bool
+    {
+        $bosses = static::withoutGlobalScope(VisibleToCurrentUser::class)->pluck('supervisor_id', 'id')->all();
+        $current = $supervisorId;
+        $seen = [];
+
+        while ($current !== null && ! in_array($current, $seen, true)) {
+            if ($current === $this->id) {
+                return true;
+            }
+            $seen[] = $current;
+            $current = $bosses[$current] ?? null;
+        }
+
+        return false;
     }
 
     /** @return BelongsTo<OrgUnit, $this> */

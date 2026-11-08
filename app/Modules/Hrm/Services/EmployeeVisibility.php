@@ -47,6 +47,20 @@ class EmployeeVisibility
         ];
     }
 
+    /**
+     * Org units this user may pick in filters and forms, as "Head Office › Finance". A user limited to
+     * Finance only gets Finance and the units below it.
+     *
+     * @return array<int, string> id => path
+     */
+    public function orgUnitOptionsFor(?User $user): array
+    {
+        $paths = OrgUnit::pathOptions();
+        $visible = $user ? $this->orgUnitIdsFor($user) : null;
+
+        return $visible === null ? $paths : array_intersect_key($paths, array_flip($visible));
+    }
+
     public function canSee(User $user, Employee $employee): bool
     {
         if ($employee->user_id !== null && $employee->user_id === $user->id) {
