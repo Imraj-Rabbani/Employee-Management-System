@@ -1,8 +1,11 @@
 <?php
 
 use App\Core\Support\TenantUploads;
+use App\Modules\Hrm\Exports\EmployeeImportTemplate;
 use App\Modules\Hrm\Models\Employee;
+use App\Modules\Hrm\Services\EmployeeVisibility;
 use Illuminate\Support\Facades\Route;
+use Maatwebsite\Excel\Facades\Excel;
 
 // Prefix "/hrm" and name "hrm." are added by ModuleServiceProvider.
 // can:... = the permission needed (permissions.php). Livewire re-checks it on every click (persistent middleware).
@@ -12,6 +15,16 @@ Route::view('ping', 'hrm::ping')->name('ping');
 Route::view('employees', 'hrm::employees.index')
     ->middleware('can:viewAny,'.Employee::class)
     ->name('employees.index');
+
+// Excel import of new employees (5.6). Must come BEFORE employees/{employee}, or "import" would be taken
+// for an employee id. "create" = EmployeePolicy::create. [EMP-06]
+Route::middleware('can:create,'.Employee::class)->group(function () {
+    Route::view('employees/import', 'hrm::employees.import')->name('employees.import');
+    Route::get('employees/import/template', fn (EmployeeVisibility $visibility) => Excel::download(
+        new EmployeeImportTemplate($visibility->orgUnitOptionsFor(auth()->user())),
+        'employee-import-template.xlsx',
+    ))->name('employees.import.template');
+});
 
 // One employee's profile. {employee} = ROUTE MODEL BINDING: Laravel loads Employee::find($id) for us
 // (through the VisibleToCurrentUser scope, so someone you may not see gives 404). "view" = EmployeePolicy::view.
@@ -30,7 +43,7 @@ Route::get('employees/{employee}', function (Employee $employee) {
     $tab = array_key_exists((string) request()->query('tab'), $tabs) ? (string) request()->query('tab') : 'personal';
 
     return view('hrm::employees.show', compact('employee', 'tabs', 'tab'));
-})->middleware('can:view,employee')->name('employees.show');
+})->middleware('can:view,employee')->whereNumber('employee')->name('employees.show');
 
 // HRM → Organization: one page view, one URL per section (hrm.org.units, hrm.org.grades ...). [ORG-01]
 Route::middleware('can:hrm.organization.manage')->prefix('org')->name('org.')->group(function () {

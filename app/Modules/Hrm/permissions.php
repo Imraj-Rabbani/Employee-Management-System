@@ -11,6 +11,7 @@ return [
         'hrm.employee.create' => 'Add employees',
         'hrm.employee.update' => 'Edit employees',
         'hrm.employee.delete' => 'Delete employees',
+        'hrm.employee.login' => 'Give employees a login (invite, link, unlink)',
     ],
     'Organization' => [
         'hrm.organization.manage' => 'Manage org units, positions and grades',

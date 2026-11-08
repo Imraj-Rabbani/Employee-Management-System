@@ -54,6 +54,12 @@ class EmployeePolicy
         return $user->can('hrm.employee.delete') && $this->inScope($user, $employee);
     }
 
+    /** Invite / link / unlink the employee's login (5.7). */
+    public function manageLogin(User $user, Employee $employee): bool
+    {
+        return $user->can('hrm.employee.login') && $this->inScope($user, $employee);
+    }
+
     /** In the user's org units. Unlike view(), being the employee yourself does NOT count. */
     private function inScope(User $user, Employee $employee): bool
     {

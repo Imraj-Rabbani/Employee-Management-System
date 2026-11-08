@@ -53,6 +53,12 @@ class TenantUploads
         return $this->disk()->response($path, null, ['Cache-Control' => 'private, max-age=3600']);
     }
 
+    /** Full path on disk, for libraries that need a real file (e.g. reading an Excel upload). */
+    public function path(string $path): string
+    {
+        return $this->disk()->path($path);
+    }
+
     /** Delete the file. Does nothing for an empty path (e.g. no photo was ever uploaded). */
     public function delete(?string $path): void
     {

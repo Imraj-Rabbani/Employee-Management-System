@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Modules\Core\Services\Permissions;
 use App\Modules\Core\Services\Settings;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
 
 class CoreServiceProvider extends ModuleServiceProvider
 {
@@ -35,5 +36,12 @@ class CoreServiceProvider extends ModuleServiceProvider
 
             return $this->app->make(Permissions::class)->check($user, $ability);
         });
+
+        // "Set your password" from the invitation email (5.7): NO login, so outside the module's "auth" +
+        // "tenant" group. "signed" rejects a URL whose signature is wrong or expired.
+        Route::middleware(['web', 'signed', 'throttle:30,1'])
+            ->prefix('invitation')
+            ->name('invitation.')
+            ->group($this->modulePath().'/routes/signed.php');
     }
 }

@@ -5,7 +5,10 @@
             <flux:subheading>{{ __('Everyone employed by the company. Filter by org unit, status, grade or type, choose columns and export to Excel.') }}</flux:subheading>
 
             @can('create', App\Modules\Hrm\Models\Employee::class)
-                <flux:button variant="primary" icon="plus" x-on:click="$dispatch('create-employee')">{{ __('New employee') }}</flux:button>
+                <div class="flex shrink-0 gap-2">
+                    <flux:button icon="arrow-up-tray" :href="route('hrm.employees.import')" wire:navigate>{{ __('Import') }}</flux:button>
+                    <flux:button variant="primary" icon="plus" x-on:click="$dispatch('create-employee')">{{ __('New employee') }}</flux:button>
+                </div>
             @endcan
         </div>
 

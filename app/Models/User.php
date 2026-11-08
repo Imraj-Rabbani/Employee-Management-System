@@ -70,6 +70,8 @@ class User extends Authenticatable implements HasLocalePreference // , MustVerif
             'password' => 'hashed',
             'is_super_admin' => 'boolean',
             'two_factor_confirmed_at' => 'datetime',
+            'invited_at' => 'datetime',
+            'invitation_accepted_at' => 'datetime',
         ];
     }
 
@@ -84,6 +86,21 @@ class User extends Authenticatable implements HasLocalePreference // , MustVerif
         }
 
         return UserRole::where('user_id', $this->id)->first()?->role;
+    }
+
+    /** Invited (5.7) but the password has not been set yet. */
+    public function hasOpenInvitation(): bool
+    {
+        return $this->invited_at !== null && $this->invitation_accepted_at === null;
+    }
+
+    /**
+     * Changes whenever the password changes. Put into the signed invitation link, so the link stops
+     * working once the password is set (or a new invitation sets a new random one).
+     */
+    public function invitationFingerprint(): string
+    {
+        return substr(hash_hmac('sha256', (string) $this->getAuthPassword(), (string) config('app.key')), 0, 16);
     }
 
     /**

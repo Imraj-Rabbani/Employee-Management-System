@@ -33,6 +33,8 @@
                         · {{ $employee->orgUnit?->path() ?? __('No org unit') }}
                     </flux:text>
                 </div>
+
+                <livewire:hrm::employees.login-box :$employee />
             </div>
         </x-ui.card>
 
