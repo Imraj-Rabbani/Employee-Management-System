@@ -143,5 +143,14 @@
     "People": "কর্মী",
     "Positions": "পদসমূহ",
     "Vacant": "শূন্য",
-    "Show in org chart": "অর্গানোগ্রামে দেখুন"
+    "Show in org chart": "অর্গানোগ্রামে দেখুন",
+    "Applied": "আবেদন করেছে",
+    "Shortlisted": "সংক্ষিপ্ত তালিকাভুক্ত",
+    "Interview": "সাক্ষাৎকার",
+    "Offered": "প্রস্তাব দেওয়া হয়েছে",
+    "Hired": "নিয়োগপ্রাপ্ত",
+    "Rejected": "বাতিল",
+    "Withdrawn": "প্রত্যাহার করেছে",
+    "New position": "নতুন পদ",
+    "Replacement": "প্রতিস্থাপন"
 }

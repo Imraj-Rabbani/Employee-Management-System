@@ -45,10 +45,12 @@ trait HasApprovals
      *   - no approval rows            → null (not submitted yet)
      *   - any row still pending       → Pending (someone still has to answer)
      *   - otherwise                   → the most recent answer (approved / rejected / review)
+     *
+     * In a list, eager load first (Model::with('approvals')) so this does not run one query per row.
      */
     public function approvalStatus(): ?ApprovalStatus
     {
-        $rows = $this->approvals()->get();
+        $rows = $this->relationLoaded('approvals') ? $this->approvals : $this->approvals()->get();
 
         if ($rows->isEmpty()) {
             return null;

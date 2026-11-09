@@ -51,7 +51,7 @@ return [
             ['label' => 'Transfer', 'route' => null],
             ['label' => 'Separation', 'route' => null],
             ['label' => 'Letters & Certificates', 'route' => null],
-            ['label' => 'Recruitment', 'route' => null],
+            ['label' => 'Recruitment', 'route' => 'hrm.recruitment.requests', 'current' => 'hrm.recruitment.*', 'can' => 'hrm.recruitment.request'],
             ['label' => 'Training', 'route' => null],
         ],
     ],

@@ -3,6 +3,7 @@
 use App\Core\Support\TenantUploads;
 use App\Modules\Hrm\Exports\EmployeeImportTemplate;
 use App\Modules\Hrm\Models\Employee;
+use App\Modules\Hrm\Models\ManpowerRequest;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
@@ -75,3 +76,23 @@ Route::get('employees/{employee}/attachments/{section}/{id}', function (Employee
 
     return $uploads->download($row->attachment_path, $row->attachment_name);
 })->middleware('can:view,employee')->whereNumber('id')->name('employees.attachment');
+
+// HRM → Recruitment → Manpower requests (6.2): the start of the hiring process. Each user sees the
+// requests of the org units they can see (ManpowerRequest::visibleTo). [REC-01]
+Route::view('recruitment/requests', 'hrm::recruitment.requests')
+    ->middleware('can:hrm.recruitment.request')
+    ->name('recruitment.requests');
+
+// One request: details, approval timeline, Edit / Send for approval. Looked up THROUGH visibleTo(), so a
+// request of an org unit the user cannot see gives 404 (not a plain ->find()).
+Route::get('recruitment/requests/{id}', fn (int $id) => view('hrm::recruitment.request-show', [
+    'request' => ManpowerRequest::query()->visibleTo(auth()->user())->findOrFail($id),
+]))->middleware('can:hrm.recruitment.request')->whereNumber('id')->name('recruitment.requests.show');
+
+// HRM → Recruitment → Setup: interview factors and rejection reasons (6.1). Same idea as Organization:
+// one page view, one URL per section. [REC-04, REC-05]
+Route::middleware('can:hrm.recruitment.setup')->prefix('recruitment/setup')->name('recruitment.setup.')->group(function () {
+    foreach (['factors', 'reasons'] as $section) {
+        Route::view($section, 'hrm::recruitment.setup', ['section' => $section])->name($section);
+    }
+});

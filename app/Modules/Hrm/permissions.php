@@ -16,4 +16,8 @@ return [
     'Organization' => [
         'hrm.organization.manage' => 'Manage org units, positions and grades',
     ],
+    'Recruitment' => [
+        'hrm.recruitment.request' => 'Create manpower requests (for the org units they can see)',
+        'hrm.recruitment.setup' => 'Manage recruitment setup (interview factors, rejection reasons)',
+    ],
 ];
