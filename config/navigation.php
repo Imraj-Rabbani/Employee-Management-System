@@ -55,6 +55,7 @@ return [
             ['label' => 'Manpower Requests', 'route' => 'hrm.recruitment.requests', 'current' => 'hrm.recruitment.requests*', 'can' => 'hrm.recruitment.request'],
             ['label' => 'Job Postings', 'route' => 'hrm.recruitment.postings', 'current' => 'hrm.recruitment.postings*', 'can' => 'hrm.recruitment.manage'],
             ['label' => 'Applicants', 'route' => 'hrm.recruitment.applicants', 'current' => 'hrm.recruitment.applicants*', 'can' => 'hrm.recruitment.manage'],
+            ['label' => 'Recruitment Reports', 'route' => 'hrm.recruitment.reports.open-positions', 'current' => 'hrm.recruitment.reports.*', 'can' => 'hrm.recruitment.manage'],
             ['label' => 'Training', 'route' => null],
         ],
     ],

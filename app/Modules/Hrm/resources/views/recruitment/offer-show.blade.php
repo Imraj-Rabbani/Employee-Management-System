@@ -9,5 +9,6 @@
 
         <livewire:hrm::recruitment.offer-details :offer-id="$offer->id" />
         <livewire:hrm::recruitment.offer-form />
+        <livewire:hrm::recruitment.hire-form />
     </div>
 </x-layouts.app>

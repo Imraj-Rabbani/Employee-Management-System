@@ -81,6 +81,23 @@ abstract class DataTable extends Component
     }
 
     /**
+     * For SelectFilter options with number keys (ids): filter values arrive from the browser / URL as
+     * strings, so the option keys must be strings too. (Moved here from EmployeeTable in 6.9.)
+     *
+     * @param  array<int|string, string>  $options
+     * @return array<string, string>
+     */
+    protected function stringKeys(array $options): array
+    {
+        $out = [];
+        foreach ($options as $key => $label) {
+            $out[(string) $key] = $label;
+        }
+
+        return $out;
+    }
+
+    /**
      * Key => settings. Key "delete" is handled by a bulkDelete(array $ids) method.
      *
      * @return array<string, array{label: string, confirm?: string, variant?: string}>

@@ -6,6 +6,7 @@ use App\Core\Models\TenantModel;
 use App\Models\User;
 use App\Modules\Hrm\Database\Factories\ApplicationFactory;
 use App\Modules\Hrm\Enums\ApplicationStage;
+use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -26,6 +27,7 @@ use Illuminate\Support\Carbon;
  * @property ApplicationStage $stage
  * @property int|null $rejection_reason_id the current reason (rejected / withdrawn), copied from the last move
  * @property Carbon|null $stage_changed_at when it reached its current stage
+ * @property int|null $hired_employee_id the employee made from it by the hire (6.8)
  * @property Carbon $applied_on
  * @property int|null $created_by_user_id
  * @property Carbon $created_at
@@ -86,6 +88,17 @@ class Application extends TenantModel
     public function offers(): HasMany
     {
         return $this->hasMany(JobOffer::class)->latest('id');
+    }
+
+    /**
+     * The employee this application became (6.8). withoutGlobalScope: HR may see the hiring history even
+     * when the new employee sits in a unit outside their access.
+     *
+     * @return BelongsTo<Employee, $this>
+     */
+    public function hiredEmployee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'hired_employee_id')->withoutGlobalScope(VisibleToCurrentUser::class);
     }
 
     /** @return BelongsTo<JobPosting, $this> */

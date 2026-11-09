@@ -87,20 +87,4 @@ class EmployeeTable extends DataTable
     {
         return $this->stringKeys(app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user()));
     }
-
-    /**
-     * Filter values arrive from the browser/URL as strings, so the option keys must be strings too.
-     *
-     * @param  array<int|string, string>  $options
-     * @return array<string, string>
-     */
-    private function stringKeys(array $options): array
-    {
-        $out = [];
-        foreach ($options as $key => $label) {
-            $out[(string) $key] = $label;
-        }
-
-        return $out;
-    }
 }

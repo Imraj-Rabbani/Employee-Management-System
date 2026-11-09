@@ -58,7 +58,9 @@
                                 <a href="{{ route('hrm.recruitment.postings.show', $application->job_posting_id) }}" wire:navigate class="font-medium text-brand-800 hover:underline dark:text-brand-200">{{ $application->jobPosting->title }}</a>
                                 <div class="text-xs text-zinc-500">
                                     {{ $application->jobPosting->number() }} · {{ format_date($application->applied_on) }}
-                                    @if ($offer = $application->offers->first())
+                                    @if ($application->hiredEmployee)
+                                        · <a href="{{ route('hrm.employees.show', $application->hired_employee_id) }}" wire:navigate class="text-brand-800 hover:underline dark:text-brand-200">{{ __('Employee :code', ['code' => $application->hiredEmployee->code]) }}</a>
+                                    @elseif ($offer = $application->offers->first())
                                         · <a href="{{ route('hrm.recruitment.offers.show', $offer->id) }}" wire:navigate class="text-brand-800 hover:underline dark:text-brand-200">{{ $offer->number() }} {{ mb_strtolower($offer->status()->label()) }}</a>
                                     @endif
                                 </div>

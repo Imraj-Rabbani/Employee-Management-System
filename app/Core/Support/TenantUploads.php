@@ -5,6 +5,7 @@ namespace App\Core\Support;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -57,6 +58,23 @@ class TenantUploads
     public function path(string $path): string
     {
         return $this->disk()->path($path);
+    }
+
+    /**
+     * Copy a stored file into another folder under a new random name (keeps the extension), e.g. an
+     * applicant's CV into the new employee's documents (6.8). Returns the new path. Both files then live
+     * on their own: deleting one does not touch the other.
+     */
+    public function copy(string $path, string $folder): string
+    {
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
+        $target = $this->safeFolder($folder).'/'.Str::random(40).($extension !== '' ? '.'.$extension : '');
+
+        if (! $this->disk()->copy($path, $target)) {
+            throw new \RuntimeException("Could not copy [{$path}] to [{$folder}].");
+        }
+
+        return $target;
     }
 
     /** Delete the file. Does nothing for an empty path (e.g. no photo was ever uploaded). */

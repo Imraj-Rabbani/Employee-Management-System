@@ -32,6 +32,16 @@
                     <flux:button icon="arrow-down-tray" :href="route('hrm.recruitment.offers.letter', $offer->id)">{{ __('Letter (PDF)') }}</flux:button>
                 @endif
 
+                @if ($status === OfferStatus::Accepted)
+                    @if ($offer->application->hiredEmployee)
+                        <flux:button variant="primary" icon="user" :href="route('hrm.employees.show', $offer->application->hired_employee_id)" wire:navigate>
+                            {{ __('Employee :code', ['code' => $offer->application->hiredEmployee->code]) }}
+                        </flux:button>
+                    @elseif (auth()->user()->can('create', \App\Modules\Hrm\Models\Employee::class))
+                        <flux:button variant="primary" icon="user-plus" x-on:click="$dispatch('hire', { offerId: {{ $offer->id }} })">{{ __('Hire') }}</flux:button>
+                    @endif
+                @endif
+
                 @if (in_array($status, [OfferStatus::Approved, OfferStatus::LetterSent], true))
                     <flux:button icon="envelope" x-on:click="$dispatch('confirm', {
                         title: @js(__('Email the offer letter?')),

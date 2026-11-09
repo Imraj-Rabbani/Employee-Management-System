@@ -24,7 +24,7 @@ use Livewire\Component;
  *   Draft / sent back   Edit · Send for approval
  *   Approved            Download letter · Email letter to applicant · Record answer
  *   Letter sent         Download letter · Email again · Record answer
- *   Accepted            (6.8: Hire)       Declined / not approved: nothing more; a new offer can be made
+ *   Accepted            Hire (HireForm, needs permission to add employees) → then a link to the employee       Declined / not approved: nothing more; a new offer can be made
  *
  * Permission: the page route needs hrm.recruitment.manage (re-checked on every click); the offer is found
  * through its application's visibleTo().
@@ -139,7 +139,7 @@ class OfferDetails extends Component
     {
         return JobOffer::query()
             ->whereHas('application', fn ($q) => $q->visibleTo(Auth::user()))
-            ->with(['application.applicant', 'application.jobPosting.manpowerRequest.orgUnit', 'designation', 'grade', 'employmentType', 'approvals'])
+            ->with(['application.applicant', 'application.hiredEmployee', 'application.jobPosting.manpowerRequest.orgUnit', 'designation', 'grade', 'employmentType', 'approvals'])
             ->findOrFail($this->offerId);
     }
 

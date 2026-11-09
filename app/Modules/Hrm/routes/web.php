@@ -138,6 +138,13 @@ Route::middleware('can:hrm.recruitment.manage')->prefix('recruitment/offers/{id}
     })->name('letter');
 });
 
+// HRM → Recruitment Reports (6.9): one URL per report, like Organization. Data limited to the user's org units.
+Route::middleware('can:hrm.recruitment.manage')->prefix('recruitment/reports')->name('recruitment.reports.')->group(function () {
+    foreach (['open-positions', 'funnel', 'time-to-hire'] as $report) {
+        Route::view($report, 'hrm::recruitment.reports', ['report' => $report])->name($report);
+    }
+});
+
 // HRM → Recruitment → Setup: interview factors and rejection reasons (6.1). Same idea as Organization:
 // one page view, one URL per section. [REC-04, REC-05]
 Route::middleware('can:hrm.recruitment.setup')->prefix('recruitment/setup')->name('recruitment.setup.')->group(function () {
