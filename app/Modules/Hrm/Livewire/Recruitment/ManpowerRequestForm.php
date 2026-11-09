@@ -13,6 +13,7 @@ use App\Modules\Hrm\Services\EmployeeVisibility;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -41,6 +42,7 @@ class ManpowerRequestForm extends Component
     #[On('create-manpower-request')]
     public function create(): void
     {
+        Gate::authorize('hrm.recruitment.request');
         $this->recordId = null;
         $this->form = [
             'org_unit_id' => '', 'designation_id' => '', 'position_id' => '', 'grade_id' => '', 'employment_type_id' => '',
@@ -86,6 +88,7 @@ class ManpowerRequestForm extends Component
 
     public function save(): void
     {
+        Gate::authorize('hrm.recruitment.request');
         $request = $this->recordId ? $this->find($this->recordId) : null;
         if ($request && ! $request->isEditable()) {
             $this->addError('form.org_unit_id', __('This request is waiting for approval or already answered, so it cannot be changed.'));
@@ -146,9 +149,14 @@ class ManpowerRequestForm extends Component
         $this->redirectRoute('hrm.recruitment.requests', navigate: true);
     }
 
-    /** Only requests the user may see: someone else's id in the URL / event gives 404. */
+    /**
+     * Only requests the user may see: someone else's id in the URL / event gives 404.
+     * Also checks the permission: this form sits on the request page, which HR may open just to read.
+     */
     private function find(int $id): ManpowerRequest
     {
+        Gate::authorize('hrm.recruitment.request');
+
         return ManpowerRequest::query()->visibleTo(Auth::user())->findOrFail($id);
     }
 

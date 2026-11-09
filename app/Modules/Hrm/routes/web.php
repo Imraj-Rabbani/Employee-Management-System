@@ -2,7 +2,9 @@
 
 use App\Core\Support\TenantUploads;
 use App\Modules\Hrm\Exports\EmployeeImportTemplate;
+use App\Modules\Hrm\Models\Applicant;
 use App\Modules\Hrm\Models\Employee;
+use App\Modules\Hrm\Models\JobPosting;
 use App\Modules\Hrm\Models\ManpowerRequest;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use Illuminate\Support\Facades\Route;
@@ -83,11 +85,38 @@ Route::view('recruitment/requests', 'hrm::recruitment.requests')
     ->middleware('can:hrm.recruitment.request')
     ->name('recruitment.requests');
 
-// One request: details, approval timeline, Edit / Send for approval. Looked up THROUGH visibleTo(), so a
+// One request: details, approval timeline, Edit / Send for approval. HR (manage) may read it too
+// (view-requests, HrmServiceProvider); the buttons need hrm.recruitment.request. Looked up THROUGH visibleTo(), so a
 // request of an org unit the user cannot see gives 404 (not a plain ->find()).
 Route::get('recruitment/requests/{id}', fn (int $id) => view('hrm::recruitment.request-show', [
     'request' => ManpowerRequest::query()->visibleTo(auth()->user())->findOrFail($id),
-]))->middleware('can:hrm.recruitment.request')->whereNumber('id')->name('recruitment.requests.show');
+]))->middleware('can:hrm.recruitment.view-requests')->whereNumber('id')->name('recruitment.requests.show');
+
+// HRM → Job Postings (6.3): HR advertises approved manpower requests. Same org-unit limit as the
+// requests (JobPosting::visibleTo). [REC-02]
+Route::view('recruitment/postings', 'hrm::recruitment.postings')
+    ->middleware('can:hrm.recruitment.manage')
+    ->name('recruitment.postings');
+
+// One posting: details, Open / Close / Reopen, Edit. Looked up through visibleTo() (other org units → 404).
+Route::get('recruitment/postings/{id}', fn (int $id) => view('hrm::recruitment.posting-show', [
+    'posting' => JobPosting::query()->visibleTo(auth()->user())->findOrFail($id),
+]))->middleware('can:hrm.recruitment.manage')->whereNumber('id')->name('recruitment.postings.show');
+
+// HRM → Applicants (6.4): the people HR entered, their profile (education, work history, CV) and
+// applications. The talent pool is company-wide: everyone with hrm.recruitment.manage sees all applicants,
+// but only the applications to postings of their org units (Application::visibleTo). [REC-03]
+Route::middleware('can:hrm.recruitment.manage')->prefix('recruitment/applicants')->name('recruitment.applicants')->group(function () {
+    Route::view('/', 'hrm::recruitment.applicants');
+    Route::get('{applicant}', fn (Applicant $applicant) => view('hrm::recruitment.applicant-show', compact('applicant')))
+        ->whereNumber('applicant')->name('.show');
+    // The CV is private (tenant disk): sent only through this route, under the name it was uploaded with.
+    Route::get('{applicant}/cv', function (Applicant $applicant, TenantUploads $uploads) {
+        abort_if($applicant->cv_path === null || ! $uploads->exists($applicant->cv_path), 404);
+
+        return $uploads->download($applicant->cv_path, $applicant->cv_name);
+    })->whereNumber('applicant')->name('.cv');
+});
 
 // HRM → Recruitment → Setup: interview factors and rejection reasons (6.1). Same idea as Organization:
 // one page view, one URL per section. [REC-04, REC-05]

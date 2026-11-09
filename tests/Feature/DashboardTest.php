@@ -39,7 +39,7 @@ class DashboardTest extends TestCase
         $this->get('/dashboard')
             ->assertSeeInOrder(['Self Service', 'HRM', 'Payroll', 'Workflow', 'Setup'])
             ->assertSee('My Payslips')
-            ->assertSee('Recruitment')
+            ->assertSee('Manpower Requests')
             ->assertDontSee('livewire-starter-kit');
     }
 

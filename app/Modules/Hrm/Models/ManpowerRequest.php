@@ -5,6 +5,7 @@ namespace App\Modules\Hrm\Models;
 use App\Core\Models\TenantModel;
 use App\Models\User;
 use App\Modules\Hrm\Database\Factories\ManpowerRequestFactory;
+use App\Modules\Hrm\Enums\JobPostingStatus;
 use App\Modules\Hrm\Enums\ManpowerRequestType;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use App\Modules\Hrm\Services\EmployeeVisibility;
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -119,6 +121,12 @@ class ManpowerRequest extends TenantModel implements Approvable, ShowsApprovalDe
         return $this->belongsTo(Employee::class, 'replaces_employee_id')->withoutGlobalScope(VisibleToCurrentUser::class);
     }
 
+    /** @return HasMany<JobPosting, $this> */
+    public function jobPostings(): HasMany
+    {
+        return $this->hasMany(JobPosting::class);
+    }
+
     // ---- helpers ---------------------------------------------------------------------------
 
     /** @param  Builder<self>  $query */
@@ -170,6 +178,23 @@ class ManpowerRequest extends TenantModel implements Approvable, ShowsApprovalDe
             $max !== null => __('up to :amount', ['amount' => $max]),
             default => null,
         };
+    }
+
+    /**
+     * How many openings a (new or edited) posting may still have: the headcount still to fill, minus what
+     * Draft / Open postings already advertise. A CLOSED posting no longer counts, so after closing one
+     * without hiring everybody, the rest can be advertised again.
+     *
+     * @param  int|null  $exceptPostingId  the posting being edited: its own openings do not count against it
+     */
+    public function openingsToAdvertise(?int $exceptPostingId = null): int
+    {
+        $advertised = (int) $this->jobPostings()
+            ->whereIn('status', [JobPostingStatus::Draft, JobPostingStatus::Open])
+            ->when($exceptPostingId, fn ($q) => $q->whereKeyNot($exceptPostingId))
+            ->sum('openings');
+
+        return max(0, $this->openings() - $advertised);
     }
 
     /** Headcount still to fill (never below 0). */

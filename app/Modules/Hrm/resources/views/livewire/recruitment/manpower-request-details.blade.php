@@ -16,7 +16,7 @@
                 <flux:text class="mt-1 text-xs">{{ __('Created :date', ['date' => format_date($request->created_at)]) }}</flux:text>
             </div>
 
-            @if ($request->isEditable())
+            @if ($request->isEditable() && auth()->user()->can('hrm.recruitment.request'))
                 <div class="flex gap-2">
                     <flux:button icon="pencil-square" x-on:click="$dispatch('edit-manpower-request', { id: {{ $request->id }} })">{{ __('Edit') }}</flux:button>
                     <flux:button variant="primary" icon="paper-airplane" x-on:click="$dispatch('confirm', {
@@ -26,6 +26,11 @@
                         onConfirm: () => $wire.submit(),
                     })">{{ $status ? __('Send again') : __('Send for approval') }}</flux:button>
                 </div>
+            @elseif ($request->approved_at && $request->openingsToAdvertise() > 0 && auth()->user()->can('hrm.recruitment.manage'))
+                {{-- Approved: HR can advertise it. Opens the posting form with this request already chosen (6.3). --}}
+                <flux:button variant="primary" icon="megaphone" :href="route('hrm.recruitment.postings', ['for' => $request->id])" wire:navigate>
+                    {{ __('Create job posting') }}
+                </flux:button>
             @endif
         </div>
     </x-ui.card>

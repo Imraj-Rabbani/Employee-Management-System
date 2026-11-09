@@ -18,6 +18,7 @@ return [
     ],
     'Recruitment' => [
         'hrm.recruitment.request' => 'Create manpower requests (for the org units they can see)',
+        'hrm.recruitment.manage' => 'Manage job postings and applicants (HR)',
         'hrm.recruitment.setup' => 'Manage recruitment setup (interview factors, rejection reasons)',
     ],
 ];

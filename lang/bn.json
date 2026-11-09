@@ -152,5 +152,11 @@
     "Rejected": "বাতিল",
     "Withdrawn": "প্রত্যাহার করেছে",
     "New position": "নতুন পদ",
-    "Replacement": "প্রতিস্থাপন"
+    "Replacement": "প্রতিস্থাপন",
+    "Draft": "খসড়া",
+    "Open": "চালু",
+    "Closed": "বন্ধ",
+    "Manpower Requests": "জনবল চাহিদা",
+    "Job Postings": "চাকরির বিজ্ঞপ্তি",
+    "Applicants": "আবেদনকারী"
 }

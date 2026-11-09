@@ -6,6 +6,7 @@ use App\Modules\Hrm\Models\ManpowerRequest;
 use App\Modules\Workflow\Exceptions\WorkflowException;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -30,6 +31,7 @@ class ManpowerRequestDetails extends Component
      */
     public function submit(): void
     {
+        Gate::authorize('hrm.recruitment.request');
         $request = $this->request();
 
         if (! $request->isEditable()) {
