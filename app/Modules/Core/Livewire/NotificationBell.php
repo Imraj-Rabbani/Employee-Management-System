@@ -43,6 +43,9 @@ class NotificationBell extends Component
                 'rejected' => __(':type ":subject" was rejected.', $replace),
                 default => __(':type ":subject" was sent back to you.', $replace),
             },
+            'interview_scheduled' => ($data['changed'] ?? false)
+                ? __('Interview changed: :name, round :round, :when.', ['name' => $data['applicant'] ?? '', 'round' => $data['round'] ?? '', 'when' => $data['when'] ?? ''])
+                : __('You are on the interview panel for :name, round :round, :when.', ['name' => $data['applicant'] ?? '', 'round' => $data['round'] ?? '', 'when' => $data['when'] ?? '']),
             default => (string) ($data['message'] ?? __('Notification')),
         };
     }
@@ -51,6 +54,7 @@ class NotificationBell extends Component
     {
         return match ($notification->data['kind'] ?? null) {
             'approval_needed' => route('workflow.inbox'),
+            'interview_scheduled' => route('ess.interviews'),
             default => route('home'),
         };
     }

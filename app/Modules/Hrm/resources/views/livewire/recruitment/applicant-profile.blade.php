@@ -58,7 +58,10 @@
                                 <a href="{{ route('hrm.recruitment.postings.show', $application->job_posting_id) }}" wire:navigate class="font-medium text-brand-800 hover:underline dark:text-brand-200">{{ $application->jobPosting->title }}</a>
                                 <div class="text-xs text-zinc-500">{{ $application->jobPosting->number() }} · {{ format_date($application->applied_on) }}</div>
                             </div>
-                            <x-ui.badge :color="$application->stage->color()">{{ $application->stage->label() }}</x-ui.badge>
+                            {{-- The badge opens the application's history (ApplicationHistory). --}}
+                            <button type="button" x-on:click="$dispatch('show-application-history', { id: {{ $application->id }} })" title="{{ __('History') }}">
+                                <x-ui.badge :color="$application->stage->color()">{{ $application->stage->label() }}</x-ui.badge>
+                            </button>
                         </li>
                     @endforeach
                 </ul>

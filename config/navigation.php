@@ -33,6 +33,7 @@ return [
             ['label' => 'My Payslips', 'route' => null],
             ['label' => 'My Tax Card', 'route' => null],
             ['label' => 'My Profile Update Requests', 'route' => 'ess.profile-requests'],
+            ['label' => 'My Interviews', 'route' => 'ess.interviews'],
         ],
     ],
 

@@ -8,7 +8,14 @@
         </flux:link>
 
         <livewire:hrm::recruitment.job-posting-details :posting-id="$posting->id" />
+        {{-- Separate component: it redraws on its own (tabs, moves) without redrawing the details. --}}
+        <livewire:hrm::recruitment.application-pipeline :posting-id="$posting->id" />
+        {{-- Interviews of this posting (6.6): plan, complete, scores, and the ranking. --}}
+        <livewire:hrm::recruitment.posting-interviews :posting-id="$posting->id" />
         <livewire:hrm::recruitment.job-posting-form />
         <livewire:hrm::recruitment.applicant-form />
+        <livewire:hrm::recruitment.application-history />
+        <livewire:hrm::recruitment.interview-form />
+        <livewire:hrm::recruitment.interview-score-sheet />
     </div>
 </x-layouts.app>

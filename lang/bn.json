@@ -158,5 +158,9 @@
     "Closed": "বন্ধ",
     "Manpower Requests": "জনবল চাহিদা",
     "Job Postings": "চাকরির বিজ্ঞপ্তি",
-    "Applicants": "আবেদনকারী"
+    "Applicants": "আবেদনকারী",
+    "Scheduled": "নির্ধারিত",
+    "Completed": "সম্পন্ন",
+    "Cancelled": "বাতিল করা হয়েছে",
+    "My Interviews": "আমার সাক্ষাৎকার"
 }

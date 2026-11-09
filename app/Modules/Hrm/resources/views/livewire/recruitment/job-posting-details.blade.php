@@ -69,32 +69,6 @@
                     __('Still to advertise') => $request->openingsToAdvertise(),
                 ]" />
             </x-ui.card>
-
-            {{-- Applicants (6.4). "Add applicant" opens the applicant form with this posting chosen. --}}
-            <x-ui.card :heading="__('Applicants')" :subheading="trans_choice(':count application|:count applications', $applications->count(), ['count' => $applications->count()])" :padding="false">
-                @if ($posting->isAcceptingApplications())
-                    <x-slot:actions>
-                        <flux:button size="sm" icon="plus" x-on:click="$dispatch('create-applicant', { postingId: {{ $posting->id }} })">{{ __('Add applicant') }}</flux:button>
-                    </x-slot:actions>
-                @endif
-
-                @if ($applications->isEmpty())
-                    <x-ui.empty icon="users" :heading="__('No applicants yet')"
-                        :description="$posting->isAcceptingApplications() ? null : __('Applicants can be added while the posting is open and inside its dates.')" />
-                @else
-                    <ul class="divide-y divide-white/50 dark:divide-white/10">
-                        @foreach ($applications as $application)
-                            <li class="flex items-center justify-between gap-2 px-6 py-3 text-sm" wire:key="app-{{ $application->id }}">
-                                <div class="min-w-0">
-                                    <a href="{{ route('hrm.recruitment.applicants.show', $application->applicant_id) }}" wire:navigate class="font-medium text-brand-800 hover:underline dark:text-brand-200">{{ $application->applicant->name }}</a>
-                                    <div class="text-xs text-zinc-500">{{ format_date($application->applied_on) }}</div>
-                                </div>
-                                <x-ui.badge :color="$application->stage->color()">{{ $application->stage->label() }}</x-ui.badge>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
-            </x-ui.card>
         </div>
     </div>
 </div>

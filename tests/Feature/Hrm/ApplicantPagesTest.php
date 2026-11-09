@@ -9,7 +9,7 @@ use App\Modules\Hrm\Livewire\Recruitment\ApplicantEducations;
 use App\Modules\Hrm\Livewire\Recruitment\ApplicantForm;
 use App\Modules\Hrm\Livewire\Recruitment\ApplicantProfile;
 use App\Modules\Hrm\Livewire\Recruitment\ApplicantWorkHistories;
-use App\Modules\Hrm\Livewire\Recruitment\JobPostingDetails;
+use App\Modules\Hrm\Livewire\Recruitment\ApplicationPipeline;
 use App\Modules\Hrm\Models\Applicant;
 use App\Modules\Hrm\Models\Application;
 use App\Modules\Hrm\Models\JobPosting;
@@ -248,12 +248,13 @@ class ApplicantPagesTest extends TestCase
         $rahim = Applicant::factory()->create(['first_name' => 'Rahim']);
         Application::factory()->for($rahim)->for($this->posting)->create();
 
-        Livewire::test(JobPostingDetails::class, ['postingId' => $this->posting->id])
+        // Since 6.5 the list is the pipeline, below the posting's details.
+        Livewire::test(ApplicationPipeline::class, ['postingId' => $this->posting->id])
             ->assertSee('Rahim')
             ->assertSee('1 application')
             ->assertSee('Add applicant');
 
         $this->posting->close();
-        Livewire::test(JobPostingDetails::class, ['postingId' => $this->posting->id])->assertDontSee('Add applicant');
+        Livewire::test(ApplicationPipeline::class, ['postingId' => $this->posting->id])->assertDontSee('Add applicant');
     }
 }

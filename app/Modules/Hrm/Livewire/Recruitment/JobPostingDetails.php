@@ -64,11 +64,6 @@ class JobPostingDetails extends Component
 
     public function render(): View
     {
-        $posting = $this->posting();
-
-        return view('hrm::livewire.recruitment.job-posting-details', [
-            'posting' => $posting,
-            'applications' => $posting->applications()->with('applicant')->latest('applied_on')->latest('id')->get(),
-        ]);
+        return view('hrm::livewire.recruitment.job-posting-details', ['posting' => $this->posting()]);
     }
 }

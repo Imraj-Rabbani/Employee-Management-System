@@ -15,5 +15,6 @@
         </div>
 
         <livewire:hrm::recruitment.applicant-form />
+        <livewire:hrm::recruitment.application-history />
     </div>
 </x-layouts.app>

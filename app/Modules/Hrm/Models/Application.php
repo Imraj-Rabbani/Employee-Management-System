@@ -10,17 +10,22 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
  * One applicant applying to one job posting. [REC-03]
  * Created ONLY through Hrm\Actions\ApplyToPosting (it checks the posting takes applications and the
- * person has not applied to it already). Its stage moves through the pipeline in 6.5.
+ * person has not applied to it already). Its stage changes ONLY through Hrm\Actions\MoveApplication,
+ * which also writes the history (stageChanges). stage / rejection_reason_id / stage_changed_at are
+ * therefore not fillable from forms.
  *
  * @property int $id
  * @property int $applicant_id
  * @property int $job_posting_id
  * @property ApplicationStage $stage
+ * @property int|null $rejection_reason_id the current reason (rejected / withdrawn), copied from the last move
+ * @property Carbon|null $stage_changed_at when it reached its current stage
  * @property Carbon $applied_on
  * @property int|null $created_by_user_id
  * @property Carbon $created_at
@@ -31,20 +36,46 @@ class Application extends TenantModel
     /** @use HasFactory<ApplicationFactory> */
     use HasFactory;
 
-    protected $fillable = ['applicant_id', 'job_posting_id', 'stage', 'applied_on', 'created_by_user_id'];
+    protected $fillable = ['applicant_id', 'job_posting_id', 'applied_on', 'created_by_user_id'];
 
     protected $attributes = ['stage' => 'applied'];
 
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['stage' => ApplicationStage::class, 'applied_on' => 'date'];
+        return ['stage' => ApplicationStage::class, 'applied_on' => 'date', 'stage_changed_at' => 'datetime'];
     }
 
     /** @return BelongsTo<Applicant, $this> */
     public function applicant(): BelongsTo
     {
         return $this->belongsTo(Applicant::class);
+    }
+
+    /** @return BelongsTo<RejectionReason, $this> */
+    public function rejectionReason(): BelongsTo
+    {
+        return $this->belongsTo(RejectionReason::class);
+    }
+
+    /**
+     * The history, oldest first. [REC-04]
+     *
+     * @return HasMany<ApplicationStageChange, $this>
+     */
+    public function stageChanges(): HasMany
+    {
+        return $this->hasMany(ApplicationStageChange::class)->orderBy('id');
+    }
+
+    /**
+     * Interview rounds, round 1 first. [REC-05]
+     *
+     * @return HasMany<Interview, $this>
+     */
+    public function interviews(): HasMany
+    {
+        return $this->hasMany(Interview::class)->orderBy('round');
     }
 
     /** @return BelongsTo<JobPosting, $this> */

@@ -58,6 +58,22 @@ enum ApplicationStage: string
         return in_array($this, [self::Hired, self::Rejected, self::Withdrawn], true);
     }
 
+    /**
+     * Place in the pipeline: applied 1 → shortlisted 2 → interview 3 → offered 4 → hired 5.
+     * Rejected / withdrawn are not "steps" (they end the application from any open stage): null.
+     */
+    public function step(): ?int
+    {
+        return match ($this) {
+            self::Applied => 1,
+            self::Shortlisted => 2,
+            self::Interview => 3,
+            self::Offered => 4,
+            self::Hired => 5,
+            self::Rejected, self::Withdrawn => null,
+        };
+    }
+
     /** Rejected and withdrawn need a reason (REC-04). */
     public function needsReason(): bool
     {
