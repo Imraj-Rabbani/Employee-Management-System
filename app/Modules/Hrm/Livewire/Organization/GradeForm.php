@@ -24,7 +24,7 @@ class GradeForm extends LookupForm
 
     protected function defaults(): array
     {
-        return ['code' => '', 'name' => '', 'sequence' => 1, 'description' => '', 'is_active' => true];
+        return ['code' => '', 'name' => '', 'sequence' => 1, 'salary_min' => '', 'salary_max' => '', 'description' => '', 'is_active' => true];
     }
 
     protected function fieldRules(): array
@@ -33,9 +33,16 @@ class GradeForm extends LookupForm
             'code' => ['nullable', 'string', 'max:50', Rule::unique(Grade::class, 'code')->ignore($this->recordId)],
             'name' => ['required', 'string', 'max:100', Rule::unique(Grade::class, 'name')->ignore($this->recordId)],
             'sequence' => ['required', 'integer', 'min:0', 'max:9999'],
+            'salary_min' => ['nullable', 'numeric', 'min:0', 'max:999999999'],
+            'salary_max' => ['nullable', 'numeric', 'min:0', 'max:999999999', 'gte:form.salary_min'],
             'description' => ['nullable', 'string', 'max:500'],
             'is_active' => ['boolean'],
         ];
+    }
+
+    protected function labels(): array
+    {
+        return ['salary_min' => __('salary from'), 'salary_max' => __('salary to')];
     }
 
     protected function view(): string

@@ -104,7 +104,7 @@ class ApplicationPipeline extends Component
         $posting = $this->posting();
 
         $all = $posting->applications()
-            ->with(['applicant', 'rejectionReason', 'interviews'])
+            ->with(['applicant', 'rejectionReason', 'interviews', 'offers.approvals'])
             ->orderByDesc('stage_changed_at')->orderByDesc('id')
             ->get();
 

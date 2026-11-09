@@ -4,9 +4,11 @@ use App\Core\Support\TenantUploads;
 use App\Modules\Hrm\Exports\EmployeeImportTemplate;
 use App\Modules\Hrm\Models\Applicant;
 use App\Modules\Hrm\Models\Employee;
+use App\Modules\Hrm\Models\JobOffer;
 use App\Modules\Hrm\Models\JobPosting;
 use App\Modules\Hrm\Models\ManpowerRequest;
 use App\Modules\Hrm\Services\EmployeeVisibility;
+use App\Modules\Hrm\Services\OfferLetter;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -116,6 +118,24 @@ Route::middleware('can:hrm.recruitment.manage')->prefix('recruitment/applicants'
 
         return $uploads->download($applicant->cv_path, $applicant->cv_name);
     })->whereNumber('applicant')->name('.cv');
+});
+
+// Job offers (6.7): the offer's page and its letter (PDF). Found through the application's visibleTo(). [REC-06]
+Route::middleware('can:hrm.recruitment.manage')->prefix('recruitment/offers/{id}')->whereNumber('id')->name('recruitment.offers.')->group(function () {
+    $find = fn (int $id) => JobOffer::query()->whereHas('application', fn ($q) => $q->visibleTo(auth()->user()))->findOrFail($id);
+
+    Route::get('/', fn (int $id) => view('hrm::recruitment.offer-show', ['offer' => $find($id)]))->name('show');
+
+    // Only once approved: a draft must never leave the building as a "letter".
+    Route::get('letter', function (int $id, OfferLetter $letter) use ($find) {
+        $offer = $find($id);
+        abort_if($offer->approved_at === null, 404);
+
+        return response($letter->content($offer), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$letter->fileName($offer).'"',
+        ]);
+    })->name('letter');
 });
 
 // HRM → Recruitment → Setup: interview factors and rejection reasons (6.1). Same idea as Organization:

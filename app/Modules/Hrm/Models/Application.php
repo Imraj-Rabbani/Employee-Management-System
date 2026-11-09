@@ -78,6 +78,16 @@ class Application extends TenantModel
         return $this->hasMany(Interview::class)->orderBy('round');
     }
 
+    /**
+     * Job offers, newest first (a new one only after the previous was declined / not approved). [REC-06]
+     *
+     * @return HasMany<JobOffer, $this>
+     */
+    public function offers(): HasMany
+    {
+        return $this->hasMany(JobOffer::class)->latest('id');
+    }
+
     /** @return BelongsTo<JobPosting, $this> */
     public function jobPosting(): BelongsTo
     {

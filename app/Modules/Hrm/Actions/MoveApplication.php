@@ -21,7 +21,7 @@ use LogicException;
  * Rules:
  *   - hired / rejected / withdrawn are final: no more moves
  *   - forward only (applied → interview may skip shortlisted), never back
- *   - Offered and Hired are NOT chosen by hand: the offer (6.7) and the hire (6.8) set them
+ *   - Offered and Hired are NOT chosen by hand: the offer (6.7) and the hire (6.8) set them through bySystem()
  *   - rejected / withdrawn need an ACTIVE rejection reason; other stages clear the reason
  */
 class MoveApplication
@@ -41,14 +41,14 @@ class MoveApplication
      *
      * @return array{field: string, message: string}|null
      */
-    public function problem(Application $application, ApplicationStage $to, ?int $reasonId = null): ?array
+    public function problem(Application $application, ApplicationStage $to, ?int $reasonId = null, bool $byHand = true): ?array
     {
         $from = $application->stage;
 
         $message = match (true) {
             $from->isFinal() => __('This application is closed (:stage).', ['stage' => $from->label()]),
             $to === $from => __('The application is already at this stage.'),
-            ! in_array($to, self::MANUAL, true) => __(':stage is set by the offer or the hire, not by hand.', ['stage' => $to->label()]),
+            $byHand && ! in_array($to, self::MANUAL, true) => __(':stage is set by the offer or the hire, not by hand.', ['stage' => $to->label()]),
             $to->step() !== null && $to->step() < (int) $from->step() => __('An application cannot move back (:from → :to).', ['from' => $from->label(), 'to' => $to->label()]),
             default => null,
         };
@@ -66,7 +66,21 @@ class MoveApplication
 
     public function handle(Application $application, ApplicationStage $to, ?int $reasonId = null, ?string $note = null, ?int $byUserId = null): ApplicationStageChange
     {
-        if ($problem = $this->problem($application, $to, $reasonId)) {
+        return $this->apply($application, $to, $reasonId, $note, $byUserId, byHand: true);
+    }
+
+    /**
+     * A move made by the system, not chosen in the Move menu: the offer's approval (→ Offered, 6.7) and the
+     * hire (→ Hired, 6.8). Same rules and history as handle(), except Offered / Hired are allowed.
+     */
+    public function bySystem(Application $application, ApplicationStage $to, ?int $reasonId = null, ?string $note = null, ?int $byUserId = null): ApplicationStageChange
+    {
+        return $this->apply($application, $to, $reasonId, $note, $byUserId, byHand: false);
+    }
+
+    private function apply(Application $application, ApplicationStage $to, ?int $reasonId, ?string $note, ?int $byUserId, bool $byHand): ApplicationStageChange
+    {
+        if ($problem = $this->problem($application, $to, $reasonId, $byHand)) {
             throw new LogicException($problem['message']);
         }
 

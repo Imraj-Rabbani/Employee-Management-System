@@ -56,7 +56,12 @@
                         <li class="flex items-center justify-between gap-2 px-6 py-3 text-sm" wire:key="app-{{ $application->id }}">
                             <div class="min-w-0">
                                 <a href="{{ route('hrm.recruitment.postings.show', $application->job_posting_id) }}" wire:navigate class="font-medium text-brand-800 hover:underline dark:text-brand-200">{{ $application->jobPosting->title }}</a>
-                                <div class="text-xs text-zinc-500">{{ $application->jobPosting->number() }} · {{ format_date($application->applied_on) }}</div>
+                                <div class="text-xs text-zinc-500">
+                                    {{ $application->jobPosting->number() }} · {{ format_date($application->applied_on) }}
+                                    @if ($offer = $application->offers->first())
+                                        · <a href="{{ route('hrm.recruitment.offers.show', $offer->id) }}" wire:navigate class="text-brand-800 hover:underline dark:text-brand-200">{{ $offer->number() }} {{ mb_strtolower($offer->status()->label()) }}</a>
+                                    @endif
+                                </div>
                             </div>
                             {{-- The badge opens the application's history (ApplicationHistory). --}}
                             <button type="button" x-on:click="$dispatch('show-application-history', { id: {{ $application->id }} })" title="{{ __('History') }}">

@@ -48,7 +48,13 @@
                                 <td class="px-6 py-3 tabular-nums">{{ format_date($application->applied_on) }}</td>
                                 <td class="px-6 py-3">
                                     <x-ui.badge :color="$application->stage->color()">{{ $application->stage->label() }}</x-ui.badge>
-                                    @php $planned = $application->interviews->firstWhere('status', \App\Modules\Hrm\Enums\InterviewStatus::Scheduled); @endphp
+                                    @php
+                                        $planned = $application->interviews->firstWhere('status', \App\Modules\Hrm\Enums\InterviewStatus::Scheduled);
+                                        $offer = $application->offers->first(fn ($o) => ! $o->status()->isDead());
+                                    @endphp
+                                    @if ($offer)
+                                        <a href="{{ route('hrm.recruitment.offers.show', $offer->id) }}" wire:navigate class="ml-1 text-xs text-brand-800 hover:underline dark:text-brand-200">{{ $offer->number() }} · {{ $offer->status()->label() }}</a>
+                                    @endif
                                     <div class="mt-1 text-xs text-zinc-500">
                                         @if ($planned)
                                             {{ $planned->title() }} · {{ format_datetime($planned->scheduled_at) }}
@@ -66,6 +72,10 @@
                                         @if (! $application->stage->isFinal() && ! $planned)
                                             <flux:button size="sm" variant="ghost" icon="calendar-days" :tooltip="__('Schedule interview')"
                                                 x-on:click="$dispatch('schedule-interview', { applicationId: {{ $application->id }} })" />
+                                        @endif
+                                        @if (! $offer && ! $application->stage->isFinal() && (int) $application->stage->step() >= 2)
+                                            <flux:button size="sm" variant="ghost" icon="banknotes" :tooltip="__('Make offer')"
+                                                x-on:click="$dispatch('create-offer', { applicationId: {{ $application->id }} })" />
                                         @endif
                                         @if ($canMove($application))
                                             <flux:button size="sm" icon="arrow-right" wire:click="startMove({{ $application->id }})">{{ __('Move') }}</flux:button>

@@ -30,6 +30,7 @@ class GradeTable extends DataTable
             Column::make(__('Order'), 'sequence')->sortable(),
             Column::make(__('Name'), 'name')->sortable()->searchable()->alwaysVisible()->opens('edit-grade'),
             Column::make(__('Code'), 'code')->sortable()->searchable(),
+            Column::make(__('Salary band'), 'salary_min')->sortable()->alignRight()->format(fn (Grade $g) => $g->salaryRange() ?? '—'),
             Column::make(__('Description'), 'description')->searchable(),
             Column::active(),
         ];

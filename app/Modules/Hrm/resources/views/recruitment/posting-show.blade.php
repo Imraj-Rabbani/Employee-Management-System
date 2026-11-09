@@ -17,5 +17,6 @@
         <livewire:hrm::recruitment.application-history />
         <livewire:hrm::recruitment.interview-form />
         <livewire:hrm::recruitment.interview-score-sheet />
+        <livewire:hrm::recruitment.offer-form />
     </div>
 </x-layouts.app>

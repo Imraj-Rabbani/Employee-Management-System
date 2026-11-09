@@ -81,7 +81,7 @@ class ApplicantProfile extends Component
     public function render(): View
     {
         $applicant = $this->applicant();
-        $applications = $applicant->applications()->visibleTo(Auth::user())->with('jobPosting.manpowerRequest.orgUnit')->get();
+        $applications = $applicant->applications()->visibleTo(Auth::user())->with(['jobPosting.manpowerRequest.orgUnit', 'offers.approvals'])->get();
 
         return view('hrm::livewire.recruitment.applicant-profile', [
             'applicant' => $applicant,

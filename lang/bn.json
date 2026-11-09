@@ -162,5 +162,12 @@
     "Scheduled": "নির্ধারিত",
     "Completed": "সম্পন্ন",
     "Cancelled": "বাতিল করা হয়েছে",
-    "My Interviews": "আমার সাক্ষাৎকার"
+    "My Interviews": "আমার সাক্ষাৎকার",
+    "Waiting for approval": "অনুমোদনের অপেক্ষায়",
+    "Sent back for changes": "সংশোধনের জন্য ফেরত",
+    "Not approved": "অনুমোদিত হয়নি",
+    "Approved": "অনুমোদিত",
+    "Letter sent": "চিঠি পাঠানো হয়েছে",
+    "Accepted": "গৃহীত",
+    "Declined": "প্রত্যাখ্যাত"
 }
