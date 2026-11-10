@@ -3,6 +3,8 @@
 --}}
 <x-layouts.app :title="$applicant->name">
     <div class="space-y-4">
+        <x-ui.section-tabs section="hrm.recruitment" />
+
         <flux:link :href="route('hrm.recruitment.applicants')" wire:navigate class="inline-flex items-center gap-1 text-sm">
             <flux:icon.arrow-left variant="micro" /> {{ __('All applicants') }}
         </flux:link>

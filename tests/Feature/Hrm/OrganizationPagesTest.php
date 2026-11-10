@@ -50,7 +50,7 @@ class OrganizationPagesTest extends TestCase
 
     public function test_every_section_opens_from_the_menu_and_needs_the_permission(): void
     {
-        $this->get('/dashboard')->assertSee(route('hrm.org.units'))->assertSee(route('core.currencies'));
+        $this->get('/dashboard')->assertSee(route('hrm.organization'))->assertSee(route('core.currencies'));
 
         foreach (['units', 'positions', 'designations', 'grades', 'branches', 'cost-centers', 'employment-types', 'unit-levels'] as $section) {
             $this->get("/hrm/org/{$section}")->assertOk()->assertSee(route('hrm.org.grades'));

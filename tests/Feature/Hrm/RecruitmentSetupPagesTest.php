@@ -35,7 +35,7 @@ class RecruitmentSetupPagesTest extends TestCase
         InterviewFactor::factory()->create(['name' => 'Communication']);
         RejectionReason::factory()->create(['name' => 'Did not attend']);
 
-        // Since 6.2 the sidebar opens Manpower requests; Setup is a button on that page.
+        // Setup is a tab of HRM → Recruitment (config/sections.php).
         $this->get('/hrm/recruitment/requests')->assertSee(route('hrm.recruitment.setup.factors'));
         $this->get('/hrm/recruitment/setup/factors')->assertOk()->assertSee('Communication');
         $this->get('/hrm/recruitment/setup/reasons')->assertOk()->assertSee('Did not attend');

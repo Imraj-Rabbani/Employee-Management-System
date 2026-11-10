@@ -7,6 +7,7 @@ use App\Modules\Core\Http\Middleware\ApplyTenantSettings;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -23,6 +24,11 @@ return Application::configure(basePath: dirname(__DIR__))
             // Applies the company's timezone (Setup → Company Settings). Runs right after "tenant".
             'tenant.settings' => ApplyTenantSettings::class,
         ]);
+
+        // "tenant" must run BEFORE route model binding (SubstituteBindings, part of "web"): a URL like
+        // /hrm/employees/{employee} loads the Employee from the company database, which only exists once
+        // "tenant" has switched to it. Laravel only reorders middleware that are in its priority list.
+        $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: IdentifyTenant::class);
 
         // Every page: the logged-in user's language (Settings → Profile).
         $middleware->web(append: [SetLocale::class]);

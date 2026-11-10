@@ -60,7 +60,7 @@ class RecruitmentReportsTest extends TestCase
 
     public function test_the_page_opens_from_the_menu_and_needs_the_permission(): void
     {
-        $this->get('/dashboard')->assertSee(route('hrm.recruitment.reports.open-positions'));
+        $this->get('/dashboard')->assertSee(route('hrm.recruitment'));
         $this->get(route('hrm.recruitment.reports.open-positions'))->assertOk()->assertSee('Open positions');
 
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.recruitment.request']);

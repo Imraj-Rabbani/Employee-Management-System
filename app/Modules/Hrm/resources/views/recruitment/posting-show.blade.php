@@ -3,6 +3,8 @@
 --}}
 <x-layouts.app :title="$posting->number()">
     <div class="space-y-4">
+        <x-ui.section-tabs section="hrm.recruitment" />
+
         <flux:link :href="route('hrm.recruitment.postings')" wire:navigate class="inline-flex items-center gap-1 text-sm">
             <flux:icon.arrow-left variant="micro" /> {{ __('All job postings') }}
         </flux:link>

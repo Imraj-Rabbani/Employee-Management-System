@@ -57,7 +57,7 @@ class ApplicantPagesTest extends TestCase
     {
         $applicant = Applicant::factory()->create(['first_name' => 'Karima']);
 
-        $this->get('/dashboard')->assertSee(route('hrm.recruitment.applicants'));
+        $this->get('/dashboard')->assertSee(route('hrm.recruitment'));
         $this->get('/hrm/recruitment/applicants')->assertOk()->assertSee('Karima');
         $this->get(route('hrm.recruitment.applicants.show', $applicant))->assertOk()->assertSee('Karima');
 

@@ -57,7 +57,7 @@ class OrgChartTest extends TestCase
 
     public function test_the_page_starts_with_the_top_and_their_direct_reports(): void
     {
-        $this->get(route('hrm.org-chart'))
+        $this->get(route('hrm.org.chart'))
             ->assertOk()
             ->assertSeeLivewire(OrgChart::class)
             ->assertSeeInOrder(['Ceo X', 'Fatima X', 'Selim X'])
@@ -82,7 +82,7 @@ class OrgChartTest extends TestCase
             ->assertSeeInOrder(['Ceo X', 'Fatima X', 'Rahim X', 'Nadia X']);
 
         $this->get(route('hrm.employees.show', $this->e['Nadia']))
-            ->assertSee(route('hrm.org-chart', ['focus' => $this->e['Nadia']->id]), false);
+            ->assertSee(route('hrm.org.chart', ['focus' => $this->e['Nadia']->id]), false);
     }
 
     public function test_search_jumps_to_a_person(): void
@@ -141,6 +141,6 @@ class OrgChartTest extends TestCase
     {
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.employee.create']);
 
-        $this->get(route('hrm.org-chart'))->assertForbidden();
+        $this->get(route('hrm.org.chart'))->assertForbidden();
     }
 }

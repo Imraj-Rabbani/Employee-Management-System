@@ -3,6 +3,8 @@
 --}}
 <x-layouts.app :title="$offer->number()">
     <div class="space-y-4">
+        <x-ui.section-tabs section="hrm.recruitment" />
+
         <flux:link :href="route('hrm.recruitment.postings.show', $offer->application->job_posting_id)" wire:navigate class="inline-flex items-center gap-1 text-sm">
             <flux:icon.arrow-left variant="micro" /> {{ __('Back to the job posting') }}
         </flux:link>

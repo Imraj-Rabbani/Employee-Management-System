@@ -10,17 +10,11 @@
     [$label, $table, $form, $createEvent, $createLabel, $intro] = $sections[$section];
 @endphp
 
-<x-layouts.app :title="__('Recruitment setup')">
+<x-layouts.app :title="__('Recruitment')">
     <div class="space-y-4">
-        <nav class="flex flex-wrap gap-1 border-b border-zinc-200 dark:border-white/10" aria-label="{{ __('Recruitment setup') }}">
-            @foreach ($sections as $key => $s)
-                <a href="{{ route('hrm.recruitment.setup.'.$key) }}" wire:navigate @class([
-                    '-mb-px border-b-2 px-3 py-2 text-sm font-medium transition',
-                    'border-brand-800 text-brand-900 dark:border-white dark:text-white' => $key === $section,
-                    'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200' => $key !== $section,
-                ]) @if ($key === $section) aria-current="page" @endif>{{ $s[0] }}</a>
-            @endforeach
-        </nav>
+        <x-ui.section-tabs section="hrm.recruitment" />
+
+        <x-ui.link-tabs size="sm" :label="__('Recruitment setup')" :tabs="collect($sections)->map(fn ($x, $key) => ['label' => $x[0], 'href' => route('hrm.recruitment.setup.'.$key), 'current' => $key === $section])->all()" />
 
         <div class="flex items-center justify-between gap-4">
             <flux:subheading>{{ $intro }}</flux:subheading>

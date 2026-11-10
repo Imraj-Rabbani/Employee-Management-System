@@ -50,10 +50,24 @@ Route::get('employees/{employee}', function (Employee $employee) {
     return view('hrm::employees.show', compact('employee', 'tabs', 'tab'));
 })->middleware('can:view,employee')->whereNumber('employee')->name('employees.show');
 
-// HRM → Org Chart: reporting lines (people) or the position tree. [ORG-02]
-Route::view('org-chart', 'hrm::org-chart')
+// HRM → Organization / Recruitment in the sidebar: open the first tab (config/sections.php) this user
+// may see. 403 when they may see none.
+foreach (['organization', 'recruitment'] as $section) {
+    Route::get($section, function () use ($section) {
+        foreach (config("sections.hrm.$section.tabs") as $tab) {
+            if (! isset($tab['can']) || auth()->user()->can($tab['can'])) {
+                return redirect()->route($tab['route']);
+            }
+        }
+        abort(403);
+    })->name($section);
+}
+
+// HRM → Organization → Org chart: reporting lines (people) or the position tree. [ORG-02]
+// Own permission (employee view), so it is outside the "org" group below (organization.manage).
+Route::view('org/chart', 'hrm::org-chart')
     ->middleware('can:viewAny,'.Employee::class)
-    ->name('org-chart');
+    ->name('org.chart');
 
 // HRM → Organization: one page view, one URL per section (hrm.org.units, hrm.org.grades ...). [ORG-01]
 Route::middleware('can:hrm.organization.manage')->prefix('org')->name('org.')->group(function () {

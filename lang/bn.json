@@ -170,5 +170,22 @@
     "Letter sent": "চিঠি পাঠানো হয়েছে",
     "Accepted": "গৃহীত",
     "Declined": "প্রত্যাখ্যাত",
-    "Recruitment Reports": "নিয়োগ প্রতিবেদন"
+    "Recruitment Reports": "নিয়োগ প্রতিবেদন",
+    "Employee": "কর্মী",
+    "Disciplinary Action": "শৃঙ্খলামূলক ব্যবস্থা",
+    "Org units": "সাংগঠনিক ইউনিট",
+    "Org chart": "সাংগঠনিক চার্ট",
+    "Designations": "পদবি",
+    "Grades": "গ্রেড",
+    "Branches": "শাখা",
+    "Cost centers": "কস্ট সেন্টার",
+    "Employment types": "চাকরির ধরন",
+    "Unit levels": "ইউনিটের স্তর",
+    "Manpower requests": "জনবল অনুরোধ",
+    "Job postings": "চাকরির বিজ্ঞপ্তি",
+    "Show / hide menu": "মেনু দেখান / লুকান",
+    "Resize menu": "মেনুর আকার বদলান",
+    "Drag to resize, double-click to reset": "আকার বদলাতে টানুন, আগের মাপে ফেরাতে ডাবল-ক্লিক করুন",
+    "Recruitment reports": "নিয়োগ প্রতিবেদন",
+    "Recruitment setup": "নিয়োগ সেটআপ"
 }

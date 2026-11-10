@@ -61,7 +61,7 @@ class JobPostingPagesTest extends TestCase
 
     public function test_the_page_opens_from_the_menu_and_needs_the_permission(): void
     {
-        $this->get('/dashboard')->assertSee(route('hrm.recruitment.postings'));
+        $this->get('/dashboard')->assertSee(route('hrm.recruitment'));
         $this->get('/hrm/recruitment/postings')->assertOk();
 
         $this->hrUser();

@@ -1,4 +1,8 @@
-{{-- HRM → Org Chart. [ORG-02] --}}
-<x-layouts.app :title="__('Org Chart')">
-    <livewire:hrm::org-chart />
+{{-- HRM → Organization → Org chart. [ORG-02] --}}
+<x-layouts.app :title="__('Organization')">
+    <div class="space-y-4">
+        <x-ui.section-tabs section="hrm.organization" />
+
+        <livewire:hrm::org-chart />
+    </div>
 </x-layouts.app>
