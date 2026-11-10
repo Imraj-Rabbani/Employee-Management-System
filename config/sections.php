@@ -54,4 +54,18 @@ return [
 
     ],
 
+    'payroll' => [
+
+        'attendance' => [
+            'label' => 'Attendance',
+            'tabs' => [
+                ['label' => 'Shifts', 'route' => 'payroll.attendance.shifts', 'can' => 'payroll.attendance.setup'],
+                ['label' => 'Weekends', 'route' => 'payroll.attendance.weekends', 'can' => 'payroll.attendance.setup'],
+                ['label' => 'Holidays', 'route' => 'payroll.attendance.holidays', 'can' => 'payroll.attendance.setup'],
+                ['label' => 'Holiday calendars', 'route' => 'payroll.attendance.holiday-profiles', 'can' => 'payroll.attendance.setup'],
+            ],
+        ],
+
+    ],
+
 ];

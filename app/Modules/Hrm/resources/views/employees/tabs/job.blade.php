@@ -53,4 +53,15 @@
             __('Payment method') => $employee->payment_method?->label(),
         ]" />
     </x-ui.card>
+
+    {{-- 7.1: no own shift = the company's default shift. --}}
+    @php $defaultShift = $employee->shift_id ? null : \App\Modules\Payroll\Models\Shift::default(); @endphp
+    <x-ui.card :heading="__('Attendance')">
+        <x-ui.details :items="[
+            __('Shift') => $employee->shift?->optionLabel() ?? ($defaultShift ? __('Default (:shift)', ['shift' => $defaultShift->optionLabel()]) : null),
+            __('Works on a roster') => $employee->has_shifting ? __('Yes') : __('No'),
+            __('Weekend') => $employee->weekendProfile ? $employee->weekendProfile->name.' · '.$employee->weekendProfile->summary() : null,
+            __('Holiday calendar') => $employee->holidayProfile?->name,
+        ]" />
+    </x-ui.card>
 </div>

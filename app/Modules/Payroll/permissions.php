@@ -6,6 +6,9 @@
 */
 
 return [
+    'Attendance' => [
+        'payroll.attendance.setup' => 'Manage attendance setup (shifts, weekends, holidays)',
+    ],
     'Salaries' => [
         'payroll.salary.view' => 'View salaries',
         'payroll.salary.manage' => 'Set up salaries',

@@ -11,10 +11,14 @@ use App\Modules\Hrm\Models\EmploymentType;
 use App\Modules\Hrm\Models\Grade;
 use App\Modules\Hrm\Models\Position;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
+use App\Modules\Payroll\Models\HolidayProfile;
+use App\Modules\Payroll\Models\Shift;
+use App\Modules\Payroll\Models\WeekendProfile;
 use Illuminate\Validation\Rule;
 
 /**
- * Profile → Job → Edit: code, placement, reporting lines, dates, payment method. [EMP-01]
+ * Profile → Job → Edit: code, placement, reporting lines, dates, payment method,
+ * and attendance: shift, weekend profile, holiday calendar (7.1). [EMP-01, TA-01, TA-02]
  *
  * Not here on purpose: status and separation (Lifecycle, Phase 13), and the org unit: that is changed on
  * the History tab (OrgHistory → ChangeOrgUnit) so every move is dated and kept. (5.4)
@@ -47,6 +51,10 @@ class JobForm extends EmployeeSectionForm
             'planned_confirmation_date' => ['nullable', 'date', 'after_or_equal:form.join_date'],
             'confirmation_date' => ['nullable', 'date', 'after_or_equal:form.join_date'],
             'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
+            'shift_id' => ['nullable', Rule::exists(Shift::class, 'id')],
+            'has_shifting' => ['boolean'],
+            'weekend_profile_id' => ['nullable', Rule::exists(WeekendProfile::class, 'id')],
+            'holiday_profile_id' => ['nullable', Rule::exists(HolidayProfile::class, 'id')],
         ];
     }
 
@@ -58,6 +66,7 @@ class JobForm extends EmployeeSectionForm
             'supervisor_id' => __('supervisor'), 'dotted_line_manager_id' => __('dotted-line manager'),
             'join_date' => __('join date'), 'planned_confirmation_date' => __('planned confirmation'),
             'confirmation_date' => __('confirmation date'), 'payment_method' => __('payment method'),
+            'shift_id' => __('shift'), 'weekend_profile_id' => __('weekend profile'), 'holiday_profile_id' => __('holiday calendar'),
         ];
     }
 
@@ -113,6 +122,14 @@ class JobForm extends EmployeeSectionForm
             'types' => EmploymentType::orderBy('name')->pluck('name', 'id')->all(),
             'people' => $this->peopleOptions(),
             'paymentMethods' => PaymentMethod::options(),
+            // Active ones, plus the employee's current one even if it was made inactive (or the dropdown would clear it).
+            'shifts' => Shift::where('is_active', true)->orWhere('id', $this->form['shift_id'] ?? null)->orderBy('name')->get()
+                ->mapWithKeys(fn (Shift $s) => [$s->id => $s->optionLabel()])->all(),
+            'defaultShift' => Shift::default()?->optionLabel(),
+            'weekendProfiles' => WeekendProfile::where('is_active', true)->orWhere('id', $this->form['weekend_profile_id'] ?? null)
+                ->orderBy('name')->pluck('name', 'id')->all(),
+            'holidayProfiles' => HolidayProfile::where('is_active', true)->orWhere('id', $this->form['holiday_profile_id'] ?? null)
+                ->orderBy('name')->pluck('name', 'id')->all(),
         ];
     }
 
