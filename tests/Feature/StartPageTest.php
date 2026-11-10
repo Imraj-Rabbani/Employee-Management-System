@@ -32,10 +32,4 @@ class StartPageTest extends TestCase
             ->get('/')
             ->assertRedirect(route('admin.dashboard'));
     }
-
-    public function test_there_is_no_public_registration(): void
-    {
-        $this->get('/register')->assertNotFound();
-        $this->get('/login')->assertOk()->assertDontSee('Sign up');
-    }
 }

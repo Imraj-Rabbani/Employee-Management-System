@@ -22,5 +22,10 @@
 
             <flux:button variant="primary" type="submit" class="w-full">{{ __('Log in') }}</flux:button>
         </form>
+
+        <div class="text-center text-sm text-zinc-600 dark:text-zinc-400">
+            {{ __('New to the platform?') }}
+            <x-text-link :href="route('register')">{{ __('Register your company') }}</x-text-link>
+        </div>
     </div>
 </x-layouts.auth>
