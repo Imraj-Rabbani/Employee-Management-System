@@ -18,6 +18,7 @@
         "livewire/livewire": "^4.4",
         "livewire/volt": "^1.6.7",
         "maatwebsite/excel": "^4.0",
+        "rats/zkteco": "^002.0",
         "spatie/laravel-activitylog": "^5.1"
     },
     "require-dev": {

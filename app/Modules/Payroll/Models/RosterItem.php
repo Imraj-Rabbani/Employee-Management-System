@@ -58,6 +58,17 @@ class RosterItem extends TenantModel
             ->first();
     }
 
+    /** The cell as text, as in Roster::cellMatrix(): the shift id, "off", "call" or "". */
+    public function cellValue(): string
+    {
+        return match (true) {
+            $this->is_off => 'off',
+            $this->shift_id !== null => (string) $this->shift_id,
+            $this->is_on_call => 'call',
+            default => '',
+        };
+    }
+
     /** @return BelongsTo<Roster, $this> */
     public function roster(): BelongsTo
     {

@@ -74,6 +74,13 @@ class Holiday extends TenantModel
             ->orWhere(fn (Builder $q) => $q->where('repeats_yearly', true)->whereYear('date', '<=', $year)));
     }
 
+    /** Same rule as scopeOnDate(), for a holiday already loaded (no query). */
+    public function fallsOn(CarbonInterface $date): bool
+    {
+        return $this->date->isSameDay($date)
+            || ($this->repeats_yearly && $this->date->format('m-d') === $date->format('m-d') && $this->date->year <= $date->year);
+    }
+
     /** @return BelongsToMany<HolidayProfile, $this> */
     public function profiles(): BelongsToMany
     {

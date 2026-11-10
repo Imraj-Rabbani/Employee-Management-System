@@ -59,10 +59,13 @@ return [
         'attendance' => [
             'label' => 'Attendance',
             'tabs' => [
+                ['label' => 'Rosters', 'route' => 'payroll.attendance.rosters', 'current' => 'payroll.attendance.rosters*', 'can' => 'payroll.roster.manage'],
+                ['label' => 'Punches', 'route' => 'payroll.attendance.punches', 'can' => 'payroll.punch.manage'],
                 ['label' => 'Shifts', 'route' => 'payroll.attendance.shifts', 'can' => 'payroll.attendance.setup'],
                 ['label' => 'Weekends', 'route' => 'payroll.attendance.weekends', 'can' => 'payroll.attendance.setup'],
                 ['label' => 'Holidays', 'route' => 'payroll.attendance.holidays', 'can' => 'payroll.attendance.setup'],
                 ['label' => 'Holiday calendars', 'route' => 'payroll.attendance.holiday-profiles', 'can' => 'payroll.attendance.setup'],
+                ['label' => 'Devices', 'route' => 'payroll.attendance.devices', 'can' => 'payroll.attendance.setup'],
             ],
         ],
 
