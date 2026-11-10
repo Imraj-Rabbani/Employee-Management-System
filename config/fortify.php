@@ -161,7 +161,8 @@ return [
     */
 
     'features' => [
-        // Registration is off: logins are created by CreateTenant and (later) by company admins.
+        // Fortify's registration is off: companies sign up on our own /register page (RegisterCompany),
+        // other logins are created by CreateTenant and by company admins.
         // Profile and password updates are handled by our own Settings pages, so those are off too.
         Features::resetPasswords(),
         // Two-factor authentication (task 2.7c). Settings → Two-factor authentication.

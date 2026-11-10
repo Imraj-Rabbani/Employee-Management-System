@@ -6,8 +6,11 @@ use Livewire\Volt\Volt;
 
 /*
 | Login, logout, forgot/reset password and password confirmation are Fortify routes
-| (see FortifyServiceProvider and config/fortify.php). Only e-mail verification stays here.
+| (see FortifyServiceProvider and config/fortify.php). Company sign-up and e-mail verification are ours.
 */
+
+// Public company sign-up (RegisterCompany). The company starts inactive until a super admin approves it.
+Route::view('register', 'auth.register')->middleware('guest')->name('register');
 
 Route::middleware('auth')->group(function () {
     Volt::route('verify-email', 'auth.verify-email')

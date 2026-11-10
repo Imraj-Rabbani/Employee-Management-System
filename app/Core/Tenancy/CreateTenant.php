@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Core\Models\Role;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
 
@@ -23,6 +24,14 @@ use Throwable;
  *         adminName: 'Rahim', adminEmail: 'rahim@sss.com', adminPassword: 'secret123',
  *         modules: ['hrm', 'payroll'],
  *     );
+ *
+ * Optional:
+ *   - active: false creates the company switched off (its users cannot log in yet)
+ *   - then: a function(Tenant $tenant, User $admin) run INSIDE the new company (its database is the
+ *     current one) as the last step, e.g. the sign-up page creates the admin's employee record there.
+ *     If it fails, the whole company is undone like any other step.
+ *
+ * codeFor('Acme Garments Ltd') suggests a free company code ("acmegarmentsltd", or "...2" if taken).
  *
  * If any step fails, what was already done is undone and the error is thrown again.
  * (A DB transaction can't do this for us: MySQL commits on CREATE DATABASE.)
@@ -46,6 +55,8 @@ class CreateTenant
         string $adminEmail,
         string $adminPassword,
         array $modules = [],
+        bool $active = true,
+        ?callable $then = null,
     ): Tenant {
         $code = strtolower(trim($code));
 
@@ -55,7 +66,7 @@ class CreateTenant
             'name' => $name,
             'database' => Tenant::databaseNameFor($code),
             'modules' => $modules,
-            'is_active' => true,
+            'is_active' => $active,
         ]);
 
         $databaseCreated = false;
@@ -81,7 +92,16 @@ class CreateTenant
                 'email' => $adminEmail,
                 'password' => $adminPassword,   // hashed by the User model's "hashed" cast
             ]);
-            $this->makeAdministrator($tenant, $admin);
+
+            // Step 5. Inside the company's database: the role, then the caller's extra setup.
+            $this->insideTenant($tenant, function () use ($tenant, $admin, $then) {
+                $role = Role::administrator() ?? throw new RuntimeException('The Administrator role was not seeded.');
+                $role->assignTo($admin);
+
+                if ($then !== null) {
+                    $then($tenant, $admin);
+                }
+            });
         } catch (Throwable $e) {
             $this->undo($tenant, $databaseCreated);
 
@@ -91,15 +111,42 @@ class CreateTenant
         return $tenant;
     }
 
-    /** Role rows live in the tenant DB: switch there for a moment, then back to where we were. */
-    private function makeAdministrator(Tenant $tenant, User $user): void
+    /**
+     * A company code that is free (no tenant, no database) made from the company name:
+     * lowercase letters and digits, starting with a letter, at most 20 characters.
+     */
+    public function codeFor(string $companyName): string
+    {
+        $base = substr((string) preg_replace('/[^a-z0-9]/', '', Str::lower(Str::ascii($companyName))), 0, 20);
+
+        if ($base === '') {
+            $base = 'company';
+        } elseif (! ctype_alpha($base[0])) {
+            $base = 'c'.substr($base, 0, 19);
+        }
+
+        $code = $base;
+        for ($i = 2; $this->isTaken($code); $i++) {
+            $code = $base.$i;
+        }
+
+        return $code;
+    }
+
+    private function isTaken(string $code): bool
+    {
+        return Tenant::where('code', $code)->exists()
+            || $this->databases->exists(new Tenant(['database' => Tenant::databaseNameFor($code)]));
+    }
+
+    /** Company rows (roles, employees...) live in the tenant DB: switch there for a moment, then back to where we were. */
+    private function insideTenant(Tenant $tenant, callable $callback): void
     {
         $previous = $this->tenants->current();
         $this->tenants->switchTo($tenant);
 
         try {
-            $role = Role::administrator() ?? throw new RuntimeException('The Administrator role was not seeded.');
-            $role->assignTo($user);
+            $callback();
         } finally {
             $previous !== null ? $this->tenants->switchTo($previous) : $this->tenants->forget();
         }

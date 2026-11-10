@@ -33,5 +33,12 @@ class HrmServiceProvider extends ModuleServiceProvider
             ->prefix('ess')
             ->name('ess.')
             ->group($this->modulePath().'/routes/ess.php');
+
+        // "Complete your registration" from an Employees → Invite user email. NO login (they have no
+        // password yet), so outside the "auth" + "tenant" group. "signed" rejects a wrong or expired URL.
+        Route::middleware(['web', 'signed', 'throttle:30,1'])
+            ->prefix('join')
+            ->name('join.')
+            ->group($this->modulePath().'/routes/join.php');
     }
 }
