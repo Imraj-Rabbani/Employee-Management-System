@@ -116,3 +116,45 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+/*
+ * Resizable / closable sidebar (desktop). Width and state are set by resources/js/app.js.
+ * Flux sizes the sidebar column to the sidebar itself, so hiding it gives the page the full width.
+ */
+@media (width >= 64rem) {
+    [data-flux-sidebar] {
+        width: var(--sidebar-w, 16rem);
+    }
+
+    .sidebar-closed [data-flux-sidebar],
+    .sidebar-closed [data-sidebar-handle] {
+        display: none;
+    }
+}
+
+[data-sidebar-handle] {
+    left: calc(var(--sidebar-w, 16rem) - 3px);
+}
+
+/* While dragging: no text selection, resize cursor everywhere. */
+.sidebar-resizing,
+.sidebar-resizing * {
+    cursor: col-resize !important;
+    user-select: none;
+}
+
+/*
+ * @persist wraps the sidebar in <div x-persist="sidebar">. Flux's grid expects the sidebar as a direct child of
+ * <body> (sidebar on the left, full height, header beside it): "display: contents" lets it take part in the grid
+ * again, and the areas below are the ones Flux uses for "sidebar + header".
+ */
+[x-persist='sidebar'] {
+    display: contents;
+}
+
+body:has(> [x-persist='sidebar']) {
+    grid-template-areas:
+        'sidebar header  header'
+        'sidebar main    aside'
+        'sidebar footer  aside';
+}

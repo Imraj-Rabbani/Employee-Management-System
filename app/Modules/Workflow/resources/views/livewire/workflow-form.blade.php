@@ -6,8 +6,12 @@
                 <x-form.input wire:model="name" :label="__('Name')" required :hint="__('e.g. Leave, head office')" />
             </div>
 
-            <x-form.input wire:model="minAmount" type="number" step="0.01" min="0" :label="__('Only from this amount')"
-                :hint="__('Empty = every document. Filled: used for amounts from this value up, e.g. loans from 50,000.')" />
+            <div class="grid gap-4 sm:grid-cols-3">
+                <x-form.select wire:model="scopeOrgUnitId" :label="__('Only for org unit')" :options="$orgUnits" :placeholder="__('Any unit')" />
+                <x-form.select wire:model="scopeEmploymentTypeId" :label="__('Only for employment type')" :options="$employmentTypes" :placeholder="__('Any type')" />
+                <x-form.input wire:model="minAmount" type="number" step="0.01" min="0" :label="__('Only from this amount')" />
+            </div>
+            <flux:text class="text-xs">{{ __('Leave empty to apply to everything. When several workflows match, the one with the most filled fields wins.') }}</flux:text>
 
             <div class="grid gap-4 sm:grid-cols-2">
                 <x-form.toggle wire:model="sendEmail" :label="__('Send emails')" />

@@ -81,6 +81,23 @@ abstract class DataTable extends Component
     }
 
     /**
+     * For SelectFilter options with number keys (ids): filter values arrive from the browser / URL as
+     * strings, so the option keys must be strings too. (Moved here from EmployeeTable in 6.9.)
+     *
+     * @param  array<int|string, string>  $options
+     * @return array<string, string>
+     */
+    protected function stringKeys(array $options): array
+    {
+        $out = [];
+        foreach ($options as $key => $label) {
+            $out[(string) $key] = $label;
+        }
+
+        return $out;
+    }
+
+    /**
      * Key => settings. Key "delete" is handled by a bulkDelete(array $ids) method.
      *
      * @return array<string, array{label: string, confirm?: string, variant?: string}>
@@ -182,7 +199,7 @@ abstract class DataTable extends Component
         if (($term = trim($this->search)) !== '') {
             // Escape LIKE wildcards so a search for "50%" means the text "50%".
             $like = '%'.addcslashes($term, '%_\\').'%';
-            $fields = array_map(fn (Column $c) => $c->field, array_filter($this->columns(), fn (Column $c) => $c->searchable));
+            $fields = array_merge(...array_map(fn (Column $c) => $c->searchFields, $this->columns()));
 
             $query->where(function (Builder $q) use ($fields, $like) {
                 foreach ($fields as $field) {

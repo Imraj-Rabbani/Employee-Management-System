@@ -5,18 +5,25 @@ namespace App\Core\Livewire\Table;
 use Closure;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\HtmlString;
 
 /**
  * One column of a DataTable.
  *
  *     Column::make(__('Name'), 'name')->sortable()->searchable()
  *     Column::make(__('Joined'), 'created_at')->format(fn (User $u) => format_date($u->created_at))
+ *     Column::make(__('Name'), 'name')->opens('edit-branch')     the name is a link that opens the edit form
+ *     Column::active()                                           Active / Inactive badge of is_active
  */
 class Column
 {
     public bool $sortable = false;
 
     public bool $searchable = false;
+
+    /** @var list<string> database columns the search box looks in for this column (default: just) */
+    public array $searchFields = [];
 
     public bool $toggleable = true;
 
@@ -42,9 +49,14 @@ class Column
         return $this;
     }
 
-    public function searchable(): self
+    /**
+     * The search box looks in this column. Extra columns can be added for one displayed value,
+     * e.g. a "Name" cell built from two columns:  Column::make(__('Name'), 'first_name')->searchable('last_name')
+     */
+    public function searchable(string ...$alsoFields): self
     {
         $this->searchable = true;
+        $this->searchFields = [$this->field, ...array_values($alsoFields)];
 
         return $this;
     }
@@ -72,6 +84,32 @@ class Column
         $this->formatter = $formatter;
 
         return $this;
+    }
+
+    /**
+     * The cell becomes a link-style button that sends the browser event $event with the row id,
+     * e.g. opens('edit-branch') → $dispatch('edit-branch', { id: 5 }). The text is the cell's value.
+     */
+    public function opens(string $event): self
+    {
+        $text = $this->formatter ?? fn (Model $row) => data_get($row, $this->field);
+
+        $this->formatter = fn (Model $row) => new HtmlString(Blade::render(
+            '<button type="button" x-on:click="$dispatch(@js($event), { id: {{ $id }} })" class="text-left font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $text }}</button>',
+            ['event' => $event, 'id' => $row->getKey(), 'text' => (string) $text($row)],
+        ));
+
+        return $this;
+    }
+
+    /** Active / Inactive badge for an is_active column. */
+    public static function active(): self
+    {
+        return self::make(__('Active'), 'is_active')->sortable()
+            ->format(fn (Model $row) => new HtmlString(Blade::render(
+                '<x-ui.badge :color="$on ? \'success\' : \'neutral\'">{{ $on ? __(\'Active\') : __(\'Inactive\') }}</x-ui.badge>',
+                ['on' => (bool) $row->getAttribute('is_active')],
+            )));
     }
 
     public function value(Model $row): mixed

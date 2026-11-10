@@ -10,6 +10,10 @@
                     </flux:text>
                 </div>
 
+                @if ($document instanceof \App\Modules\Workflow\Contracts\ShowsApprovalDetails)
+                    @include($document->approvalDetailsView(), ['document' => $document])
+                @endif
+
                 @if ($document)
                     <x-approval-timeline :document="$document" />
                 @endif

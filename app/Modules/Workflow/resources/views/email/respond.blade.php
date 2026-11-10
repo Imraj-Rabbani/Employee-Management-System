@@ -22,6 +22,10 @@
             </dd>
         </dl>
 
+        @if ($document instanceof \App\Modules\Workflow\Contracts\ShowsApprovalDetails)
+            @include($document->approvalDetailsView(), ['document' => $document])
+        @endif
+
         @if ($isOpen)
             <form method="POST" action="{{ $actionUrl }}" class="flex flex-col gap-4">
                 @csrf

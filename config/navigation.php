@@ -13,6 +13,9 @@
 | When the screen is built, put its route name here, e.g. 'hrm.employees.index'.
 |
 | 'can' => 'core.users.view' on an item hides it from users without that permission.
+| A list ('can' => ['a', 'b']) shows the item when the user has ANY of them.
+|
+| 'current' => 'hrm.org.*' keeps the item highlighted on several pages (default: its own route).
 |
 | 'module' => 'hrm' hides the whole group when the company does not have
 | that module switched on (Tenant::hasModule). Groups without it always show.
@@ -25,12 +28,13 @@ return [
         'heading' => 'Self Service',
         'active' => 'ess.*',
         'items' => [
-            ['label' => 'My Profile', 'route' => null],
+            ['label' => 'My Profile', 'route' => 'ess.profile'],
             ['label' => 'My Attendance', 'route' => null],
             ['label' => 'My Leave Requests', 'route' => null],
             ['label' => 'My Payslips', 'route' => null],
             ['label' => 'My Tax Card', 'route' => null],
-            ['label' => 'My Profile Update Requests', 'route' => null],
+            ['label' => 'My Profile Update Requests', 'route' => 'ess.profile-requests'],
+            ['label' => 'My Interviews', 'route' => 'ess.interviews'],
         ],
     ],
 
@@ -39,17 +43,15 @@ return [
         'module' => 'hrm',
         'active' => 'hrm.*',
         'items' => [
-            ['label' => 'Employees', 'route' => null],
-            ['label' => 'Organization', 'route' => null],
-            ['label' => 'Attendance', 'route' => null],
-            ['label' => 'Leave', 'route' => null],
+            ['label' => 'Employee', 'route' => 'hrm.employees.index', 'current' => 'hrm.employees.*', 'can' => 'hrm.employee.view'],
+            // Organization and Recruitment open as tabs (config/sections.php): shown if ANY tab is allowed.
+            ['label' => 'Organization', 'route' => 'hrm.organization', 'current' => 'hrm.org.*', 'can' => ['hrm.organization.manage', 'hrm.employee.view']],
+            ['label' => 'Recruitment', 'route' => 'hrm.recruitment', 'current' => 'hrm.recruitment*', 'can' => ['hrm.recruitment.request', 'hrm.recruitment.manage', 'hrm.recruitment.setup']],
             ['label' => 'Confirmation', 'route' => null],
-            ['label' => 'Promotion', 'route' => null],
-            ['label' => 'Transfer', 'route' => null],
-            ['label' => 'Separation', 'route' => null],
-            ['label' => 'Letters & Certificates', 'route' => null],
-            ['label' => 'Recruitment', 'route' => null],
             ['label' => 'Training', 'route' => null],
+            ['label' => 'Transfer', 'route' => null],
+            ['label' => 'Disciplinary Action', 'route' => null],
+            ['label' => 'Separation', 'route' => null],
         ],
     ],
 
@@ -87,6 +89,7 @@ return [
         'items' => [
             ['label' => 'Company Settings', 'route' => 'core.settings', 'can' => 'core.settings.manage'],
             ['label' => 'Fiscal Years', 'route' => 'core.fiscal-years', 'can' => 'core.fiscal_years.manage'],
+            ['label' => 'Currencies', 'route' => 'core.currencies', 'can' => 'core.settings.manage'],
             ['label' => 'Users', 'route' => 'core.users', 'can' => 'core.users.view'],
             ['label' => 'Roles & Permissions', 'route' => 'core.roles', 'can' => 'core.roles.manage'],
             ['label' => 'UI Kit', 'route' => 'core.ui-kit'],
