@@ -26,6 +26,7 @@ use Carbon\CarbonInterface;
  *       overtime      pre = before the start, post = after the (moved) end
  *
  * In = first punch, out = last punch of the day's window (windowFor()); punches in between are ignored.
+ * An approved correction (7.6) replaces the first and / or last punch: inAndOut().
  */
 class AttendanceProcessor
 {
@@ -37,16 +38,15 @@ class AttendanceProcessor
 
     public function process(DayInput $in): DayResult
     {
-        $punches = $in->punches;
-        $count = count($punches);
-        $first = $punches[0] ?? null;
-        $last = $count >= 2 ? $punches[$count - 1] : null;
+        $count = count($in->punches);
+        [$first, $last] = self::inAndOut($in);
         $worked = $first && $last ? self::minutes($first, $last) : 0;
 
         // The fields every result has: what kind of day, which shift, and the punches.
         $simple = fn (AttendanceStatus $status, ?string $note = null, int $ot = 0) => new DayResult(
             status: $status, dayType: $in->dayType, shiftId: $in->shift?->shiftId,
             inAt: $first, outAt: $last, punchCount: $count, workedMinutes: $worked, otMinutes: $ot, note: $note,
+            isCorrected: $in->isCorrected(),
         );
 
         if ($in->onLeave) {
@@ -57,11 +57,11 @@ class AttendanceProcessor
             $offStatus = $in->dayType === DayType::Weekend ? AttendanceStatus::Off : AttendanceStatus::Holiday;
 
             return $last === null
-                ? $simple($offStatus, $count === 1 ? __('Single punch on a day off.') : null)
+                ? $simple($offStatus, $first !== null ? __('Single punch on a day off.') : null)
                 : $simple(AttendanceStatus::Present, ot: $worked);   // all of it is overtime
         }
 
-        if ($count === 0) {
+        if ($first === null) {
             return $simple(AttendanceStatus::Absent);
         }
         if ($last === null) {
@@ -110,7 +110,33 @@ class AttendanceProcessor
             otPreMinutes: $otPre,
             otPostMinutes: $otPost,
             otMinutes: $otPre + $otPost,
+            isCorrected: $in->isCorrected(),
         );
+    }
+
+    /**
+     * In and out of the day: the first and the last punch, each replaced by an approved correction's time (7.6).
+     * Out is null when there is only one time (a single punch and no correction of the other end).
+     *
+     * @return array{0: CarbonImmutable|null, 1: CarbonImmutable|null}
+     */
+    public static function inAndOut(DayInput $in): array
+    {
+        $punches = $in->punches;
+        $count = count($punches);
+        if (! $in->isCorrected()) {
+            return [$punches[0] ?? null, $count >= 2 ? $punches[$count - 1] : null];
+        }
+
+        // Corrected: the requested times, plus the punches that are still needed for the other end.
+        $first = $in->correctedIn ?? ($punches[0] ?? null);
+        $last = $in->correctedOut ?? ($count >= 1 ? $punches[$count - 1] : null);
+        if ($first === null || $last === null || $last->lte($first)) {
+            // Only one usable time, e.g. corrected in at 09:00 and the only punch at 08:50.
+            return [$first ?? $last, null];
+        }
+
+        return [$first, $last];
     }
 
     /**

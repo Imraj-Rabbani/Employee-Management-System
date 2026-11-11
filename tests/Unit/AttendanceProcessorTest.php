@@ -205,4 +205,60 @@ class AttendanceProcessorTest extends TestCase
         // No shifts at all: the calendar day.
         $this->assertSame(['2026-12-01 00:00', '2026-12-02 00:00'], $fmt(AttendanceProcessor::windowFor($date, null, null, null)));
     }
+
+    // ---- Corrections (7.6) --------------------------------------------------------------------
+
+    /** @param  list<string>  $punches  "08:55" on 1 Dec */
+    private function corrected(array $punches, ?string $in, ?string $out, DayType $type = DayType::Workday): DayResult
+    {
+        $at = fn (?string $t) => $t === null ? null : CarbonImmutable::parse(strlen($t) === 5 ? "2026-12-01 {$t}" : $t);
+
+        return (new AttendanceProcessor)->process(new DayInput(
+            date: CarbonImmutable::parse('2026-12-01'),
+            dayType: $type,
+            shift: $this->general(),
+            punches: array_map($at, $punches),
+            correctedIn: $at($in),
+            correctedOut: $at($out),
+        ));
+    }
+
+    public function test_a_correction_turns_an_absent_day_into_a_regular_day(): void
+    {
+        $r = $this->corrected([], '09:00', '18:00');
+
+        $this->assertSame([AttendanceStatus::Present, 540, 0, true], [$r->status, $r->workedMinutes, $r->punchCount, $r->isCorrected]);
+        $this->assertFalse($this->day([])->isCorrected);
+    }
+
+    public function test_a_correction_of_one_end_keeps_the_punch_of_the_other(): void
+    {
+        // Forgot to punch out: the single 09:20 punch stays the "in" (late), the correction gives the "out".
+        $r = $this->corrected(['09:20'], null, '18:00');
+        $this->assertSame(['09:20', '18:00', 20, true, null], [$r->inAt?->format('H:i'), $r->outAt?->format('H:i'), $r->lateMinutes, $r->isLate, $r->note]);
+
+        // A wrong "in" replaced; the last punch stays the "out".
+        $r = $this->corrected(['10:30', '13:00', '18:00'], '09:00', null);
+        $this->assertSame(['09:00', '18:00', false], [$r->inAt?->format('H:i'), $r->outAt?->format('H:i'), $r->isLate]);
+
+        // The night's out on the next morning.
+        $r = $this->corrected(['22:00'], null, '2026-12-02 06:00');
+        $this->assertSame(['2026-12-01 22:00', '2026-12-02 06:00', 480], [$r->inAt?->format('Y-m-d H:i'), $r->outAt?->format('Y-m-d H:i'), $r->workedMinutes]);
+    }
+
+    public function test_a_correction_that_leaves_only_one_time_is_still_a_single_punch(): void
+    {
+        // Corrected in at 09:00, the only punch is earlier: no out.
+        $r = $this->corrected(['08:50'], '09:00', null);
+
+        $this->assertSame([AttendanceStatus::Present, '09:00', null], [$r->status, $r->inAt?->format('H:i'), $r->outAt]);
+        $this->assertSame('Single punch: in or out is missing.', $r->note);
+    }
+
+    public function test_a_corrected_weekend_day_is_all_overtime(): void
+    {
+        $r = $this->corrected([], '10:00', '14:00', DayType::Weekend);
+
+        $this->assertSame([AttendanceStatus::Present, 240, true], [$r->status, $r->otMinutes, $r->isCorrected]);
+    }
 }

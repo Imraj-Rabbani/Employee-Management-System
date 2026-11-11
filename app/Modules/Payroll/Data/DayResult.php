@@ -25,6 +25,7 @@ final readonly class DayResult
         public int $otPostMinutes = 0,
         public int $otMinutes = 0,
         public ?string $note = null,
+        public bool $isCorrected = false,
     ) {}
 
     /** @return array<string, mixed> for AttendanceDay::updateOrCreate() */
@@ -36,7 +37,7 @@ final readonly class DayResult
             'worked_minutes' => $this->workedMinutes, 'late_minutes' => $this->lateMinutes,
             'is_late' => $this->isLate, 'used_grace' => $this->usedGrace, 'early_exit_minutes' => $this->earlyExitMinutes,
             'ot_pre_minutes' => $this->otPreMinutes, 'ot_post_minutes' => $this->otPostMinutes, 'ot_minutes' => $this->otMinutes,
-            'note' => $this->note,
+            'note' => $this->note, 'is_corrected' => $this->isCorrected,
         ];
     }
 }

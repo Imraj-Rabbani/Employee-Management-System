@@ -72,6 +72,7 @@ class AttendanceDayTable extends DataTable
             Column::make(__('Status'), 'status')->sortable()->format(fn (AttendanceDay $d) => new HtmlString(Blade::render(
                 '<x-ui.badge :color="$d->status->color()">{{ $d->status->label() }}</x-ui.badge>'
                 .'@if ($d->is_late) <x-ui.badge color="warning">{{ __(\'Late\') }}</x-ui.badge>@endif'
+                .'@if ($d->is_corrected) <x-ui.badge color="info">{{ __(\'Corrected\') }}</x-ui.badge>@endif'
                 .'@if ($d->is_locked) <x-ui.badge color="neutral">{{ __(\'Locked\') }}</x-ui.badge>@endif',
                 ['d' => $d],
             ))),

@@ -35,6 +35,7 @@ use Illuminate\Support\Carbon;
  * @property int $ot_minutes
  * @property int|null $ot_approved_minutes
  * @property string|null $note
+ * @property bool $is_corrected
  * @property bool $is_locked
  * @property Carbon|null $processed_at
  */
@@ -55,7 +56,7 @@ class AttendanceDay extends TenantModel
     protected $fillable = [
         'employee_id', 'date', 'shift_id', 'day_type', 'status', 'in_at', 'out_at', 'punch_count',
         'worked_minutes', 'late_minutes', 'is_late', 'used_grace', 'early_exit_minutes',
-        'ot_pre_minutes', 'ot_post_minutes', 'ot_minutes', 'note', 'processed_at',
+        'ot_pre_minutes', 'ot_post_minutes', 'ot_minutes', 'note', 'is_corrected', 'processed_at',
     ];
 
     /** @return array<string, string> */
@@ -70,6 +71,7 @@ class AttendanceDay extends TenantModel
             'is_late' => 'boolean',
             'used_grace' => 'boolean',
             'is_locked' => 'boolean',
+            'is_corrected' => 'boolean',
             'processed_at' => 'datetime',
         ];
     }

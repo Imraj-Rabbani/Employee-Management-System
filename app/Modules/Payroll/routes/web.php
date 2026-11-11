@@ -47,6 +47,10 @@ Route::middleware('can:payroll.punch.manage')->prefix('attendance/punches')->nam
 Route::middleware('can:payroll.attendance.process')->get('attendance/days', fn () => view('payroll::attendance.days'))
     ->name('attendance.days');
 
+// Payroll → Attendance → Corrections (7.6): corrections of the employees the user can see; ask one for them. [TA-06]
+Route::middleware('can:payroll.correction.manage')->get('attendance/corrections', fn () => view('payroll::attendance.corrections'))
+    ->name('attendance.corrections');
+
 // Payroll → Attendance setup (7.1): one page view, one URL per section, like HRM → Organization. [TA-01, TA-02]
 Route::middleware('can:payroll.attendance.setup')->prefix('attendance')->name('attendance.')->group(function () {
     foreach (['shifts', 'weekends', 'holidays', 'holiday-profiles', 'devices'] as $section) {

@@ -10,6 +10,7 @@ return [
         'payroll.attendance.setup' => 'Manage attendance setup (shifts, weekends, holidays)',
         'payroll.roster.manage' => 'Plan rosters (for the org units they can see)',
         'payroll.punch.manage' => 'View and upload punches (for the employees they can see)',
+        'payroll.correction.manage' => 'Ask attendance corrections for the employees they can see',
         'payroll.attendance.process' => 'View daily attendance and process it again (for the employees they can see)',
     ],
     'Salaries' => [

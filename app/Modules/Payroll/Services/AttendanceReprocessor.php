@@ -16,7 +16,8 @@ use Illuminate\Database\Eloquent\Builder;
  *   roster approved         Roster::onApproved()
  *   holiday added / edited  HolidayForm
  *   new or matched punches  PunchLog::linkEmployees()   (uploads, device sync, "Match unmatched punches")
- *   leave approved / withdrawn, correction approved   → Phase 8 / 7.6 call queue() the same way
+ *   correction approved     AttendanceCorrection::onApproved()   (7.6)
+ *   leave approved / withdrawn                       → Phase 8 calls queue() the same way
  *
  *     app(AttendanceReprocessor::class)->queue([5, 8], '2026-12-01', '2026-12-31');
  *

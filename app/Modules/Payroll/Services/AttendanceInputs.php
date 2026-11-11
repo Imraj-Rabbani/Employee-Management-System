@@ -7,6 +7,7 @@ use App\Modules\Payroll\Contracts\LeaveCalendar;
 use App\Modules\Payroll\Data\DayInput;
 use App\Modules\Payroll\Data\ShiftTimes;
 use App\Modules\Payroll\Enums\DayType;
+use App\Modules\Payroll\Models\AttendanceCorrection;
 use App\Modules\Payroll\Models\AttendanceDay;
 use App\Modules\Payroll\Models\Holiday;
 use App\Modules\Payroll\Models\HolidayProfile;
@@ -27,6 +28,7 @@ use Illuminate\Support\Collection;
  *              → weekend profile → Workday
  *   leave      LeaveCalendar (Phase 8)
  *   punches    those inside the day's window (AttendanceProcessor::windowFor)
+ *   correction the newest APPROVED attendance correction of the day (7.6): its times replace first / last punch
  *
  * The monthly grace count is NOT set here (it depends on the results of the days before):
  * AttendanceService keeps it, starting from graceUsedBefore().
@@ -88,8 +90,19 @@ class AttendanceInputs
             ->map(fn ($p) => CarbonImmutable::parse($p))
             ->all();
 
+        // Approved corrections, one per date: the newest approval wins.
+        $corrections = AttendanceCorrection::query()
+            ->where('employee_id', $employee->id)
+            ->whereNotNull('approved_at')
+            ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
+            ->orderByDesc('approved_at')->orderByDesc('id')
+            ->get()
+            ->unique(fn (AttendanceCorrection $c) => $c->date->toDateString())
+            ->keyBy(fn (AttendanceCorrection $c) => $c->date->toDateString());
+
         $inputs = [];
         foreach ($dates as $date) {
+            $correction = $corrections->get($date->toDateString());
             $shift = $shiftFor($date);
             [$windowFrom, $windowUntil] = AttendanceProcessor::windowFor($date, $shiftFor($date->subDay()), $shift, $shiftFor($date->addDay()));
 
@@ -99,6 +112,8 @@ class AttendanceInputs
                 shift: $shift,
                 punches: array_values(array_filter($punches, fn (CarbonImmutable $p) => $p->gte($windowFrom) && $p->lt($windowUntil))),
                 onLeave: isset($leave[$date->toDateString()]),
+                correctedIn: $correction?->requested_in_at?->toImmutable(),
+                correctedOut: $correction?->requested_out_at?->toImmutable(),
             );
             $inputs[] = $input;
         }
