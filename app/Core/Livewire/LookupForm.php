@@ -21,7 +21,8 @@ use Livewire\Component;
  *     view()         the Blade view with the inputs (wire:model="form.name")
  *
  * Optional: labels() for nicer error messages, viewData() for dropdown options,
- * check($values) for rules that need the database (add an error and return false).
+ * check($values) for rules that need the database (add an error and return false),
+ * saved($record) for extra saving after the record itself (same transaction).
  *
  * All values live in ONE array property, $form, so this class can fill and save any model.
  */
@@ -65,6 +66,9 @@ abstract class LookupForm extends Component
         return true;
     }
 
+    /** After the record is saved, in the same transaction: e.g. sync a many-to-many list. */
+    protected function saved(TenantModel $record): void {}
+
     /**
      * Livewire asks this which browser events to listen to (a method, because the names depend on key()).
      *
@@ -97,6 +101,7 @@ abstract class LookupForm extends Component
             $value = $record->getAttribute($field);
             $this->form[$field] = match (true) {
                 $value instanceof Carbon => $value->toDateString(),   // <input type="date"> wants 2026-11-07
+                $value instanceof \BackedEnum => $value->value,        // <select> wants the number, e.g. 5 for Friday
                 $value === null => is_bool($default) ? $default : '',
                 default => $value,
             };
@@ -129,7 +134,14 @@ abstract class LookupForm extends Component
             return;
         }
 
-        $record = $this->model()::updateOrCreate(['id' => $this->recordId], $values);
+        // In a transaction: the record and whatever saved() adds (e.g. pivot rows) are saved together.
+        $model = $this->model();
+        $record = (new $model)->getConnection()->transaction(function () use ($model, $values) {
+            $record = $model::updateOrCreate(['id' => $this->recordId], $values);
+            $this->saved($record);
+
+            return $record;
+        });
 
         $this->finish(__(':name saved.', ['name' => $this->title($record)]));
     }

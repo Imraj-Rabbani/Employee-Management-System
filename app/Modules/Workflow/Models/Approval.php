@@ -30,6 +30,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $responded_at
  * @property string|null $comment
  * @property string|null $attachment_path
+ * @property string|null $amount entered by the approver when the document asks for one (7.7), e.g. hours
  * @property Carbon|null $created_at when the approver was asked
  * @property Carbon|null $updated_at
  */
@@ -37,7 +38,7 @@ class Approval extends TenantModel
 {
     protected $fillable = [
         'workflow_step_id', 'level', 'requester_employee_id', 'requester_user_id', 'approver_employee_id', 'approver_user_id',
-        'status', 'responded_by', 'responded_at', 'comment', 'attachment_path',
+        'status', 'responded_by', 'responded_at', 'comment', 'amount', 'attachment_path',
     ];
 
     protected $attributes = ['status' => 'pending'];
@@ -47,6 +48,7 @@ class Approval extends TenantModel
     {
         return [
             'status' => ApprovalStatus::class,
+            'amount' => 'decimal:2',
             'responded_at' => 'datetime',
         ];
     }

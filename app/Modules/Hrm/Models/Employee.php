@@ -13,6 +13,9 @@ use App\Modules\Hrm\Enums\PaymentMethod;
 use App\Modules\Hrm\Enums\Religion;
 use App\Modules\Hrm\Policies\EmployeePolicy;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
+use App\Modules\Payroll\Models\HolidayProfile;
+use App\Modules\Payroll\Models\Shift;
+use App\Modules\Payroll\Models\WeekendProfile;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Attributes\UsePolicy;
@@ -356,6 +359,28 @@ class Employee extends TenantModel
         return $this->belongsTo(CostCenter::class);
     }
 
+    /**
+     * Own shift; NULL = the company's default shift (Shift::default()). Payroll module, 7.1.
+     *
+     * @return BelongsTo<Shift, $this>
+     */
+    public function shift(): BelongsTo
+    {
+        return $this->belongsTo(Shift::class);
+    }
+
+    /** @return BelongsTo<WeekendProfile, $this> */
+    public function weekendProfile(): BelongsTo
+    {
+        return $this->belongsTo(WeekendProfile::class);
+    }
+
+    /** @return BelongsTo<HolidayProfile, $this> */
+    public function holidayProfile(): BelongsTo
+    {
+        return $this->belongsTo(HolidayProfile::class);
+    }
+
     /** @return BelongsTo<self, $this> */
     public function supervisor(): BelongsTo
     {
@@ -372,6 +397,26 @@ class Employee extends TenantModel
     public function subordinates(): HasMany
     {
         return $this->hasMany(self::class, 'supervisor_id');
+    }
+
+    /**
+     * Everyone below this employee in the supervisor chain (direct reports, their reports, ...): a manager's team.
+     * withoutGlobalScope: a manager sees their team even without HR access to those org units.
+     *
+     * @return list<int>
+     */
+    public function teamIds(): array
+    {
+        $bosses = static::withoutGlobalScope(VisibleToCurrentUser::class)->whereNotNull('supervisor_id')->pluck('supervisor_id', 'id')->all();
+        $team = [];
+        $level = [$this->id];
+        while ($level !== []) {
+            $level = array_keys(array_filter($bosses, fn ($boss) => in_array((int) $boss, $level, true)));
+            $level = array_values(array_diff($level, $team, [$this->id]));   // a loop in the data never runs forever
+            $team = [...$team, ...$level];
+        }
+
+        return $team;
     }
 
     /**

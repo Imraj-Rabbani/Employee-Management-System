@@ -20,6 +20,9 @@
                     <span class="text-zinc-500">{{ __('Level :level', ['level' => $approval->level]) }}</span>
                     <span class="font-medium">{{ $name($approval->approver_user_id) }}</span>
                     <x-ui.badge :color="$approval->status->color()">{{ $approval->status->label() }}</x-ui.badge>
+                    @if ($approval->amount !== null)
+                        <span class="text-zinc-600 dark:text-zinc-300">{{ rtrim(rtrim($approval->amount, '0'), '.') }}</span>
+                    @endif
                 </div>
 
                 <div class="mt-0.5 text-xs text-zinc-400">

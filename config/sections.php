@@ -54,4 +54,25 @@ return [
 
     ],
 
+    'payroll' => [
+
+        'attendance' => [
+            'label' => 'Attendance',
+            'tabs' => [
+                ['label' => 'Daily attendance', 'route' => 'payroll.attendance.days', 'can' => 'payroll.attendance.process'],
+                ['label' => 'Calendar', 'route' => 'payroll.attendance.calendar', 'can' => 'payroll.attendance.process'],
+                ['label' => 'Corrections', 'route' => 'payroll.attendance.corrections', 'can' => 'payroll.correction.manage'],
+                ['label' => 'Overtime', 'route' => 'payroll.attendance.overtime', 'can' => 'payroll.overtime.manage'],
+                ['label' => 'Rosters', 'route' => 'payroll.attendance.rosters', 'current' => 'payroll.attendance.rosters*', 'can' => 'payroll.roster.manage'],
+                ['label' => 'Punches', 'route' => 'payroll.attendance.punches', 'can' => 'payroll.punch.manage'],
+                ['label' => 'Shifts', 'route' => 'payroll.attendance.shifts', 'can' => 'payroll.attendance.setup'],
+                ['label' => 'Weekends', 'route' => 'payroll.attendance.weekends', 'can' => 'payroll.attendance.setup'],
+                ['label' => 'Holidays', 'route' => 'payroll.attendance.holidays', 'can' => 'payroll.attendance.setup'],
+                ['label' => 'Holiday calendars', 'route' => 'payroll.attendance.holiday-profiles', 'can' => 'payroll.attendance.setup'],
+                ['label' => 'Devices', 'route' => 'payroll.attendance.devices', 'can' => 'payroll.attendance.setup'],
+            ],
+        ],
+
+    ],
+
 ];

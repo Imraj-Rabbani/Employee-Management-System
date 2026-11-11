@@ -4,6 +4,7 @@ namespace App\Modules\Workflow\Services;
 
 use App\Models\User;
 use App\Modules\Workflow\Contracts\Approvable;
+use App\Modules\Workflow\Contracts\AsksApproverForAmount;
 use App\Modules\Workflow\Contracts\ResolvesApprovers;
 use App\Modules\Workflow\Enums\ApprovalStatus;
 use App\Modules\Workflow\Enums\ApproverType;
@@ -103,6 +104,7 @@ class WorkflowEngine
         User $responder,
         ?string $comment = null,
         ?string $attachmentPath = null,
+        ?float $amount = null,
     ): void {
         if ($decision === ApprovalStatus::Pending) {
             throw WorkflowException::invalidDecision();
@@ -113,7 +115,7 @@ class WorkflowEngine
         /** @var list<Approval> $nextRows rows created for the next level */
         $nextRows = [];
 
-        $approval->getConnection()->transaction(function () use ($approval, $decision, $responder, $comment, $attachmentPath, &$nextRows) {
+        $approval->getConnection()->transaction(function () use ($approval, $decision, $responder, $comment, $attachmentPath, $amount, &$nextRows) {
             // Lock the row: if two people click at the same moment, the second waits here,
             // then sees it is no longer pending.
             $row = Approval::whereKey($approval->id)->lockForUpdate()->with('step.workflow.approvalType')->first();
@@ -141,7 +143,16 @@ class WorkflowEngine
                 throw WorkflowException::attachmentRequired();
             }
 
+            // Documents that ask the approver for a number (7.7): required to approve, between 0 and the max.
+            $document = $row->approvable;
+            $asksAmount = $document instanceof AsksApproverForAmount;
+            if ($decision === ApprovalStatus::Approved && $asksAmount
+                && ($amount === null || $amount < 0 || $amount > $document->approverAmountMax())) {
+                throw WorkflowException::amountRequired($document->approverAmountLabel(), $document->approverAmountMax());
+            }
+
             $row->update([
+                'amount' => $decision === ApprovalStatus::Approved && $asksAmount ? round((float) $amount, 2) : null,
                 'status' => $decision,
                 'responded_by' => $responder->id,
                 'responded_at' => now(),
@@ -149,7 +160,6 @@ class WorkflowEngine
                 'attachment_path' => $attachmentPath,
             ]);
 
-            $document = $row->approvable;
             if (! $document instanceof Approvable) {
                 throw new \LogicException('Approval '.$row->id.' points to a model that is not Approvable.');
             }

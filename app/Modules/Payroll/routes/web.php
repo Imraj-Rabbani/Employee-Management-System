@@ -1,6 +1,68 @@
 <?php
 
+use App\Modules\Hrm\Exports\TemplateSheet;
+use App\Modules\Payroll\Exports\RosterExport;
+use App\Modules\Payroll\Models\Roster;
 use Illuminate\Support\Facades\Route;
+use Maatwebsite\Excel\Facades\Excel;
 
 // Prefix "/payroll" and name "payroll." are added by ModuleServiceProvider.
 Route::view('ping', 'payroll::ping')->name('ping');
+
+// Payroll → Attendance (sidebar): opens the first tab (config/sections.php) this user may see. 403 when none.
+Route::get('attendance', function () {
+    foreach (config('sections.payroll.attendance.tabs') as $tab) {
+        if (! isset($tab['can']) || auth()->user()->can($tab['can'])) {
+            return redirect()->route($tab['route']);
+        }
+    }
+    abort(403);
+})->name('attendance');
+
+// Payroll → Attendance → Rosters (7.2): the list and one roster's page. Only rosters of the org units the user
+// can see (Roster::visibleTo): another unit's roster id in the URL gives 404. [TA-03]
+Route::middleware('can:payroll.roster.manage')->prefix('attendance/rosters')->name('attendance.rosters')->group(function () {
+    Route::view('/', 'payroll::attendance.rosters');
+    Route::get('{id}', fn (int $id) => view('payroll::attendance.roster-show', [
+        'roster' => Roster::query()->visibleTo(auth()->user())->with('orgUnit')->findOrFail($id),
+    ]))->whereNumber('id')->name('.show');
+    // The grid as Excel (7.2e): also the template for "Import from Excel".
+    Route::get('{id}/export', function (int $id) {
+        $export = new RosterExport(Roster::query()->visibleTo(auth()->user())->findOrFail($id));
+
+        return Excel::download($export, $export->fileName());
+    })->whereNumber('id')->name('.export');
+});
+
+// Payroll → Attendance → Punches (7.3): every punch of the employees the user can see, and CSV upload. [TA-04]
+Route::middleware('can:payroll.punch.manage')->prefix('attendance/punches')->name('attendance.punches')->group(function () {
+    Route::view('/', 'payroll::attendance.punches');
+    Route::get('example', fn () => Excel::download(
+        new TemplateSheet('Punches', ['access_code', 'punched_at'], [['1001', now()->format('Y-m-d').' 08:55'], ['1001', now()->format('Y-m-d').' 18:05']]),
+        'punches-example.csv',
+    ))->name('.template');
+});
+
+// Payroll → Attendance → Daily attendance (7.5): the processed days, and "Process again" for a date range. [TA-05, TA-06]
+Route::middleware('can:payroll.attendance.process')->get('attendance/days', fn () => view('payroll::attendance.days'))
+    ->name('attendance.days');
+
+// Payroll → Attendance → Corrections (7.6): corrections of the employees the user can see; ask one for them. [TA-06]
+Route::middleware('can:payroll.correction.manage')->get('attendance/corrections', fn () => view('payroll::attendance.corrections'))
+    ->name('attendance.corrections');
+
+// Payroll → Attendance → Overtime (7.7): overtime requests of the employees the user can see; ask for them. [TA-07]
+Route::middleware('can:payroll.overtime.manage')->get('attendance/overtime', fn () => view('payroll::attendance.overtime'))
+    ->name('attendance.overtime');
+
+// Payroll → Attendance → Calendar (7.8): the team grid, or ?employee=5 for one employee's month. [TA-08]
+Route::middleware('can:payroll.attendance.process')->get('attendance/calendar', fn () => view('payroll::attendance.calendar', [
+    'employeeId' => request()->integer('employee') ?: null,
+]))->name('attendance.calendar');
+
+// Payroll → Attendance setup (7.1): one page view, one URL per section, like HRM → Organization. [TA-01, TA-02]
+Route::middleware('can:payroll.attendance.setup')->prefix('attendance')->name('attendance.')->group(function () {
+    foreach (['shifts', 'weekends', 'holidays', 'holiday-profiles', 'devices'] as $section) {
+        Route::view($section, 'payroll::attendance.setup', ['section' => $section])->name($section);
+    }
+});

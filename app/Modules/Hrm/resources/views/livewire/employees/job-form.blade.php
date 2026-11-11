@@ -30,6 +30,15 @@
                 <x-form.date wire:model="form.confirmation_date" :label="__('Confirmed on')" />
                 <x-form.select wire:model="form.payment_method" :label="__('Payment method')" :options="$paymentMethods" :placeholder="__('Not set')" />
             </div>
+
+            <flux:separator :text="__('Attendance')" />
+            <div class="grid gap-4 sm:grid-cols-2">
+                <x-form.select wire:model="form.shift_id" :label="__('Shift')" :options="$shifts"
+                    :placeholder="$defaultShift ? __('Default (:shift)', ['shift' => $defaultShift]) : __('Default shift')" />
+                <x-form.toggle wire:model="form.has_shifting" :label="__('Works on a roster')" :hint="__('Shift planned day by day (rosters come later in Phase 7).')" />
+                <x-form.select wire:model="form.weekend_profile_id" :label="__('Weekend profile')" :options="$weekendProfiles" :placeholder="__('None')" />
+                <x-form.select wire:model="form.holiday_profile_id" :label="__('Holiday calendar')" :options="$holidayProfiles" :placeholder="__('None')" />
+            </div>
         </form>
 
         <x-slot:footer>

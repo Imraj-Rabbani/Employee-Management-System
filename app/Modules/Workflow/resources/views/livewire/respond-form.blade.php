@@ -20,6 +20,10 @@
 
                 @if ($canAnswer)
                     <form wire:submit="approve" id="approval-respond-form" class="space-y-4">
+                        @if ($document instanceof \App\Modules\Workflow\Contracts\AsksApproverForAmount)
+                            <x-form.input wire:model="amount" type="number" step="0.25" min="0" max="{{ $document->approverAmountMax() }}" class="w-36"
+                                :label="$document->approverAmountLabel()" :hint="__('Needed to approve. You may change it.')" required />
+                        @endif
                         <x-form.textarea wire:model="comment" :label="__('Comment')" :hint="__('Required to reject or send back.')" />
 
                         <x-form.file wire:model="attachment" :label="__('Attachment')" :required="$approval->step->attachment_required"
