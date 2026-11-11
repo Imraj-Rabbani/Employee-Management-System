@@ -9,6 +9,7 @@ use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Payroll\Database\Factories\RosterFactory;
+use App\Modules\Payroll\Services\AttendanceReprocessor;
 use App\Modules\Workflow\Concerns\HasApprovals;
 use App\Modules\Workflow\Contracts\Approvable;
 use App\Modules\Workflow\Contracts\ShowsApprovalDetails;
@@ -212,10 +213,23 @@ class Roster extends TenantModel implements Approvable, ShowsApprovalDetails
         ];
     }
 
-    /** From now on the plan counts for attendance. forceFill: approved_at is not fillable. */
+    /**
+     * From now on the plan counts for attendance. forceFill: approved_at is not fillable.
+     * Days of the roster that are already past are processed again (7.5), for everyone in this plan and in the
+     * plan it replaces (someone taken out of the roster goes back to their own shift).
+     */
     public function onApproved(Approval $final): void
     {
         $this->forceFill(['approved_at' => now()])->save();
+
+        $employeeIds = RosterItem::query()->whereIn('roster_id', array_filter([$this->id, $this->replaces_roster_id]))
+            ->distinct()->pluck('employee_id');
+        $old = $this->replaces;
+        app(AttendanceReprocessor::class)->queue(
+            $employeeIds,
+            $old ? $this->from_date->min($old->from_date) : $this->from_date,
+            $old ? $this->to_date->max($old->to_date) : $this->to_date,
+        );
     }
 
     /** Nothing to undo: a roster that was never approved never counted. */

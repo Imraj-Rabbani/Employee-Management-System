@@ -59,6 +59,7 @@ return [
         'attendance' => [
             'label' => 'Attendance',
             'tabs' => [
+                ['label' => 'Daily attendance', 'route' => 'payroll.attendance.days', 'can' => 'payroll.attendance.process'],
                 ['label' => 'Rosters', 'route' => 'payroll.attendance.rosters', 'current' => 'payroll.attendance.rosters*', 'can' => 'payroll.roster.manage'],
                 ['label' => 'Punches', 'route' => 'payroll.attendance.punches', 'can' => 'payroll.punch.manage'],
                 ['label' => 'Shifts', 'route' => 'payroll.attendance.shifts', 'can' => 'payroll.attendance.setup'],

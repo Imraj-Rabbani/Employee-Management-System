@@ -7,6 +7,7 @@ use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use App\Modules\Payroll\Database\Factories\PunchLogFactory;
 use App\Modules\Payroll\Enums\PunchSource;
+use App\Modules\Payroll\Services\AttendanceReprocessor;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -79,20 +80,45 @@ class PunchLog extends TenantModel
      * Fills employee_id on punches that have none yet, by access code (employees.access_code).
      * Run after a sync / upload, and after HR gives someone an Attendance ID. Codes used by two
      * employees are skipped (ambiguous). Returns how many punches were linked.
+     *
+     * Every new punch passes through here (StorePunches stores them without employee, then links), so this is
+     * also where attendance is processed again (7.5): for each linked employee, the days of those punches plus
+     * the day before (an overnight shift's punch the next morning belongs to the day before), up to YESTERDAY.
+     * Today is left to the nightly run: punches of a running day would only give "absent" or "single punch".
+     * So a punch this morning re-processes yesterday: that is what gives a night shift its 06:00 "out", which
+     * arrives after the 01:00 nightly run.
      */
     public static function linkEmployees(): int
     {
+        // Codes that have unmatched punches, with the first and last such punch.
+        $waiting = static::query()->whereNull('employee_id')->whereNotNull('access_code')->where('access_code', '<>', '')
+            ->groupBy('access_code')
+            ->get([DB::raw('access_code'), DB::raw('MIN(punched_at) as first_at'), DB::raw('MAX(punched_at) as last_at')]);
+        if ($waiting->isEmpty()) {
+            return 0;
+        }
+
         $codes = Employee::withoutGlobalScope(VisibleToCurrentUser::class)
-            ->whereNotNull('access_code')->where('access_code', '<>', '')
+            ->whereIn('access_code', $waiting->pluck('access_code'))
             ->get(['id', 'access_code'])
             ->groupBy('access_code')
             ->filter(fn ($group) => $group->count() === 1)
             ->map(fn ($group) => $group->first()->id);
 
+        $reprocessor = app(AttendanceReprocessor::class);
+        $yesterday = Carbon::parse($reprocessor->today())->subDay()->toDateString();
         $linked = 0;
-        foreach ($codes as $code => $employeeId) {
-            $linked += static::query()->whereNull('employee_id')->where('access_code', (string) $code)
+        foreach ($waiting as $row) {
+            $employeeId = $codes[$row->access_code] ?? null;
+            if ($employeeId === null) {
+                continue;
+            }
+            $linked += static::query()->whereNull('employee_id')->where('access_code', (string) $row->access_code)
                 ->update(['employee_id' => $employeeId, 'updated_at' => DB::raw('updated_at')]);
+
+            $from = Carbon::parse($row->first_at)->subDay()->toDateString();
+            $to = min(Carbon::parse($row->last_at)->toDateString(), $yesterday);
+            $reprocessor->queue([$employeeId], $from, $to);
         }
 
         return $linked;

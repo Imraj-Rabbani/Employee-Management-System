@@ -81,6 +81,33 @@ class Holiday extends TenantModel
             || ($this->repeats_yearly && $this->date->format('m-d') === $date->format('m-d') && $this->date->year <= $date->year);
     }
 
+    /**
+     * The days this holiday falls on that may already be processed: its date, or for a yearly one its day
+     * this year and last year (older years are normally locked by payroll). Only days up to $today.
+     *
+     * @return list<string> YYYY-MM-DD
+     */
+    public function pastDates(string $today): array
+    {
+        if (! $this->repeats_yearly) {
+            return $this->date->toDateString() <= $today ? [$this->date->toDateString()] : [];
+        }
+
+        $dates = [];
+        $thisYear = (int) substr($today, 0, 4);
+        foreach ([$thisYear - 1, $thisYear] as $year) {
+            // 29 February only exists in leap years: checkdate() skips it in the others.
+            if ($year >= $this->date->year && checkdate($this->date->month, $this->date->day, $year)) {
+                $date = sprintf('%04d-%02d-%02d', $year, $this->date->month, $this->date->day);
+                if ($date <= $today) {
+                    $dates[] = $date;
+                }
+            }
+        }
+
+        return $dates;
+    }
+
     /** @return BelongsToMany<HolidayProfile, $this> */
     public function profiles(): BelongsToMany
     {

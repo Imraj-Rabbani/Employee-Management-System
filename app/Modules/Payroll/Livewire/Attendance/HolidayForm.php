@@ -6,6 +6,7 @@ use App\Core\Livewire\LookupForm;
 use App\Core\Models\TenantModel;
 use App\Modules\Payroll\Models\Holiday;
 use App\Modules\Payroll\Models\HolidayProfile;
+use App\Modules\Payroll\Services\AttendanceReprocessor;
 use Illuminate\Validation\Rule;
 
 /**
@@ -72,10 +73,46 @@ class HolidayForm extends LookupForm
         return ['repeats_yearly' => __('every year')];
     }
 
-    /** @param  Holiday  $record */
+    /**
+     * Saves the ticked calendars, then processes attendance again (7.5) on the holiday's past days, for the
+     * employees of every calendar it was or is in. Also the OLD date when the date was changed.
+     * The jobs wait for the transaction (LookupForm::save) to be committed.
+     *
+     * @param  Holiday  $record
+     */
     protected function saved(TenantModel $record): void
     {
+        $oldProfileIds = $record->wasRecentlyCreated ? [] : $record->profiles()->pluck('holiday_profiles.id')->all();
         $record->profiles()->sync(array_map('intval', $this->profileIds));
+
+        $before = $record->wasRecentlyCreated ? null : (clone $record)->forceFill($record->getPrevious());
+        $this->reprocess($record, $before, [...$oldProfileIds, ...$this->profileIds]);
+    }
+
+    /** Deleting a holiday: those days become normal days again. */
+    public function delete(): void
+    {
+        $holiday = Holiday::query()->with('profiles:id')->findOrFail($this->recordId);
+        parent::delete();
+
+        if (! Holiday::query()->whereKey($holiday->id)->exists()) {
+            $this->reprocess($holiday, null, $holiday->profiles->pluck('id')->all());
+        }
+    }
+
+    /** @param  array<int|string>  $profileIds */
+    private function reprocess(Holiday $holiday, ?Holiday $before, array $profileIds): void
+    {
+        $reprocessor = app(AttendanceReprocessor::class);
+        $today = $reprocessor->today();
+        $dates = array_unique([...$holiday->pastDates($today), ...($before?->pastDates($today) ?? [])]);
+
+        foreach ($dates as $date) {
+            $employeeIds = $reprocessor->everyoneEmployedBetween($date, $date)
+                ->whereIn('holiday_profile_id', array_unique(array_map('intval', $profileIds)))
+                ->pluck('id');
+            $reprocessor->queue($employeeIds, $date, $date);
+        }
     }
 
     protected function title(TenantModel $record): string

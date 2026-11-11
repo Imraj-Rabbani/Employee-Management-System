@@ -45,7 +45,7 @@ class AttendanceSetupPagesTest extends TestCase
         Holiday::factory()->create(['title' => 'Victory Day', 'date' => now()->toDateString()]);
         HolidayProfile::factory()->create(['name' => 'Head office']);
 
-        $this->get('/payroll/attendance')->assertRedirect(route('payroll.attendance.rosters'));   // first tab (7.2)
+        $this->get('/payroll/attendance')->assertRedirect(route('payroll.attendance.days'));   // first tab (7.5)
         $this->get('/payroll/attendance/shifts')->assertOk()->assertSee('Night shift')->assertSee(route('payroll.attendance.holidays'));
         $this->get('/payroll/attendance/weekends')->assertOk()->assertSee('Fri-Sat');
         $this->get('/payroll/attendance/holidays')->assertOk()->assertSee('Victory Day');

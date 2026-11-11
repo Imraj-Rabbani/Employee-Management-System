@@ -2,9 +2,7 @@
 
 namespace App\Modules\Payroll\Console;
 
-use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
-use App\Modules\Payroll\Jobs\ProcessAttendance;
+use App\Modules\Payroll\Services\AttendanceReprocessor;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 
@@ -28,7 +26,7 @@ class ProcessAttendanceCommand extends Command
 
     protected $description = 'Process attendance (punches → attendance days) for the current company';
 
-    public function handle(): int
+    public function handle(AttendanceReprocessor $reprocessor): int
     {
         if (! tenant()) {
             $this->components->error('No company selected. Run it as: php artisan tenants:run payroll:process-attendance');
@@ -39,7 +37,7 @@ class ProcessAttendanceCommand extends Command
             return self::SUCCESS;
         }
 
-        $yesterday = CarbonImmutable::now(settings('timezone', config('app.timezone')))->subDay()->toDateString();
+        $yesterday = CarbonImmutable::parse($reprocessor->today())->subDay()->toDateString();
         $from = (string) ($this->option('from') ?? $this->option('date') ?? $yesterday);
         $to = (string) ($this->option('to') ?? $this->option('date') ?? $from);
         if (! $this->isDate($from) || ! $this->isDate($to) || $from > $to) {
@@ -49,16 +47,10 @@ class ProcessAttendanceCommand extends Command
         }
 
         // Everyone employed at some point in the range (also people who left during it).
-        $ids = Employee::withoutGlobalScope(VisibleToCurrentUser::class)
-            ->whereDate('join_date', '<=', $to)
-            ->where(fn ($q) => $q->whereNull('separation_date')->orWhereDate('separation_date', '>=', $from))
+        $ids = $reprocessor->everyoneEmployedBetween($from, $to)
             ->when($this->option('employee'), fn ($q, $ids) => $q->whereIn('id', $ids))
             ->pluck('id');
-
-        foreach ($ids as $id) {
-            $job = new ProcessAttendance($id, $from, $to);
-            $this->option('sync') ? dispatch_sync($job) : dispatch($job);
-        }
+        $reprocessor->queue($ids, $from, $to, sync: (bool) $this->option('sync'));
 
         $this->components->info(($this->option('sync') ? 'Processed' : 'Queued')." {$ids->count()} employees, {$from} – {$to}.");
 
