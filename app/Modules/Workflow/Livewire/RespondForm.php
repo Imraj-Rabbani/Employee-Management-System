@@ -5,6 +5,7 @@ namespace App\Modules\Workflow\Livewire;
 use App\Core\Support\TenantUploads;
 use App\Models\User;
 use App\Modules\Workflow\Contracts\Approvable;
+use App\Modules\Workflow\Contracts\AsksApproverForAmount;
 use App\Modules\Workflow\Enums\ApprovalStatus;
 use App\Modules\Workflow\Exceptions\WorkflowException;
 use App\Modules\Workflow\Models\Approval;
@@ -30,15 +31,23 @@ class RespondForm extends Component
 
     public string $comment = '';
 
+    /** Only for documents that ask the approver for a number (AsksApproverForAmount), e.g. overtime hours. */
+    public string $amount = '';
+
     /** @var TemporaryUploadedFile|null */
     public $attachment = null;
 
     #[On('open-approval')]
     public function open(int $id): void
     {
-        $this->reset('comment', 'attachment');
+        $this->reset('comment', 'attachment', 'amount');
         $this->resetValidation();
-        $this->approvalId = $this->find($id)->id;
+        $approval = $this->find($id);
+        $this->approvalId = $approval->id;
+        // Start from the previous level's number (or what was asked), so approving unchanged is one click.
+        if ($approval->approvable instanceof AsksApproverForAmount) {
+            $this->amount = rtrim(rtrim(number_format($approval->approvable->approverAmountDefault(), 2, '.', ''), '0'), '.');
+        }
 
         Flux::modal('approval-respond')->show();
     }
@@ -63,6 +72,7 @@ class RespondForm extends Component
         $this->validate([
             'comment' => ['nullable', 'string', 'max:1000'],
             'attachment' => ['nullable', 'file', 'max:5120', 'mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx'],
+            'amount' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $approval = $this->find((int) $this->approvalId);
@@ -73,7 +83,10 @@ class RespondForm extends Component
         $path = $this->attachment ? $uploads->store($this->attachment, 'approvals') : null;
 
         try {
-            app(WorkflowEngine::class)->respond($approval, $decision, $me, $this->comment, $path);
+            app(WorkflowEngine::class)->respond(
+                $approval, $decision, $me, $this->comment, $path,
+                amount: $this->amount === '' ? null : (float) $this->amount,
+            );
         } catch (WorkflowException $e) {
             $uploads->delete($path);   // the answer was not saved, so neither is its file
             $this->addError('comment', $e->getMessage());

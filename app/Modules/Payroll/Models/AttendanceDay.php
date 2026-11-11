@@ -56,7 +56,7 @@ class AttendanceDay extends TenantModel
     protected $fillable = [
         'employee_id', 'date', 'shift_id', 'day_type', 'status', 'in_at', 'out_at', 'punch_count',
         'worked_minutes', 'late_minutes', 'is_late', 'used_grace', 'early_exit_minutes',
-        'ot_pre_minutes', 'ot_post_minutes', 'ot_minutes', 'note', 'is_corrected', 'processed_at',
+        'ot_pre_minutes', 'ot_post_minutes', 'ot_minutes', 'ot_approved_minutes', 'note', 'is_corrected', 'processed_at',
     ];
 
     /** @return array<string, string> */

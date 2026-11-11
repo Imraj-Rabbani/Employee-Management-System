@@ -30,6 +30,7 @@ return [
         'items' => [
             ['label' => 'My Profile', 'route' => 'ess.profile'],
             ['label' => 'My Attendance', 'route' => 'ess.attendance'],
+            ['label' => 'My Team Attendance', 'route' => 'ess.team-attendance'],
             ['label' => 'My Leave Requests', 'route' => null],
             ['label' => 'My Payslips', 'route' => null],
             ['label' => 'My Tax Card', 'route' => null],

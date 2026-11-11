@@ -85,6 +85,15 @@ class Shift extends TenantModel
         });
     }
 
+    /** An employee's shift on a day, for forms: as processed, else their own, else the default. */
+    public static function ofEmployeeOn(Employee $employee, string $date): ?self
+    {
+        $processed = AttendanceDay::query()->where('employee_id', $employee->id)->whereDate('date', $date)->value('shift_id');
+        $id = $processed ?? $employee->shift_id;
+
+        return ($id ? self::find($id) : null) ?? self::default();
+    }
+
     /** The company's default shift (for employees without one), or null. */
     public static function default(): ?self
     {

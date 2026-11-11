@@ -11,7 +11,8 @@ return [
         'payroll.roster.manage' => 'Plan rosters (for the org units they can see)',
         'payroll.punch.manage' => 'View and upload punches (for the employees they can see)',
         'payroll.correction.manage' => 'Ask attendance corrections for the employees they can see',
-        'payroll.attendance.process' => 'View daily attendance and process it again (for the employees they can see)',
+        'payroll.overtime.manage' => 'Ask overtime for the employees they can see',
+        'payroll.attendance.process' => 'View daily attendance and the calendar, and process it again (for the employees they can see)',
     ],
     'Salaries' => [
         'payroll.salary.view' => 'View salaries',

@@ -51,6 +51,15 @@ Route::middleware('can:payroll.attendance.process')->get('attendance/days', fn (
 Route::middleware('can:payroll.correction.manage')->get('attendance/corrections', fn () => view('payroll::attendance.corrections'))
     ->name('attendance.corrections');
 
+// Payroll → Attendance → Overtime (7.7): overtime requests of the employees the user can see; ask for them. [TA-07]
+Route::middleware('can:payroll.overtime.manage')->get('attendance/overtime', fn () => view('payroll::attendance.overtime'))
+    ->name('attendance.overtime');
+
+// Payroll → Attendance → Calendar (7.8): the team grid, or ?employee=5 for one employee's month. [TA-08]
+Route::middleware('can:payroll.attendance.process')->get('attendance/calendar', fn () => view('payroll::attendance.calendar', [
+    'employeeId' => request()->integer('employee') ?: null,
+]))->name('attendance.calendar');
+
 // Payroll → Attendance setup (7.1): one page view, one URL per section, like HRM → Organization. [TA-01, TA-02]
 Route::middleware('can:payroll.attendance.setup')->prefix('attendance')->name('attendance.')->group(function () {
     foreach (['shifts', 'weekends', 'holidays', 'holiday-profiles', 'devices'] as $section) {

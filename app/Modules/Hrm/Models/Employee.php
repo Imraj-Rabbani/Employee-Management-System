@@ -400,6 +400,26 @@ class Employee extends TenantModel
     }
 
     /**
+     * Everyone below this employee in the supervisor chain (direct reports, their reports, ...): a manager's team.
+     * withoutGlobalScope: a manager sees their team even without HR access to those org units.
+     *
+     * @return list<int>
+     */
+    public function teamIds(): array
+    {
+        $bosses = static::withoutGlobalScope(VisibleToCurrentUser::class)->whereNotNull('supervisor_id')->pluck('supervisor_id', 'id')->all();
+        $team = [];
+        $level = [$this->id];
+        while ($level !== []) {
+            $level = array_keys(array_filter($bosses, fn ($boss) => in_array((int) $boss, $level, true)));
+            $level = array_values(array_diff($level, $team, [$this->id]));   // a loop in the data never runs forever
+            $team = [...$team, ...$level];
+        }
+
+        return $team;
+    }
+
+    /**
      * The login (central database). Works across the two databases because Eloquent runs a
      * separate query on User's own connection; it just cannot be a real foreign key.
      *

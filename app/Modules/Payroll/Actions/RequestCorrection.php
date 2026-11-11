@@ -142,21 +142,12 @@ class RequestCorrection
         if ($out !== null) {
             $nextMorning = $in !== null
                 ? $out->lte($in)
-                : ($shift = $this->shiftOn($employee, $values['date'])) !== null && $shift->is_overnight && $out->format('H:i') < substr($shift->start_time, 0, 5);
+                : ($shift = Shift::ofEmployeeOn($employee, $values['date'])) !== null && $shift->is_overnight && $out->format('H:i') < substr($shift->start_time, 0, 5);
             if ($nextMorning) {
                 $out = $out->addDay();
             }
         }
 
         return [$in, $out];
-    }
-
-    /** The day's shift: as processed, else the employee's own, else the default. */
-    private function shiftOn(Employee $employee, string $date): ?Shift
-    {
-        $processed = AttendanceDay::query()->where('employee_id', $employee->id)->whereDate('date', $date)->value('shift_id');
-        $id = $processed ?? $employee->shift_id;
-
-        return ($id ? Shift::find($id) : null) ?? Shift::default();
     }
 }

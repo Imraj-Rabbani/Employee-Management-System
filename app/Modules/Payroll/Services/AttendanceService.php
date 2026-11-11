@@ -4,12 +4,14 @@ namespace App\Modules\Payroll\Services;
 
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Payroll\Models\AttendanceDay;
+use App\Modules\Payroll\Models\OvertimeRequest;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 
 /**
  * Processes one employee's days and saves them in attendance_days: AttendanceInputs → AttendanceProcessor →
- * updateOrCreate. Used by the ProcessAttendance job (nightly, and later on every change, 7.5). [TA-05]
+ * updateOrCreate. Used by the ProcessAttendance job (nightly, and on every change, 7.5). [TA-05]
+ * Also copies approved overtime hours (7.7) into ot_approved_minutes.
  *
  * Skipped: days before joining, after separation, in the future, and LOCKED days (payroll closed).
  */
@@ -34,6 +36,12 @@ class AttendanceService
             ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
             ->pluck('date')->map(fn ($d) => Carbon::parse($d)->toDateString())->flip();
 
+        // Approved overtime (7.7): what payroll pays, next to the overtime the punches show.
+        $approvedOt = OvertimeRequest::query()->where('employee_id', $employee->id)->whereNotNull('approved_at')
+            ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
+            ->get(['date', 'approved_hours'])
+            ->mapWithKeys(fn (OvertimeRequest $r) => [$r->date->toDateString() => (int) round((float) $r->approved_hours * 60)]);
+
         $grace = $this->inputs->graceUsedBefore($employee, $from);
         $written = 0;
         foreach ($this->inputs->forEmployee($employee, $from, $to) as $input) {
@@ -48,7 +56,7 @@ class AttendanceService
             }
             AttendanceDay::updateOrCreate(
                 ['employee_id' => $employee->id, 'date' => $input->date->toDateString()],
-                [...$result->toAttributes(), 'processed_at' => now()],
+                [...$result->toAttributes(), 'ot_approved_minutes' => $approvedOt[$input->date->toDateString()] ?? null, 'processed_at' => now()],
             );
             $written++;
         }

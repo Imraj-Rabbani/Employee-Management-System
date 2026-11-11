@@ -60,7 +60,9 @@ return [
             'label' => 'Attendance',
             'tabs' => [
                 ['label' => 'Daily attendance', 'route' => 'payroll.attendance.days', 'can' => 'payroll.attendance.process'],
+                ['label' => 'Calendar', 'route' => 'payroll.attendance.calendar', 'can' => 'payroll.attendance.process'],
                 ['label' => 'Corrections', 'route' => 'payroll.attendance.corrections', 'can' => 'payroll.correction.manage'],
+                ['label' => 'Overtime', 'route' => 'payroll.attendance.overtime', 'can' => 'payroll.overtime.manage'],
                 ['label' => 'Rosters', 'route' => 'payroll.attendance.rosters', 'current' => 'payroll.attendance.rosters*', 'can' => 'payroll.roster.manage'],
                 ['label' => 'Punches', 'route' => 'payroll.attendance.punches', 'can' => 'payroll.punch.manage'],
                 ['label' => 'Shifts', 'route' => 'payroll.attendance.shifts', 'can' => 'payroll.attendance.setup'],

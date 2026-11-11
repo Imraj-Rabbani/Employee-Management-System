@@ -116,8 +116,8 @@ class PunchLog extends TenantModel
             $linked += static::query()->whereNull('employee_id')->where('access_code', (string) $row->access_code)
                 ->update(['employee_id' => $employeeId, 'updated_at' => DB::raw('updated_at')]);
 
-            $from = Carbon::parse($row->first_at)->subDay()->toDateString();
-            $to = min(Carbon::parse($row->last_at)->toDateString(), $yesterday);
+            $from = Carbon::parse($row->getAttribute('first_at'))->subDay()->toDateString();
+            $to = min(Carbon::parse($row->getAttribute('last_at'))->toDateString(), $yesterday);
             $reprocessor->queue([$employeeId], $from, $to);
         }
 

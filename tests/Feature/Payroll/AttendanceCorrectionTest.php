@@ -30,6 +30,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
+use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
@@ -72,7 +73,7 @@ class AttendanceCorrectionTest extends TestCase
     }
 
     /** @param  array<string, string>  $values */
-    private function ask(array $values = [], bool $self = false): \Livewire\Features\SupportTesting\Testable
+    private function ask(array $values = [], bool $self = false): Testable
     {
         $form = Livewire::test(CorrectionForm::class, ['self' => $self])->call('create', $self ? null : $this->karim->id, '2026-12-03');
         foreach (['in' => '09:00', 'out' => '18:00', 'reason' => 'Card forgotten', ...$values] as $field => $value) {

@@ -47,6 +47,11 @@ class WorkflowException extends RuntimeException
 
     // ---------------------------------------------------------------- respond() (task 3.4)
 
+    public static function amountRequired(string $label, float $max): self
+    {
+        return new self(__(':label: enter a number from 0 to :max to approve.', ['label' => $label, 'max' => rtrim(rtrim(number_format($max, 2, '.', ''), '0'), '.')]));
+    }
+
     public static function invalidDecision(): self
     {
         return new self(__('Choose approve, reject or send back.'));

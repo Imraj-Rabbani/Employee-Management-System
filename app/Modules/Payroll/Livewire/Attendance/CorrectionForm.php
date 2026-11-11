@@ -52,7 +52,7 @@ class CorrectionForm extends Component
     {
         $this->authorizeForm();
         $this->reset('correctionId', 'in', 'out', 'reason');
-        $this->employeeId = $this->self ? (string) ($this->mine()?->id ?? '') : (string) ($employeeId ?? '');
+        $this->employeeId = $this->self ? (string) $this->mine()?->id : (string) ($employeeId ?? '');
         $this->date = $date ?? now()->subDay()->toDateString();
         $this->prefill();
         $this->resetValidation();
