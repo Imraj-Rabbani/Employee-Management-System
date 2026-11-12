@@ -4,27 +4,45 @@ namespace App\Modules\Hrm\Livewire\Leave;
 
 use App\Modules\Hrm\Data\LeaveYear;
 use App\Modules\Hrm\Models\LeaveLedgerEntry;
+use App\Modules\Hrm\Services\AccrueEarnedLeave;
+use App\Modules\Hrm\Services\CarryForwardLeave;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
 /**
- * Company setting "Leave year starts in" (leave.year_start_month), on the Leave types tab. [LV-03]
- * Locked once any leave balance exists: changing it would move every ledger row into another year.
+ * Company leave settings, on the Leave types tab. [LV-03, LV-05]
+ *
+ *   startMonth      leave.year_start_month (8.2): locked once any leave balance exists (it would move every
+ *                   ledger row into another year)
+ *   earnFrom        leave.earn_from (8.5): the go-live date; the nightly accrual credits nothing that started
+ *                   before it (the opening balances cover that). Empty = no limit.
+ *   closeAfterDays  leave.close_after_days (8.5): the previous leave year is carried forward this many days
+ *                   after it ended, so late approvals still land in it
  */
 class LeaveSettings extends Component
 {
     public int $startMonth = 1;
 
+    public string $earnFrom = '';
+
+    public int $closeAfterDays = CarryForwardLeave::DEFAULT_CLOSE_AFTER_DAYS;
+
     public function mount(): void
     {
         $this->startMonth = LeaveYear::startMonth();
+        $this->earnFrom = (string) settings(AccrueEarnedLeave::EARN_FROM, '');
+        $this->closeAfterDays = CarryForwardLeave::closeAfterDays();
     }
 
     public function save(): void
     {
         Gate::authorize('hrm.leave.setup');
-        $this->validate(['startMonth' => ['required', 'integer', 'between:1,12']], attributes: ['startMonth' => __('start month')]);
+        $this->validate([
+            'startMonth' => ['required', 'integer', 'between:1,12'],
+            'earnFrom' => ['nullable', 'date_format:Y-m-d'],
+            'closeAfterDays' => ['required', 'integer', 'between:0,90'],
+        ], attributes: ['startMonth' => __('start month'), 'earnFrom' => __('earn leave from'), 'closeAfterDays' => __('close after')]);
 
         if ($this->locked() && $this->startMonth !== LeaveYear::startMonth()) {
             $this->addError('startMonth', __('Leave balances already exist, so the leave year can no longer change.'));
@@ -32,8 +50,12 @@ class LeaveSettings extends Component
             return;
         }
 
-        settings()->set(LeaveYear::SETTING, $this->startMonth);
-        $this->dispatch('toast', message: __('Leave year saved.'), variant: 'success');
+        settings()->setMany([
+            LeaveYear::SETTING => $this->startMonth,
+            AccrueEarnedLeave::EARN_FROM => $this->earnFrom ?: null,
+            CarryForwardLeave::CLOSE_AFTER_DAYS => $this->closeAfterDays,
+        ]);
+        $this->dispatch('toast', message: __('Leave settings saved.'), variant: 'success');
     }
 
     private function locked(): bool

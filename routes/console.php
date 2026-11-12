@@ -17,3 +17,8 @@ Schedule::command('tenants:run payroll:sync-devices')->everyFiveMinutes()->witho
 // employee: needs a queue worker, `php artisan queue:work`). 01:00 server time; "yesterday" is in each
 // company's own timezone.
 Schedule::command('tenants:run payroll:process-attendance')->dailyAt('01:00')->withoutOverlapping();
+
+// Leave (8.5): credit earned leave, then the leave year end (carry forward / expire). After attendance
+// processing (01:00), because "1 day per N days worked" counts the processed days. Both are safe to re-run.
+Schedule::command('tenants:run hrm:accrue-leave')->dailyAt('03:00')->withoutOverlapping();
+Schedule::command('tenants:run hrm:carry-forward-leave')->dailyAt('03:30')->withoutOverlapping();

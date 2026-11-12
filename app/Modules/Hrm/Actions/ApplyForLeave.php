@@ -10,10 +10,12 @@ use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\LeaveApplication;
 use App\Modules\Hrm\Models\LeaveApplicationDay;
 use App\Modules\Hrm\Models\LeaveType;
+use App\Modules\Hrm\Services\CarryForwardLeave;
 use App\Modules\Hrm\Services\LeaveRequestInputs;
 use App\Modules\Hrm\Services\LeaveRules;
 use App\Modules\Payroll\Models\AttendanceDay;
 use App\Modules\Workflow\Exceptions\WorkflowException;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
@@ -29,7 +31,7 @@ use InvalidArgumentException;
  * evaluate() = LeaveRules (8.3) + what only the database knows:
  *   - times taken / overlap with my other active leave (from leave_applications)
  *   - all counted days in ONE leave year (apply separately for each year: each has its own balance)
- *   - no counted day in a closed payroll (attendance_days.is_locked)
+ *   - no counted day in a closed payroll (attendance_days.is_locked), nor in a closed leave year (8.5)
  *   - a changed application must have been sent back
  *
  * $values: from_date, to_date ('Y-m-d'), is_half_day, reason, delegatee_id, contact_during_leave.
@@ -76,6 +78,10 @@ class ApplyForLeave
                 $more[] = new LeaveProblem('two_years', 'to_date', __('The leave runs into the next leave year (from :date). Apply separately for each year.', [
                     'date' => format_date(LeaveYear::of(min($years))->next()->start()),
                 ]));
+            }
+            $year = LeaveYear::containing(array_key_first($check->dates));
+            if (CarryForwardLeave::isClosed($year, CarbonImmutable::now(settings('timezone', config('app.timezone'))))) {
+                $more[] = new LeaveProblem('year_closed', 'from_date', __('The leave year :year is closed (carried forward): no more leave can be entered in it.', ['year' => $year->label()]));
             }
             if (AttendanceDay::query()->where('employee_id', $employee->id)->whereIn('date', array_keys($check->dates))->where('is_locked', true)->exists()) {
                 $more[] = new LeaveProblem('locked', 'from_date', __('The payroll for some of these days is closed: no more leave can be entered for them.'));

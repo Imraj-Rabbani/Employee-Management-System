@@ -3,6 +3,8 @@
 namespace App\Modules\Hrm;
 
 use App\Core\Support\ModuleServiceProvider;
+use App\Modules\Hrm\Console\AccrueLeaveCommand;
+use App\Modules\Hrm\Console\CarryForwardLeaveCommand;
 use App\Models\User;
 use App\Modules\Hrm\Contracts\WorkCalendar;
 use App\Modules\Hrm\Services\ApprovedLeaveCalendar;
@@ -32,6 +34,11 @@ class HrmServiceProvider extends ModuleServiceProvider
     public function boot(): void
     {
         parent::boot();
+
+        // Nightly leave jobs (8.5), scheduled in routes/console.php.
+        if ($this->app->runningInConsole()) {
+            $this->commands([AccrueLeaveCommand::class, CarryForwardLeaveCommand::class]);
+        }
 
         // A combined ability (not a permission key, so Gate::before leaves it to this definition):
         // manpower requests can be READ by the managers who ask (request) and by HR who advertise them (manage).
