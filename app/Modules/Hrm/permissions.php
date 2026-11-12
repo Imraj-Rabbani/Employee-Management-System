@@ -21,4 +21,7 @@ return [
         'hrm.recruitment.manage' => 'Manage job postings and applicants (HR)',
         'hrm.recruitment.setup' => 'Manage recruitment setup (interview factors, rejection reasons)',
     ],
+    'Leave' => [
+        'hrm.leave.setup' => 'Manage leave setup (leave types, leave profiles)',
+    ],
 ];

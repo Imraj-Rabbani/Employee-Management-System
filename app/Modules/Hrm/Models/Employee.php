@@ -381,6 +381,16 @@ class Employee extends TenantModel
         return $this->belongsTo(HolidayProfile::class);
     }
 
+    /**
+     * Which leave types this employee may take and how many days per year (8.1). NULL = no leave set up yet.
+     *
+     * @return BelongsTo<LeaveProfile, $this>
+     */
+    public function leaveProfile(): BelongsTo
+    {
+        return $this->belongsTo(LeaveProfile::class);
+    }
+
     /** @return BelongsTo<self, $this> */
     public function supervisor(): BelongsTo
     {

@@ -52,6 +52,15 @@ return [
             ],
         ],
 
+        // Phase 8. Applications, balances, encashments and the calendar get their tabs in 8.2–8.7.
+        'leave' => [
+            'label' => 'Leave',
+            'tabs' => [
+                ['label' => 'Leave types', 'route' => 'hrm.leave.types', 'can' => 'hrm.leave.setup'],
+                ['label' => 'Leave profiles', 'route' => 'hrm.leave.profiles', 'can' => 'hrm.leave.setup'],
+            ],
+        ],
+
     ],
 
     'payroll' => [

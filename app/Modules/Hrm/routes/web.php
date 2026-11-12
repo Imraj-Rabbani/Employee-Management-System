@@ -50,9 +50,9 @@ Route::get('employees/{employee}', function (Employee $employee) {
     return view('hrm::employees.show', compact('employee', 'tabs', 'tab'));
 })->middleware('can:view,employee')->whereNumber('employee')->name('employees.show');
 
-// HRM → Organization / Recruitment in the sidebar: open the first tab (config/sections.php) this user
+// HRM → Organization / Recruitment / Leave in the sidebar: open the first tab (config/sections.php) this user
 // may see. 403 when they may see none.
-foreach (['organization', 'recruitment'] as $section) {
+foreach (['organization', 'recruitment', 'leave'] as $section) {
     Route::get($section, function () use ($section) {
         foreach (config("sections.hrm.$section.tabs") as $tab) {
             if (! isset($tab['can']) || auth()->user()->can($tab['can'])) {
@@ -164,5 +164,12 @@ Route::middleware('can:hrm.recruitment.manage')->prefix('recruitment/reports')->
 Route::middleware('can:hrm.recruitment.setup')->prefix('recruitment/setup')->name('recruitment.setup.')->group(function () {
     foreach (['factors', 'reasons'] as $section) {
         Route::view($section, 'hrm::recruitment.setup', ['section' => $section])->name($section);
+    }
+});
+
+// HRM → Leave → setup (8.1): leave types and leave profiles. One page view, one URL per section. [LV-01, LV-02]
+Route::middleware('can:hrm.leave.setup')->prefix('leave')->name('leave.')->group(function () {
+    foreach (['types', 'profiles'] as $section) {
+        Route::view($section, 'hrm::leave.setup', ['section' => $section])->name($section);
     }
 });

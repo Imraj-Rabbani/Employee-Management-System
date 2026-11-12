@@ -48,6 +48,7 @@ return [
             // Organization and Recruitment open as tabs (config/sections.php): shown if ANY tab is allowed.
             ['label' => 'Organization', 'route' => 'hrm.organization', 'current' => 'hrm.org.*', 'can' => ['hrm.organization.manage', 'hrm.employee.view']],
             ['label' => 'Recruitment', 'route' => 'hrm.recruitment', 'current' => 'hrm.recruitment*', 'can' => ['hrm.recruitment.request', 'hrm.recruitment.manage', 'hrm.recruitment.setup']],
+            ['label' => 'Leave', 'route' => 'hrm.leave', 'current' => 'hrm.leave*', 'can' => 'hrm.leave.setup'],
             ['label' => 'Confirmation', 'route' => null],
             ['label' => 'Training', 'route' => null],
             ['label' => 'Transfer', 'route' => null],
