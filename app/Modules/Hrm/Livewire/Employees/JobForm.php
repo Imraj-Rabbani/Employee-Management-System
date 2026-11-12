@@ -9,6 +9,7 @@ use App\Modules\Hrm\Models\Designation;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\EmploymentType;
 use App\Modules\Hrm\Models\Grade;
+use App\Modules\Hrm\Models\LeaveProfile;
 use App\Modules\Hrm\Models\Position;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use App\Modules\Payroll\Models\HolidayProfile;
@@ -18,7 +19,7 @@ use Illuminate\Validation\Rule;
 
 /**
  * Profile → Job → Edit: code, placement, reporting lines, dates, payment method,
- * and attendance: shift, weekend profile, holiday calendar (7.1). [EMP-01, TA-01, TA-02]
+ * attendance: shift, weekend profile, holiday calendar (7.1), and the leave profile (8.1). [EMP-01, TA-01, TA-02, LV-02]
  *
  * Not here on purpose: status and separation (Lifecycle, Phase 13), and the org unit: that is changed on
  * the History tab (OrgHistory → ChangeOrgUnit) so every move is dated and kept. (5.4)
@@ -55,6 +56,7 @@ class JobForm extends EmployeeSectionForm
             'has_shifting' => ['boolean'],
             'weekend_profile_id' => ['nullable', Rule::exists(WeekendProfile::class, 'id')],
             'holiday_profile_id' => ['nullable', Rule::exists(HolidayProfile::class, 'id')],
+            'leave_profile_id' => ['nullable', Rule::exists(LeaveProfile::class, 'id')],
         ];
     }
 
@@ -67,6 +69,7 @@ class JobForm extends EmployeeSectionForm
             'join_date' => __('join date'), 'planned_confirmation_date' => __('planned confirmation'),
             'confirmation_date' => __('confirmation date'), 'payment_method' => __('payment method'),
             'shift_id' => __('shift'), 'weekend_profile_id' => __('weekend profile'), 'holiday_profile_id' => __('holiday calendar'),
+            'leave_profile_id' => __('leave profile'),
         ];
     }
 
@@ -129,6 +132,8 @@ class JobForm extends EmployeeSectionForm
             'weekendProfiles' => WeekendProfile::where('is_active', true)->orWhere('id', $this->form['weekend_profile_id'] ?? null)
                 ->orderBy('name')->pluck('name', 'id')->all(),
             'holidayProfiles' => HolidayProfile::where('is_active', true)->orWhere('id', $this->form['holiday_profile_id'] ?? null)
+                ->orderBy('name')->pluck('name', 'id')->all(),
+            'leaveProfiles' => LeaveProfile::where('is_active', true)->orWhere('id', $this->form['leave_profile_id'] ?? null)
                 ->orderBy('name')->pluck('name', 'id')->all(),
         ];
     }

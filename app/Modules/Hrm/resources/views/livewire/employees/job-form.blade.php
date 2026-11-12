@@ -39,6 +39,12 @@
                 <x-form.select wire:model="form.weekend_profile_id" :label="__('Weekend profile')" :options="$weekendProfiles" :placeholder="__('None')" />
                 <x-form.select wire:model="form.holiday_profile_id" :label="__('Holiday calendar')" :options="$holidayProfiles" :placeholder="__('None')" />
             </div>
+
+            <flux:separator :text="__('Leave')" />
+            <div class="grid gap-4 sm:grid-cols-2">
+                <x-form.select wire:model="form.leave_profile_id" :label="__('Leave profile')" :options="$leaveProfiles" :placeholder="__('None')"
+                    :hint="__('Which leave this employee may take, and how many days.')" />
+            </div>
         </form>
 
         <x-slot:footer>

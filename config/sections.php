@@ -52,6 +52,19 @@ return [
             ],
         ],
 
+        // Phase 8 (Leave).
+        'leave' => [
+            'label' => 'Leave',
+            'tabs' => [
+                ['label' => 'Applications', 'route' => 'hrm.leave.applications', 'can' => 'hrm.leave.manage'],
+                ['label' => 'Calendar', 'route' => 'hrm.leave.calendar', 'can' => 'hrm.leave.manage'],
+                ['label' => 'Balances', 'route' => 'hrm.leave.balances', 'can' => 'hrm.leave.manage'],
+                ['label' => 'Encashments', 'route' => 'hrm.leave.encashments', 'can' => 'hrm.leave.manage'],
+                ['label' => 'Leave types', 'route' => 'hrm.leave.types', 'can' => 'hrm.leave.setup'],
+                ['label' => 'Leave profiles', 'route' => 'hrm.leave.profiles', 'can' => 'hrm.leave.setup'],
+            ],
+        ],
+
     ],
 
     'payroll' => [

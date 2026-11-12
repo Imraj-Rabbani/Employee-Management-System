@@ -254,7 +254,7 @@ class OrganizationPagesTest extends TestCase
     {
         $unit = OrgUnit::factory()->create(['name' => 'Finance']);
         $type = EmploymentType::factory()->create(['name' => 'Contract']);
-        $approvalType = ApprovalType::create(['key' => 'leave', 'name' => 'Leave']);
+        $approvalType = ApprovalType::forKey('leave');   // registered by the leave migration (8.4)
         $role = Role::create(['name' => 'Managers']);
 
         Livewire::test(WorkflowForm::class)

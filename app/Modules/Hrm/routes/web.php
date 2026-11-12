@@ -6,9 +6,11 @@ use App\Modules\Hrm\Models\Applicant;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\JobOffer;
 use App\Modules\Hrm\Models\JobPosting;
+use App\Modules\Hrm\Models\LeaveApplication;
 use App\Modules\Hrm\Models\ManpowerRequest;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Hrm\Services\OfferLetter;
+use App\Modules\Workflow\Models\Approval;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -38,6 +40,7 @@ Route::get('employees/{employee}', function (Employee $employee) {
     $tabs = [
         'personal' => __('Personal'),
         'job' => __('Job'),
+        'leave' => __('Leave'),
         'family' => __('Family & Nominees'),
         'education' => __('Education'),
         'work-history' => __('Work History'),
@@ -50,9 +53,9 @@ Route::get('employees/{employee}', function (Employee $employee) {
     return view('hrm::employees.show', compact('employee', 'tabs', 'tab'));
 })->middleware('can:view,employee')->whereNumber('employee')->name('employees.show');
 
-// HRM → Organization / Recruitment in the sidebar: open the first tab (config/sections.php) this user
+// HRM → Organization / Recruitment / Leave in the sidebar: open the first tab (config/sections.php) this user
 // may see. 403 when they may see none.
-foreach (['organization', 'recruitment'] as $section) {
+foreach (['organization', 'recruitment', 'leave'] as $section) {
     Route::get($section, function () use ($section) {
         foreach (config("sections.hrm.$section.tabs") as $tab) {
             if (! isset($tab['can']) || auth()->user()->can($tab['can'])) {
@@ -166,3 +169,35 @@ Route::middleware('can:hrm.recruitment.setup')->prefix('recruitment/setup')->nam
         Route::view($section, 'hrm::recruitment.setup', ['section' => $section])->name($section);
     }
 });
+
+// HRM → Leave → setup (8.1): leave types and leave profiles. One page view, one URL per section. [LV-01, LV-02]
+Route::middleware('can:hrm.leave.setup')->prefix('leave')->name('leave.')->group(function () {
+    foreach (['types', 'profiles'] as $section) {
+        Route::view($section, 'hrm::leave.setup', ['section' => $section])->name($section);
+    }
+});
+
+// HRM → Leave → Applications (8.4): leave of the employees the user can see; HR applies for them. [LV-04]
+Route::middleware('can:hrm.leave.manage')->get('leave/applications', fn () => view('hrm::leave.applications'))
+    ->name('leave.applications');
+
+// HRM → Leave → Encashments (8.6), Calendar and Balances (8.7). [LV-03, LV-04, LV-06]
+Route::middleware('can:hrm.leave.manage')->prefix('leave')->name('leave.')->group(function () {
+    Route::view('encashments', 'hrm::leave.encashments')->name('encashments');
+    Route::view('calendar', 'hrm::leave.calendar')->name('calendar');
+    Route::view('balances', 'hrm::leave.balances')->name('balances');
+});
+
+// A leave application's attachment (private, tenant disk). Sent to: the employee themself, HR who can see the
+// employee (hrm.leave.manage), or someone asked to approve it. Everyone else: 404.
+Route::get('leave/applications/{id}/attachment', function (int $id, TenantUploads $uploads) {
+    $application = LeaveApplication::query()->findOrFail($id);
+    $user = auth()->user();
+    $allowed = Employee::query()->withoutGlobalScopes()->whereKey($application->employee_id)->where('user_id', $user->id)->exists()
+        || ($user->can('hrm.leave.manage') && Employee::query()->whereKey($application->employee_id)->exists())
+        || Approval::query()->where('approvable_type', $application->getMorphClass())->where('approvable_id', $application->id)
+            ->where('approver_user_id', $user->id)->exists();
+    abort_unless($allowed && $application->attachment_path !== null && $uploads->exists($application->attachment_path), 404);
+
+    return $uploads->download($application->attachment_path, $application->attachment_name);
+})->whereNumber('id')->name('leave.attachment');

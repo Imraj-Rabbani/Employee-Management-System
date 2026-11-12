@@ -208,6 +208,24 @@ class WorkflowEngine
     }
 
     /**
+     * The requester takes the document back before it was decided (e.g. a leave application, 8.4): every
+     * PENDING row is removed, so it leaves the approvers' inboxes. Answers already given stay as history.
+     * Same as what respond() does with rows nobody needs to answer any more. The document records the
+     * withdrawal itself (e.g. leave_applications.withdrawn_at).
+     *
+     * @return int the number of pending rows removed
+     */
+    public function withdraw(Approvable&Model $document): int
+    {
+        return $document->getConnection()->transaction(function () use ($document) {
+            $open = $document->approvals()->pending()->get();
+            $open->each(fn (Approval $row) => $row->delete());
+
+            return $open->count();
+        });
+    }
+
+    /**
      * Pending approval rows for these steps: one per approver.
      *
      * @param  iterable<WorkflowStep>  $steps

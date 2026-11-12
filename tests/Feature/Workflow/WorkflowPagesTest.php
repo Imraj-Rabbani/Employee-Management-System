@@ -66,26 +66,26 @@ class WorkflowPagesTest extends TestCase
     {
         Livewire::test(ApprovalTypeForm::class)
             ->dispatch('create-approval-type')
-            ->set('key', 'Leave Request')
-            ->set('name', 'Leave')
+            ->set('key', 'Business Trip')
+            ->set('name', 'Business trip')
             ->call('save')
             ->assertHasErrors(['key' => 'regex'])
-            ->set('key', 'leave')
+            ->set('key', 'business_trip')
             ->call('save')
             ->assertHasNoErrors()
             ->assertDispatched('approval-type-saved');
 
-        $type = ApprovalType::forKey('leave');
+        $type = ApprovalType::forKey('business_trip');
         $this->assertNotNull($type);
 
         Livewire::test(ApprovalTypeForm::class)
             ->dispatch('edit-approval-type', id: $type->id)
             ->set('key', 'hacked')
-            ->set('name', 'Leave application')
+            ->set('name', 'Business trip request')
             ->call('save')
             ->assertHasNoErrors();
 
-        $this->assertSame(['leave', 'Leave application'], [$type->fresh()?->key, $type->fresh()?->name]);
+        $this->assertSame(['business_trip', 'Business trip request'], [$type->fresh()?->key, $type->fresh()?->name]);
     }
 
     public function test_a_workflow_is_created_with_its_levels_in_order(): void

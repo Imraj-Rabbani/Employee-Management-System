@@ -54,7 +54,7 @@ class ModuleAccessTest extends TestCase
 
         $this->get('/dashboard')
             ->assertOk()
-            ->assertSee('Employees')        // HRM item
+            ->assertSee('Employee')         // HRM item (label "Employee" since the HRM navigation refactor)
             ->assertSee('Users')            // Setup (core) item
             ->assertDontSee('Payroll Runs') // Payroll item
             ->assertDontSee('My Approvals'); // Workflow item

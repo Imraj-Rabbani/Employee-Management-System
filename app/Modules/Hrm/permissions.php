@@ -21,4 +21,9 @@ return [
         'hrm.recruitment.manage' => 'Manage job postings and applicants (HR)',
         'hrm.recruitment.setup' => 'Manage recruitment setup (interview factors, rejection reasons)',
     ],
+    'Leave' => [
+        'hrm.leave.manage' => 'Apply for and withdraw leave for the employees they can see (HR)',
+        'hrm.leave.setup' => 'Manage leave setup (leave types, leave profiles)',
+        'hrm.leave.balance' => 'Enter opening leave balances and corrections (for the employees they can see)',
+    ],
 ];

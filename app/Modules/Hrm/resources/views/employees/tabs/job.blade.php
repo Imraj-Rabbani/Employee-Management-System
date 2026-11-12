@@ -64,4 +64,11 @@
             __('Holiday calendar') => $employee->holidayProfile?->name,
         ]" />
     </x-ui.card>
+
+    {{-- 8.1. The balances are on the Leave tab (8.2). --}}
+    <x-ui.card :heading="__('Leave')">
+        <x-ui.details :items="[
+            __('Leave profile') => $employee->leaveProfile?->name,
+        ]" />
+    </x-ui.card>
 </div>
