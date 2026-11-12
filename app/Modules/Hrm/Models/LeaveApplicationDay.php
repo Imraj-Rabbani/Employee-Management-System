@@ -20,6 +20,11 @@ class LeaveApplicationDay extends TenantModel
 {
     public $timestamps = false;
 
+    /**
+     * No activity log entries (Spatie's LogsActivity records only the events listed here).
+     *
+     * @var list<string>
+     */
     protected static $recordEvents = [];
 
     protected $fillable = ['leave_application_id', 'employee_id', 'date', 'days'];

@@ -4,9 +4,9 @@ namespace App\Modules\Payroll;
 
 use App\Core\Plugins\PluginRegistry;
 use App\Core\Support\ModuleServiceProvider;
+use App\Modules\Hrm\Contracts\WorkCalendar;
 use App\Modules\Payroll\Console\ProcessAttendanceCommand;
 use App\Modules\Payroll\Console\SyncDevicePunches;
-use App\Modules\Hrm\Contracts\WorkCalendar;
 use App\Modules\Payroll\Contracts\LeaveCalendar;
 use App\Modules\Payroll\Contracts\PunchDeviceClient;
 use App\Modules\Payroll\Services\AttendanceWorkCalendar;

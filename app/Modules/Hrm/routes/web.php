@@ -181,6 +181,13 @@ Route::middleware('can:hrm.leave.setup')->prefix('leave')->name('leave.')->group
 Route::middleware('can:hrm.leave.manage')->get('leave/applications', fn () => view('hrm::leave.applications'))
     ->name('leave.applications');
 
+// HRM → Leave → Encashments (8.6), Calendar and Balances (8.7). [LV-03, LV-04, LV-06]
+Route::middleware('can:hrm.leave.manage')->prefix('leave')->name('leave.')->group(function () {
+    Route::view('encashments', 'hrm::leave.encashments')->name('encashments');
+    Route::view('calendar', 'hrm::leave.calendar')->name('calendar');
+    Route::view('balances', 'hrm::leave.balances')->name('balances');
+});
+
 // A leave application's attachment (private, tenant disk). Sent to: the employee themself, HR who can see the
 // employee (hrm.leave.manage), or someone asked to approve it. Everyone else: 404.
 Route::get('leave/applications/{id}/attachment', function (int $id, TenantUploads $uploads) {

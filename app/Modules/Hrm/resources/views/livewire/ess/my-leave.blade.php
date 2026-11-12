@@ -45,7 +45,45 @@
             @endif
         </x-ui.card>
 
+        @if ($canEncash || $encashments->isNotEmpty())
+            <x-ui.card :heading="__('My leave encashments')" :subheading="__('Unused days paid out with the next payroll once approved.')" :padding="false">
+                @if ($canEncash)
+                    <x-slot:actions>
+                        <flux:button size="sm" icon="banknotes" x-on:click="$dispatch('create-encashment')">{{ __('Encash leave') }}</flux:button>
+                    </x-slot:actions>
+                @endif
+                @if ($encashments->isEmpty())
+                    <x-ui.empty icon="banknotes" :heading="__('No encashments yet')" />
+                @else
+                    <ul class="divide-y divide-white/50 dark:divide-white/10">
+                        @foreach ($encashments as $encashment)
+                            @php [$label, $color] = $encashment->statusBadge(); @endphp
+                            <li class="flex flex-wrap items-center gap-x-4 gap-y-1 px-6 py-3 text-sm" wire:key="my-encashment-{{ $encashment->id }}">
+                                <x-ui.badge :$color>{{ $label }}</x-ui.badge>
+                                <span class="font-medium">{{ $encashment->leaveType?->name }}</span>
+                                <span>{{ __(':days days', ['days' => $num($encashment->days)]) }}</span>
+                                <span class="text-xs text-zinc-500">{{ $encashment->number() }}</span>
+                                <span class="ms-auto flex gap-2">
+                                    @if ($encashment->isEditable())
+                                        <flux:button size="xs" icon="pencil-square" x-on:click="$dispatch('edit-encashment', { id: {{ $encashment->id }} })">{{ __('Change and send again') }}</flux:button>
+                                    @endif
+                                    @if ($encashment->isActive() && $encashment->approved_at === null)
+                                        <flux:button size="xs" variant="ghost" class="!text-red-600" x-on:click="$dispatch('confirm', {
+                                            title: @js(__('Withdraw :no?', ['no' => $encashment->number()])),
+                                            confirmText: @js(__('Withdraw')),
+                                            onConfirm: () => $dispatch('withdraw-encashment', { id: {{ $encashment->id }} }),
+                                        })">{{ __('Withdraw') }}</flux:button>
+                                    @endif
+                                </span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </x-ui.card>
+        @endif
+
         <livewire:hrm::leave.leave-application-form :self="true" />
+        <livewire:hrm::leave.encashment-form :self="true" />
         <livewire:hrm::leave.leave-application-details :self="true" />
     @else
         <x-ui.card>

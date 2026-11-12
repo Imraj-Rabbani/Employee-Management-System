@@ -15,12 +15,17 @@ class ApprovedLeaveCalendar implements LeaveCalendar
 {
     public function leaveDates(Employee $employee, CarbonImmutable $from, CarbonImmutable $to): array
     {
-        return LeaveApplicationDay::query()
+        $dates = LeaveApplicationDay::query()
             ->where('employee_id', $employee->id)
             ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
             ->whereHas('application', fn ($q) => $q->whereNotNull('approved_at')->whereNull('withdrawn_at'))
-            ->pluck('date')
-            ->mapWithKeys(fn ($date) => [CarbonImmutable::parse($date)->toDateString() => true])
-            ->all();
+            ->pluck('date');
+
+        $leave = [];
+        foreach ($dates as $date) {
+            $leave[CarbonImmutable::parse($date)->toDateString()] = true;
+        }
+
+        return $leave;
     }
 }

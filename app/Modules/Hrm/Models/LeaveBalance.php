@@ -25,7 +25,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class LeaveBalance extends TenantModel
 {
-    /** A cache of the ledger: nothing to log. */
+    /**
+     * No activity log entries (Spatie's LogsActivity records only the events listed here). A cache of the ledger: nothing to log.
+     *
+     * @var list<string>
+     */
     protected static $recordEvents = [];
 
     public const AMOUNTS = ['opening', 'earned', 'carried_forward', 'adjusted', 'taken', 'encashed', 'expired', 'balance'];

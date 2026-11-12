@@ -278,10 +278,10 @@ class LeaveLedger
     /**
      * @template T
      *
-     * @param  callable(): T  $callback
+     * @param  \Closure(): T  $callback
      * @return T
      */
-    private function transaction(callable $callback): mixed
+    private function transaction(\Closure $callback): mixed
     {
         return (new LeaveLedgerEntry)->getConnection()->transaction($callback);
     }

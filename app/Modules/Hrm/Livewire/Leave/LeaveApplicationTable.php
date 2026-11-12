@@ -44,6 +44,8 @@ class LeaveApplicationTable extends DataTable
             $months[$m->format('Y-m')] = $m->translatedFormat('F Y');
         }
         $pending = fn (Builder $a) => $a->where('status', ApprovalStatus::Pending);
+        // The filter's Builder is untyped: the model's own scope, as an id subquery, keeps ONE definition of "active".
+        $active = fn (Builder $q) => $q->whereIn('id', LeaveApplication::query()->active()->select('id'));
 
         return [
             SelectFilter::make('month', __('Month'), $months)->query(function (Builder $q, string $month) {
@@ -60,8 +62,8 @@ class LeaveApplicationTable extends DataTable
                 'approved' => $q->whereNotNull('approved_at')->whereNull('withdrawn_at'),
                 'rejected' => $q->whereNotNull('rejected_at'),
                 'withdrawn' => $q->whereNotNull('withdrawn_at'),
-                'waiting' => $q->active()->whereHas('approvals', $pending),
-                default => $q->active()->whereNull('approved_at')->whereDoesntHave('approvals', $pending),
+                'waiting' => $active($q)->whereHas('approvals', $pending),
+                default => $active($q)->whereNull('approved_at')->whereDoesntHave('approvals', $pending),
             }),
         ];
     }

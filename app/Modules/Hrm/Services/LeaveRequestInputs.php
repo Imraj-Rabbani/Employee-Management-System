@@ -56,7 +56,7 @@ class LeaveRequestInputs
             daysOff: $to->gte($from) ? $this->calendar->daysOff($employee, $from->subDays($around), $to->addDays($around)) : [],
             gender: $employee->gender,
             religion: $employee->religion,
-            joinDate: $employee->join_date?->toImmutable(),
+            joinDate: $employee->join_date->toImmutable(),
             confirmationDate: $employee->confirmation_date?->toImmutable(),
             separationDate: $employee->separation_date?->toImmutable(),
             entitlement: $entitlement === null ? null : (float) $entitlement,

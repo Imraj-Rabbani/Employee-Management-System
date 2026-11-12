@@ -4,6 +4,7 @@ namespace App\Modules\Hrm\Models;
 
 use App\Core\Models\TenantModel;
 use App\Modules\Hrm\Enums\LeaveEntryType;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
@@ -29,7 +30,11 @@ class LeaveLedgerEntry extends TenantModel
 {
     protected $table = 'leave_ledger';
 
-    /** The ledger IS the history: no activity log entries on top. */
+    /**
+     * No activity log entries (Spatie's LogsActivity records only the events listed here). The ledger IS the history: no activity log entries on top.
+     *
+     * @var list<string>
+     */
     protected static $recordEvents = [];
 
     protected $fillable = [
@@ -60,7 +65,7 @@ class LeaveLedgerEntry extends TenantModel
         return $this->belongsTo(LeaveType::class);
     }
 
-    /** @return MorphTo<\Illuminate\Database\Eloquent\Model, $this> */
+    /** @return MorphTo<Model, $this> */
     public function source(): MorphTo
     {
         return $this->morphTo();

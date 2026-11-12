@@ -16,7 +16,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class LeaveProfileItem extends TenantModel
 {
-    /** No own history entries: the profile gets one readable entry per save. */
+    /**
+     * No activity log entries (Spatie's LogsActivity records only the events listed here). No own history entries: the profile gets one readable entry per save.
+     *
+     * @var list<string>
+     */
     protected static $recordEvents = [];
 
     protected $fillable = ['leave_profile_id', 'leave_type_id', 'days_per_year'];

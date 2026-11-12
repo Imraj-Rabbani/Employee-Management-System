@@ -22,6 +22,11 @@ use Illuminate\Support\Carbon;
  */
 class LeaveAccrual extends TenantModel
 {
+    /**
+     * No activity log entries (Spatie's LogsActivity records only the events listed here).
+     *
+     * @var list<string>
+     */
     protected static $recordEvents = [];
 
     protected $fillable = ['employee_id', 'leave_type_id', 'year', 'period_start', 'period_end', 'days', 'basis', 'leave_ledger_id'];

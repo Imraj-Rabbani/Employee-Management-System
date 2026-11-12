@@ -3,9 +3,9 @@
 namespace App\Modules\Hrm;
 
 use App\Core\Support\ModuleServiceProvider;
+use App\Models\User;
 use App\Modules\Hrm\Console\AccrueLeaveCommand;
 use App\Modules\Hrm\Console\CarryForwardLeaveCommand;
-use App\Models\User;
 use App\Modules\Hrm\Contracts\WorkCalendar;
 use App\Modules\Hrm\Services\ApprovedLeaveCalendar;
 use App\Modules\Hrm\Services\EmployeeVisibility;

@@ -51,8 +51,7 @@ class LeaveEarning
         $periods = match ($type->earn_type) {
             LeaveEarnType::Fixed => $this->fixed($perYear, $join, $separation, $since, $today, $startMonth),
             LeaveEarnType::Anniversary => $this->anniversaries($perYear, $join, $separation, $since, $today, $startMonth),
-            LeaveEarnType::Prorata, LeaveEarnType::MonthlyAccrual, LeaveEarnType::PerDaysWorked
-                => $this->months($type, $perYear, $join, $separation, $since, $today, $startMonth, $workedDays),
+            LeaveEarnType::Prorata, LeaveEarnType::MonthlyAccrual, LeaveEarnType::PerDaysWorked => $this->months($type, $perYear, $join, $separation, $since, $today, $startMonth, $workedDays),
         };
 
         return array_values(array_filter($periods, fn (EarnedPeriod $p) => $p->creditOn->lte($today)

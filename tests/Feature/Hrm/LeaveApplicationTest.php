@@ -13,6 +13,7 @@ use App\Modules\Hrm\Livewire\Leave\LeaveApplicationForm;
 use App\Modules\Hrm\Livewire\Leave\LeaveApplicationTable;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\LeaveApplication;
+use App\Modules\Hrm\Models\LeaveApplicationDay;
 use App\Modules\Hrm\Models\LeaveBalance;
 use App\Modules\Hrm\Models\LeaveLedgerEntry;
 use App\Modules\Hrm\Models\LeaveProfile;
@@ -206,7 +207,7 @@ class LeaveApplicationTest extends TestCase
 
         $this->apply()->assertHasErrors(['reason']);
         $this->assertSame(0, LeaveApplication::count());
-        $this->assertSame(0, \App\Modules\Hrm\Models\LeaveApplicationDay::count());
+        $this->assertSame(0, LeaveApplicationDay::count());
     }
 
     public function test_a_rejected_application_takes_nothing_and_frees_its_days(): void

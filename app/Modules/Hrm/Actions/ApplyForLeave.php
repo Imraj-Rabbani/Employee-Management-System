@@ -106,10 +106,11 @@ class ApplyForLeave
         }
 
         $newPath = $attachment ? $this->uploads->store($attachment, 'leave') : null;
+        $newName = $attachment?->getClientOriginalName();
         $oldPath = $existing?->attachment_path;
 
         try {
-            $application = (new LeaveApplication)->getConnection()->transaction(function () use ($employee, $type, $values, $check, $existing, $attachment, $newPath) {
+            $application = (new LeaveApplication)->getConnection()->transaction(function () use ($employee, $type, $values, $check, $existing, $newPath, $newName) {
                 $attributes = [
                     'employee_id' => $employee->id,
                     'leave_type_id' => $type->id,
@@ -121,7 +122,7 @@ class ApplyForLeave
                     'delegatee_id' => ($values['delegatee_id'] ?? '') ?: null,
                     'contact_during_leave' => trim((string) ($values['contact_during_leave'] ?? '')) ?: null,
                     'reason' => trim((string) ($values['reason'] ?? '')) ?: null,
-                    ...($newPath ? ['attachment_path' => $newPath, 'attachment_name' => $attachment?->getClientOriginalName()] : []),
+                    ...($newPath ? ['attachment_path' => $newPath, 'attachment_name' => $newName] : []),
                 ];
 
                 $application = $existing ?? new LeaveApplication(['requested_by_user_id' => Auth::id()]);

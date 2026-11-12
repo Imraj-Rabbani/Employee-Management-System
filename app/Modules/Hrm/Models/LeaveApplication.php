@@ -2,6 +2,7 @@
 
 namespace App\Modules\Hrm\Models;
 
+use App\Core\Models\TenantModel;
 use App\Modules\Hrm\Data\LeaveYear;
 use App\Modules\Hrm\Enums\LeaveEntryType;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
@@ -12,7 +13,6 @@ use App\Modules\Workflow\Contracts\Approvable;
 use App\Modules\Workflow\Contracts\ShowsApprovalDetails;
 use App\Modules\Workflow\Enums\ApprovalStatus;
 use App\Modules\Workflow\Models\Approval;
-use App\Core\Models\TenantModel;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -155,7 +155,11 @@ class LeaveApplication extends TenantModel implements Approvable, ShowsApprovalD
         return $this->hasMany(LeaveApplicationDay::class)->orderBy('date');
     }
 
-    /** First and last counted date (sandwich days can lie outside from–to). */
+    /**
+     * First and last counted date (sandwich days can lie outside from–to).
+     *
+     * @return array{0: CarbonImmutable, 1: CarbonImmutable}
+     */
     public function span(): array
     {
         $dates = $this->leaveDays()->pluck('date');
