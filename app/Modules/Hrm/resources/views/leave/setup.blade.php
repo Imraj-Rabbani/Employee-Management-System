@@ -19,6 +19,11 @@
             <flux:button variant="primary" icon="plus" x-on:click="$dispatch('{{ $createEvent }}')">{{ $createLabel }}</flux:button>
         </div>
 
+        {{-- Leave types tab: also the leave year setting (8.2). --}}
+        @if ($section === 'types')
+            <livewire:hrm::leave.leave-settings />
+        @endif
+
         @livewire('hrm::leave.'.$table, key($table))
         @livewire('hrm::leave.'.$form, key($form))
     </div>

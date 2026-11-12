@@ -6,8 +6,10 @@ use App\Core\Plugins\PluginRegistry;
 use App\Core\Support\ModuleServiceProvider;
 use App\Modules\Payroll\Console\ProcessAttendanceCommand;
 use App\Modules\Payroll\Console\SyncDevicePunches;
+use App\Modules\Hrm\Contracts\WorkCalendar;
 use App\Modules\Payroll\Contracts\LeaveCalendar;
 use App\Modules\Payroll\Contracts\PunchDeviceClient;
+use App\Modules\Payroll\Services\AttendanceWorkCalendar;
 use App\Modules\Payroll\Services\NoLeaveCalendar;
 use App\Modules\Payroll\Services\ZktecoClient;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +24,8 @@ class PayrollServiceProvider extends ModuleServiceProvider
         $this->app->bind(PunchDeviceClient::class, ZktecoClient::class);
         // Approved leave for attendance processing. The Leave module (Phase 8) binds the real one.
         $this->app->bind(LeaveCalendar::class, NoLeaveCalendar::class);
+        // Days off for leave counting (8.3): the HRM leave rules ask, the attendance setup answers.
+        $this->app->bind(WorkCalendar::class, AttendanceWorkCalendar::class);
     }
 
     public function boot(): void

@@ -50,25 +50,13 @@ class AttendanceInputs
             return [];
         }
 
-        // Roster cells of APPROVED rosters, one per date (newest approval wins, as RosterItem::planFor). ±1 day for the windows.
-        $cells = RosterItem::query()
-            ->join('rosters', 'rosters.id', '=', 'roster_items.roster_id')
-            ->whereNotNull('rosters.approved_at')
-            ->where('roster_items.employee_id', $employee->id)
-            ->whereBetween('roster_items.date', [$from->subDay()->toDateString(), $to->addDay()->toDateString()])
-            ->orderByDesc('rosters.approved_at')->orderByDesc('rosters.id')
-            ->select('roster_items.*')
-            ->get()
-            ->unique(fn (RosterItem $i) => $i->date->toDateString())
-            ->keyBy(fn (RosterItem $i) => $i->date->toDateString());
+        // ±1 day for the punch windows.
+        $cells = $this->approvedCells($employee, $from->subDay(), $to->addDay());
 
         $shifts = Shift::query()->whereIn('id', array_filter([...$cells->pluck('shift_id')->all(), $employee->shift_id]))->get()->keyBy('id');
         $default = Shift::default();
         $own = $employee->shift_id !== null ? ($shifts[$employee->shift_id] ?? null) : null;
-        $weekend = $employee->weekend_profile_id ? WeekendProfile::find($employee->weekend_profile_id) : null;
-        $holidays = $employee->holiday_profile_id
-            ? (HolidayProfile::with('holidays')->find($employee->holiday_profile_id)->holidays ?? collect())
-            : collect();
+        [$weekend, $holidays] = $this->weekendAndHolidays($employee);
         $leave = $this->leave->leaveDates($employee, $from, $to);
 
         $shiftFor = function (CarbonImmutable $date) use ($cells, $shifts, $own, $default): ?ShiftTimes {
@@ -119,6 +107,55 @@ class AttendanceInputs
         }
 
         return $inputs;
+    }
+
+    /**
+     * Only the kind of each day (no shifts, punches or leave): what leave counting needs (8.3, AttendanceWorkCalendar).
+     * Same rules as forEmployee(): holiday → approved roster cell → weekend profile.
+     *
+     * @return array<string, DayType> 'Y-m-d' => day type, every date from $from to $to
+     */
+    public function dayTypes(Employee $employee, CarbonImmutable $from, CarbonImmutable $to): array
+    {
+        $cells = $this->approvedCells($employee, $from, $to);
+        [$weekend, $holidays] = $this->weekendAndHolidays($employee);
+
+        $types = [];
+        for ($d = $from; $d->lte($to); $d = $d->addDay()) {
+            $types[$d->toDateString()] = $this->dayType($d, $cells->get($d->toDateString()), $weekend, $holidays);
+        }
+
+        return $types;
+    }
+
+    /**
+     * Roster cells of APPROVED rosters, one per date (newest approval wins, as RosterItem::planFor).
+     *
+     * @return Collection<string, RosterItem> keyed by 'Y-m-d'
+     */
+    private function approvedCells(Employee $employee, CarbonImmutable $from, CarbonImmutable $to): Collection
+    {
+        return RosterItem::query()
+            ->join('rosters', 'rosters.id', '=', 'roster_items.roster_id')
+            ->whereNotNull('rosters.approved_at')
+            ->where('roster_items.employee_id', $employee->id)
+            ->whereBetween('roster_items.date', [$from->toDateString(), $to->toDateString()])
+            ->orderByDesc('rosters.approved_at')->orderByDesc('rosters.id')
+            ->select('roster_items.*')
+            ->get()
+            ->unique(fn (RosterItem $i) => $i->date->toDateString())
+            ->keyBy(fn (RosterItem $i) => $i->date->toDateString());
+    }
+
+    /** @return array{0: WeekendProfile|null, 1: Collection<int, Holiday>} */
+    private function weekendAndHolidays(Employee $employee): array
+    {
+        $weekend = $employee->weekend_profile_id ? WeekendProfile::find($employee->weekend_profile_id) : null;
+        $holidays = $employee->holiday_profile_id
+            ? (HolidayProfile::with('holidays')->find($employee->holiday_profile_id)->holidays ?? collect())
+            : collect();
+
+        return [$weekend, $holidays];
     }
 
     /** How often grace was used in $from's month BEFORE $from (the start of the running count). */

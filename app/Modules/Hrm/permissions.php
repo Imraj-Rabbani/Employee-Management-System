@@ -23,5 +23,6 @@ return [
     ],
     'Leave' => [
         'hrm.leave.setup' => 'Manage leave setup (leave types, leave profiles)',
+        'hrm.leave.balance' => 'Enter opening leave balances and corrections (for the employees they can see)',
     ],
 ];

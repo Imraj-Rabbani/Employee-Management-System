@@ -4,7 +4,9 @@ namespace App\Modules\Hrm;
 
 use App\Core\Support\ModuleServiceProvider;
 use App\Models\User;
+use App\Modules\Hrm\Contracts\WorkCalendar;
 use App\Modules\Hrm\Services\EmployeeVisibility;
+use App\Modules\Hrm\Services\NoWorkCalendar;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +18,10 @@ class HrmServiceProvider extends ModuleServiceProvider
     {
         // One per request or job ("scoped"), like Permissions: never carries one user's org units into the next job.
         $this->app->scoped(EmployeeVisibility::class);
+
+        // Days off for leave counting (8.3). bindIf: the Payroll module binds the real one (attendance setup),
+        // whichever provider registers first.
+        $this->app->bindIf(WorkCalendar::class, NoWorkCalendar::class);
     }
 
     public function boot(): void

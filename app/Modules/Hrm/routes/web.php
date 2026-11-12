@@ -38,6 +38,7 @@ Route::get('employees/{employee}', function (Employee $employee) {
     $tabs = [
         'personal' => __('Personal'),
         'job' => __('Job'),
+        'leave' => __('Leave'),
         'family' => __('Family & Nominees'),
         'education' => __('Education'),
         'work-history' => __('Work History'),
