@@ -5,8 +5,10 @@ namespace App\Modules\Hrm;
 use App\Core\Support\ModuleServiceProvider;
 use App\Models\User;
 use App\Modules\Hrm\Contracts\WorkCalendar;
+use App\Modules\Hrm\Services\ApprovedLeaveCalendar;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Hrm\Services\NoWorkCalendar;
+use App\Modules\Payroll\Contracts\LeaveCalendar;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +24,9 @@ class HrmServiceProvider extends ModuleServiceProvider
         // Days off for leave counting (8.3). bindIf: the Payroll module binds the real one (attendance setup),
         // whichever provider registers first.
         $this->app->bindIf(WorkCalendar::class, NoWorkCalendar::class);
+
+        // Approved leave for attendance processing (Payroll asks, 8.4).
+        $this->app->bind(LeaveCalendar::class, ApprovedLeaveCalendar::class);
     }
 
     public function boot(): void

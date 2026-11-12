@@ -19,6 +19,9 @@ Route::get('profile', function () {
 
 Route::view('profile-requests', 'hrm::ess.profile-requests')->name('profile-requests');
 
+// My Leave Requests (8.4): my balances, apply, my applications. [LV-04, ESS-02]
+Route::view('leave', 'hrm::ess.leave')->name('leave');
+
 // My Interviews (6.6): the panels this employee sits on, with their score sheets.
 Route::view('interviews', 'hrm::ess.interviews')->name('interviews');
 

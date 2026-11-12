@@ -40,4 +40,10 @@ final readonly class LeaveRequest
         public bool $hasAttachment = false,
         public bool $byHr = false,              // HR enters it: HR-only types allowed, no notice / post-facto limits
     ) {}
+
+    /** The same request, with the overlap answer (ApplyForLeave knows it only after the dates were counted). */
+    public function withOverlaps(bool $overlaps): self
+    {
+        return new self(...[...get_object_vars($this), 'overlaps' => $overlaps]);
+    }
 }

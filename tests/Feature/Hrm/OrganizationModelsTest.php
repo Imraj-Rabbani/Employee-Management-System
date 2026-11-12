@@ -153,7 +153,7 @@ class OrganizationModelsTest extends TestCase
     public function test_an_org_unit_used_as_a_workflow_scope_cannot_be_deleted(): void
     {
         $unit = OrgUnit::factory()->create();
-        $type = ApprovalType::create(['key' => 'leave', 'name' => 'Leave']);
+        $type = ApprovalType::forKey('leave');   // registered by the leave migration (8.4)
         Workflow::create(['approval_type_id' => $type->id, 'name' => 'Unit only', 'scope_org_unit_id' => $unit->id]);
 
         $this->expectException(QueryException::class);

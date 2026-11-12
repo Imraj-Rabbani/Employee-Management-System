@@ -53,4 +53,10 @@ final readonly class LeaveCheck
     {
         return array_map(fn (LeaveProblem $p) => $p->message, $this->problems);
     }
+
+    /** The same result with more problems, e.g. ones only the database knows (ApplyForLeave). */
+    public function withProblems(LeaveProblem ...$more): self
+    {
+        return new self($this->days, $this->dates, $this->calendarDays, $this->bridgedDays, [...$this->problems, ...$more]);
+    }
 }

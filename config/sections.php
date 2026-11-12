@@ -52,10 +52,11 @@ return [
             ],
         ],
 
-        // Phase 8. Applications, balances, encashments and the calendar get their tabs in 8.2–8.7.
+        // Phase 8. Encashments and the calendar get their tabs in 8.6–8.7.
         'leave' => [
             'label' => 'Leave',
             'tabs' => [
+                ['label' => 'Applications', 'route' => 'hrm.leave.applications', 'can' => 'hrm.leave.manage'],
                 ['label' => 'Leave types', 'route' => 'hrm.leave.types', 'can' => 'hrm.leave.setup'],
                 ['label' => 'Leave profiles', 'route' => 'hrm.leave.profiles', 'can' => 'hrm.leave.setup'],
             ],

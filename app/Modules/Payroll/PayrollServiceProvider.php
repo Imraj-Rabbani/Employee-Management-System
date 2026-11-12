@@ -22,8 +22,9 @@ class PayrollServiceProvider extends ModuleServiceProvider
     {
         // The sync asks for "a device client"; this says which one. Tests swap in a fake.
         $this->app->bind(PunchDeviceClient::class, ZktecoClient::class);
-        // Approved leave for attendance processing. The Leave module (Phase 8) binds the real one.
-        $this->app->bind(LeaveCalendar::class, NoLeaveCalendar::class);
+        // Approved leave for attendance processing. bindIf: HRM binds the real one (ApprovedLeaveCalendar, 8.4),
+        // whichever provider registers first.
+        $this->app->bindIf(LeaveCalendar::class, NoLeaveCalendar::class);
         // Days off for leave counting (8.3): the HRM leave rules ask, the attendance setup answers.
         $this->app->bind(WorkCalendar::class, AttendanceWorkCalendar::class);
     }

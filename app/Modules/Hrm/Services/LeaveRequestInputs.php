@@ -31,8 +31,8 @@ class LeaveRequestInputs
     public function build(
         Employee $employee,
         LeaveType $type,
-        CarbonInterface $from,
-        CarbonInterface $to,
+        CarbonInterface|string $from,
+        CarbonInterface|string $to,
         int $timesTaken,
         bool $overlaps,
         bool $halfDay = false,

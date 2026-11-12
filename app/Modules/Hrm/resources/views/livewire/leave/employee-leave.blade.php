@@ -54,8 +54,9 @@
                                 @foreach (array_keys($columns) as $column)
                                     <td class="px-3 py-3 text-right tabular-nums">{{ $num($balance?->{$column}) }}</td>
                                 @endforeach
-                                <td @class(['px-6 py-3 text-right font-semibold tabular-nums', '!text-red-600' => ($balance->balance ?? 0) < 0])>
-                                    {{ $fmt($balance->balance ?? 0) }}
+                                {{-- Leave that needs no balance (e.g. without pay) only counts what was taken. --}}
+                                <td @class(['px-6 py-3 text-right font-semibold tabular-nums', '!text-red-600' => $type->requires_balance && ($balance->balance ?? 0) < 0])>
+                                    {{ $type->requires_balance ? $fmt($balance->balance ?? 0) : '—' }}
                                 </td>
                             </tr>
                         @endforeach

@@ -43,7 +43,7 @@ class LeaveSetupTest extends TestCase
         $casual = LeaveType::factory()->create(['code' => 'CL', 'name' => 'Casual leave']);
         LeaveProfile::factory()->create(['name' => 'Staff'])->syncEntitlements([$casual->id => 10]);
 
-        $this->get('/hrm/leave')->assertRedirect(route('hrm.leave.types'));   // first tab
+        $this->get('/hrm/leave')->assertRedirect(route('hrm.leave.applications'));   // first tab (8.4)
         $this->get('/hrm/leave/types')->assertOk()->assertSee('Casual leave')->assertSee(route('hrm.leave.profiles'));
         $this->get('/hrm/leave/profiles')->assertOk()->assertSee('Staff')->assertSee('CL 10');
 

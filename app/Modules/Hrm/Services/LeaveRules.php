@@ -36,7 +36,7 @@ class LeaveRules
     public function check(LeaveType $type, LeaveRequest $request): LeaveCheck
     {
         if ($request->to->lt($request->from)) {
-            return new LeaveCheck(0, [], 0, 0, [new LeaveProblem('dates', 'to', __('The last day is before the first day.'))]);
+            return new LeaveCheck(0, [], 0, 0, [new LeaveProblem('dates', 'to_date', __('The last day is before the first day.'))]);
         }
 
         $problems = [];
@@ -121,13 +121,13 @@ class LeaveRules
     private function employment(LeaveRequest $request, callable $add): void
     {
         if ($request->joinDate !== null && $request->from->lt($request->joinDate)) {
-            $add('before_joining', 'from', __('The leave starts before the join date (:date).', ['date' => format_date($request->joinDate)]));
+            $add('before_joining', 'from_date', __('The leave starts before the join date (:date).', ['date' => format_date($request->joinDate)]));
         }
         if ($request->separationDate !== null && $request->to->gt($request->separationDate)) {
-            $add('after_separation', 'to', __('The leave ends after the last working day (:date).', ['date' => format_date($request->separationDate)]));
+            $add('after_separation', 'to_date', __('The leave ends after the last working day (:date).', ['date' => format_date($request->separationDate)]));
         }
         if ($request->overlaps) {
-            $add('overlap', 'from', __('Another leave already covers some of these days.'));
+            $add('overlap', 'from_date', __('Another leave already covers some of these days.'));
         }
     }
 
@@ -151,7 +151,7 @@ class LeaveRules
         if ($type->eligible_from === LeaveEligibleFrom::ConfirmationDate && $since === null) {
             $add('not_confirmed', 'leave_type_id', __(':type is only for confirmed employees.', ['type' => $type->name]));
         } elseif ($since !== null && $type->eligible_after_months > 0 && $request->from->lt($eligible = $since->addMonths($type->eligible_after_months))) {
-            $add('too_early', 'from', __(':type can be taken from :date (:months months after the :start).', [
+            $add('too_early', 'from_date', __(':type can be taken from :date (:months months after the :start).', [
                 'type' => $type->name, 'date' => format_date($eligible), 'months' => $type->eligible_after_months,
                 'start' => mb_strtolower($type->eligible_from->label()),
             ]));
@@ -177,18 +177,18 @@ class LeaveRules
         }
 
         if ($days <= 0) {
-            $add('no_days', 'from', __('These dates are all days off: there is nothing to take leave for.'));
+            $add('no_days', 'from_date', __('These dates are all days off: there is nothing to take leave for.'));
 
             return;
         }
         if ($type->min_days !== null && $days < $type->min_days) {
-            $add('min_days', 'to', __(':type is at least :n days at a time.', ['type' => $type->name, 'n' => $type->min_days]));
+            $add('min_days', 'to_date', __(':type is at least :n days at a time.', ['type' => $type->name, 'n' => $type->min_days]));
         }
         if ($type->max_days !== null && $days > $type->max_days) {
-            $add('max_days', 'to', __(':type is at most :n days at a time (this is :days).', ['type' => $type->name, 'n' => $type->max_days, 'days' => $days]));
+            $add('max_days', 'to_date', __(':type is at most :n days at a time (this is :days).', ['type' => $type->name, 'n' => $type->max_days, 'days' => $days]));
         }
         if ($type->max_calendar_days !== null && $calendarDays > $type->max_calendar_days) {
-            $add('max_calendar_days', 'to', __(':type can span at most :n calendar days, weekends included (this is :days).', [
+            $add('max_calendar_days', 'to_date', __(':type can span at most :n calendar days, weekends included (this is :days).', [
                 'type' => $type->name, 'n' => $type->max_calendar_days, 'days' => $calendarDays,
             ]));
         }
@@ -203,16 +203,16 @@ class LeaveRules
 
         if ($request->from->lt($request->today)) {
             if (! $type->allow_post_facto) {
-                $add('post_facto', 'from', __(':type must be applied for before it starts.', ['type' => $type->name]));
+                $add('post_facto', 'from_date', __(':type must be applied for before it starts.', ['type' => $type->name]));
             } elseif ($type->post_facto_days !== null && $request->from->diffInDays($request->today) > $type->post_facto_days) {
-                $add('post_facto_days', 'from', __(':type can be applied for at most :n days after it started.', ['type' => $type->name, 'n' => $type->post_facto_days]));
+                $add('post_facto_days', 'from_date', __(':type can be applied for at most :n days after it started.', ['type' => $type->name, 'n' => $type->post_facto_days]));
             }
 
             return;
         }
 
         if ($type->notice_days > 0 && $request->from->lt($earliest = $request->today->addDays($type->notice_days))) {
-            $add('notice', 'from', __(':type must be applied for :n days ahead: the earliest start is :date.', [
+            $add('notice', 'from_date', __(':type must be applied for :n days ahead: the earliest start is :date.', [
                 'type' => $type->name, 'n' => $type->notice_days, 'date' => format_date($earliest),
             ]));
         }
@@ -241,7 +241,7 @@ class LeaveRules
         // "Maximum balance": no more than this can ever be used, whatever the ledger says.
         $available = $type->max_balance !== null ? min($request->balance, $type->max_balance) : $request->balance;
         if ($days > $available) {
-            $add('balance', 'to', __('Not enough :type left: :available days available, :days asked.', [
+            $add('balance', 'to_date', __('Not enough :type left: :available days available, :days asked.', [
                 'type' => $type->name, 'available' => max(0, $available), 'days' => $days,
             ]));
         }

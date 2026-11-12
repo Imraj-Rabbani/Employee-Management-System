@@ -6,9 +6,11 @@ use App\Modules\Hrm\Models\Applicant;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\JobOffer;
 use App\Modules\Hrm\Models\JobPosting;
+use App\Modules\Hrm\Models\LeaveApplication;
 use App\Modules\Hrm\Models\ManpowerRequest;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Hrm\Services\OfferLetter;
+use App\Modules\Workflow\Models\Approval;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -174,3 +176,21 @@ Route::middleware('can:hrm.leave.setup')->prefix('leave')->name('leave.')->group
         Route::view($section, 'hrm::leave.setup', ['section' => $section])->name($section);
     }
 });
+
+// HRM → Leave → Applications (8.4): leave of the employees the user can see; HR applies for them. [LV-04]
+Route::middleware('can:hrm.leave.manage')->get('leave/applications', fn () => view('hrm::leave.applications'))
+    ->name('leave.applications');
+
+// A leave application's attachment (private, tenant disk). Sent to: the employee themself, HR who can see the
+// employee (hrm.leave.manage), or someone asked to approve it. Everyone else: 404.
+Route::get('leave/applications/{id}/attachment', function (int $id, TenantUploads $uploads) {
+    $application = LeaveApplication::query()->findOrFail($id);
+    $user = auth()->user();
+    $allowed = Employee::query()->withoutGlobalScopes()->whereKey($application->employee_id)->where('user_id', $user->id)->exists()
+        || ($user->can('hrm.leave.manage') && Employee::query()->whereKey($application->employee_id)->exists())
+        || Approval::query()->where('approvable_type', $application->getMorphClass())->where('approvable_id', $application->id)
+            ->where('approver_user_id', $user->id)->exists();
+    abort_unless($allowed && $application->attachment_path !== null && $uploads->exists($application->attachment_path), 404);
+
+    return $uploads->download($application->attachment_path, $application->attachment_name);
+})->whereNumber('id')->name('leave.attachment');
