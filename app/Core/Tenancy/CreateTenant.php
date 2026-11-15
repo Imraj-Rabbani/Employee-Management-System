@@ -19,11 +19,6 @@ use Throwable;
  *   4. creates the company's first login (admin user) in the central users table,
  *      and gives it the company's Administrator role (seeded in step 3)
  *
- *     $tenant = app(CreateTenant::class)->handle(
- *         code: 'sss', name: 'SSS Ltd',
- *         adminName: 'Rahim', adminEmail: 'rahim@sss.com', adminPassword: 'secret123',
- *         modules: ['hrm', 'payroll'],
- *     );
  *
  * Optional:
  *   - active: false creates the company switched off (its users cannot log in yet)
@@ -36,8 +31,6 @@ use Throwable;
  * If any step fails, what was already done is undone and the error is thrown again.
  * (A DB transaction can't do this for us: MySQL commits on CREATE DATABASE.)
  *
- * Input is NOT validated here (that is the form's job, task 2.6c), except what keeps
- * the system safe: the code must give a valid database name, and an existing database is never reused.
  */
 class CreateTenant
 {
@@ -74,13 +67,13 @@ class CreateTenant
         try {
             // Step 2. Never take over a database that is already there: it may hold another company's data.
             if ($this->databases->exists($tenant)) {
-                throw new RuntimeException("Database [{$tenant->database}] already exists. Choose another code or remove the old database.");
+                throw new RuntimeException("Database [{$tenant->database}] already exists. Choose another code.");
             }
 
             $this->databases->create($tenant);
             $databaseCreated = true;
 
-            // Step 3. Reuse the Artisan commands from task 2.3.
+            // Step 3. Run tenant migrations and seeders.
             if ($this->migrationPaths->all() !== []) {
                 $this->artisan('tenants:migrate', ['--tenant' => [$code]]);
             }

@@ -10,7 +10,7 @@ use InvalidArgumentException;
  * Creates and drops the MySQL database of a tenant (ems_tenant_{code}).
  *
  * Runs on the central connection, so the tenant DB is created on the same MySQL
- * server as ems_clients. Tenants with their own db_host need their DB created there by hand.
+ * server as ems_clients.
  */
 class TenantDatabase
 {
