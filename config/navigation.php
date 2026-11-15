@@ -64,7 +64,7 @@ return [
         'items' => [
             // Attendance opens as tabs (config/sections.php). More tabs (rosters, punches …) come in Phase 7.
             ['label' => 'Attendance', 'route' => 'payroll.attendance', 'current' => 'payroll.attendance*', 'can' => ['payroll.roster.manage', 'payroll.punch.manage', 'payroll.attendance.setup']],
-            ['label' => 'Salary Setup', 'route' => null],
+            ['label' => 'Salary Setup', 'route' => 'payroll.setup', 'current' => 'payroll.setup*', 'can' => 'payroll.salary.manage'],
             ['label' => 'Employee Salaries', 'route' => null],
             ['label' => 'Payroll Runs', 'route' => null],
             ['label' => 'Increments', 'route' => null],

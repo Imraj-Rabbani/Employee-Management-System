@@ -5,6 +5,7 @@ namespace App\Core\Support;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 use InvalidArgumentException;
+use JsonSerializable;
 use Stringable;
 
 /**
@@ -16,7 +17,7 @@ use Stringable;
  *     $gross->subtract($tax)->format()     "1,250.50"
  *     $total->allocate([1, 1, 1])          split without losing a cent
  */
-final readonly class Money implements Stringable
+final readonly class Money implements JsonSerializable, Stringable
 {
     private const SCALE = 2;
 
@@ -151,6 +152,12 @@ final readonly class Money implements Stringable
     public function format(): string
     {
         return number_format($this->minor / 100, self::SCALE);
+    }
+
+    /** So the activity log and json_encode show "1250.50", not {}. */
+    public function jsonSerialize(): string
+    {
+        return $this->toDecimal();
     }
 
     public function __toString(): string

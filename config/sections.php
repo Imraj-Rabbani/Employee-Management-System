@@ -86,6 +86,13 @@ return [
             ],
         ],
 
+        'setup' => [
+            'label' => 'Salary setup',
+            'tabs' => [
+                ['label' => 'Salary heads', 'route' => 'payroll.setup.heads', 'can' => 'payroll.salary.manage'],
+            ],
+        ],
+
     ],
 
 ];
