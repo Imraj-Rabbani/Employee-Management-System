@@ -103,7 +103,6 @@ abstract class LookupForm extends Component
                 $value instanceof Carbon => $value->toDateString(),   // <input type="date"> wants 2026-11-07
                 $value instanceof \BackedEnum => $value->value,        // <select> wants the number, e.g. 5 for Friday
                 $value === null => is_bool($default) ? $default : '',
-                $value instanceof \BackedEnum => $value->value,    // a cast enum → its stored value, for the <select>
                 $value instanceof \Stringable => (string) $value,  // a Money cast → "2500.50"
                 default => $value,
             };

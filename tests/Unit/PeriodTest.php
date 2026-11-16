@@ -56,6 +56,9 @@ class PeriodTest extends TestCase
     public function test_containing_a_date(): void
     {
         $this->assertTrue(Period::containing('2026-07-19')->equals(Period::of(2026, 7)));
+        // Half-month payroll: the day picks the half, whichever half was passed.
+        $this->assertTrue(Period::containing('2026-07-19', PeriodCycle::FirstHalf)->equals(Period::of(2026, 7, PeriodCycle::SecondHalf)));
+        $this->assertTrue(Period::containing('2026-07-15', PeriodCycle::SecondHalf)->equals(Period::of(2026, 7, PeriodCycle::FirstHalf)));
     }
 
     public function test_invalid_month(): void

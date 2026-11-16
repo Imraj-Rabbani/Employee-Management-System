@@ -151,7 +151,11 @@ final readonly class Money implements JsonSerializable, Stringable
     /** For screens: "1,250.50" */
     public function format(): string
     {
-        return number_format($this->minor / 100, self::SCALE);
+        // Whole part and cents separately: no float, so even 9,999,999,999,999.99 prints exactly.
+        $sign = $this->minor < 0 ? '-' : '';
+        $abs = abs($this->minor);
+
+        return $sign.number_format(intdiv($abs, 100)).'.'.str_pad((string) ($abs % 100), self::SCALE, '0', STR_PAD_LEFT);
     }
 
     /** So the activity log and json_encode show "1250.50", not {}. */

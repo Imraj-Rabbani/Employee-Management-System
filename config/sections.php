@@ -90,6 +90,7 @@ return [
             'label' => 'Salary setup',
             'tabs' => [
                 ['label' => 'Salary heads', 'route' => 'payroll.setup.heads', 'can' => 'payroll.salary.manage'],
+                ['label' => 'Salary profiles', 'route' => 'payroll.setup.profiles', 'can' => 'payroll.salary.manage'],
             ],
         ],
 

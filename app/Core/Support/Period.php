@@ -31,10 +31,17 @@ final readonly class Period
         return new self($year, $month, $cycle);
     }
 
-    /** The monthly period a date falls in (the cycle decides the part). */
+    /**
+     * The period a date falls in. Monthly → its month. For half-month payroll pass either half: the day picks
+     * the right one (10th → 1st half, 20th → 2nd half), so the result always contains the date.
+     */
     public static function containing(CarbonImmutable|string $date, PeriodCycle $cycle = PeriodCycle::Monthly): self
     {
         $date = CarbonImmutable::parse($date);
+
+        if ($cycle !== PeriodCycle::Monthly) {
+            $cycle = $date->day <= 15 ? PeriodCycle::FirstHalf : PeriodCycle::SecondHalf;
+        }
 
         return new self($date->year, $date->month, $cycle);
     }

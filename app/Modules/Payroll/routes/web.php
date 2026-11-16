@@ -67,11 +67,11 @@ Route::middleware('can:payroll.attendance.setup')->prefix('attendance')->name('a
     }
 });
 
-// Payroll → Salary Setup: the sidebar item opens the first tab. One page view, one URL per section. [PC-01]
+// Payroll → Salary Setup: the sidebar item opens the first tab. One page view, one URL per section. [PC-01, PC-02]
 Route::middleware('can:payroll.salary.manage')->group(function () {
     Route::get('setup', fn () => redirect()->route('payroll.setup.heads'))->name('setup');
 
-    foreach (['heads'] as $section) {
+    foreach (['heads', 'profiles'] as $section) {
         Route::view("setup/{$section}", 'payroll::setup', ['section' => $section])->name("setup.{$section}");
     }
 });

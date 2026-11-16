@@ -1,10 +1,11 @@
 {{--
     Payroll → Salary Setup. One view for every section; the route passes $section (routes/web.php).
-    Each section = a DataTable + its modal form (App\Modules\Payroll\Livewire). More sections come in 9.3 and 9.5.
+    Each section = a DataTable + its modal form (App\Modules\Payroll\Livewire). More sections come in 9.5.
 --}}
 @php
     $sections = [
         'heads' => [__('Salary heads'), 'salary-head-table', 'salary-head-form', 'create-salary-head', __('New salary head'), __('The pay components: Basic, House rent, PF, Tax ... Each head has its own calculation rule.')],
+        'profiles' => [__('Salary profiles'), 'salary-profile-table', 'salary-profile-form', 'create-salary-profile', __('New salary profile'), __('Salary structures, usually one per grade: what each head is worth next to the basic. Apply one to a basic or gross to see every head.')],
     ];
     [$label, $table, $form, $createEvent, $createLabel, $intro] = $sections[$section];
 @endphp

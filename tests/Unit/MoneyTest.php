@@ -71,6 +71,8 @@ class MoneyTest extends TestCase
     public function test_format_for_screens(): void
     {
         $this->assertSame('1,250.50', Money::of('1250.5')->format());
+        $this->assertSame('-0.05', Money::of('-0.05')->format());
+        $this->assertSame('9,999,999,999,999.99', Money::of('9999999999999.99')->format());   // largest DECIMAL(15,2)
     }
 
     public function test_cast_round_trips_a_decimal_column(): void

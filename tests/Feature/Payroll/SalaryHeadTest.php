@@ -153,6 +153,27 @@ class SalaryHeadTest extends TestCase
         Livewire::test(SalaryHeadTable::class)->assertSeeInOrder(['Zeta head', 'Alpha head', '50% of basic']);
     }
 
+    public function test_one_head_is_the_basic_and_needs_no_amount(): void
+    {
+        Livewire::test(SalaryHeadForm::class)->dispatch('create-salary-head')
+            ->set('form.code', 'BASIC')->set('form.name', 'Basic')
+            ->set('form.is_basic', true)            // fixed method, but no amount needed
+            ->assertSee('Basic salary (set per employee)')
+            ->call('save')->assertHasNoErrors();
+
+        $this->assertTrue(SalaryHead::basic()->is(SalaryHead::sole()));
+
+        // A second basic head is refused, and so is a basic that is a deduction.
+        Livewire::test(SalaryHeadForm::class)->dispatch('create-salary-head')
+            ->set('form.code', 'B2')->set('form.name', 'Basic 2')->set('form.is_basic', true)
+            ->call('save')->assertHasErrors('form.is_basic');
+
+        $basic = SalaryHead::sole();
+        Livewire::test(SalaryHeadForm::class)->dispatch('edit-salary-head', id: $basic->id)
+            ->set('form.type', 'deduction')
+            ->call('save')->assertHasErrors('form.is_basic');
+    }
+
     public function test_the_page_needs_the_manage_permission(): void
     {
         $this->get('/payroll/setup')->assertRedirect(route('payroll.setup.heads'));

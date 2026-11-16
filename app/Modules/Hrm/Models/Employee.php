@@ -14,6 +14,7 @@ use App\Modules\Hrm\Enums\Religion;
 use App\Modules\Hrm\Policies\EmployeePolicy;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use App\Modules\Payroll\Models\HolidayProfile;
+use App\Modules\Payroll\Models\SalaryProfile;
 use App\Modules\Payroll\Models\Shift;
 use App\Modules\Payroll\Models\WeekendProfile;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
@@ -389,6 +390,16 @@ class Employee extends TenantModel
     public function leaveProfile(): BelongsTo
     {
         return $this->belongsTo(LeaveProfile::class);
+    }
+
+    /**
+     * Salary structure (Payroll, 9.3); the employee's own salary heads come in 9.4. NULL = none.
+     *
+     * @return BelongsTo<SalaryProfile, $this>
+     */
+    public function salaryProfile(): BelongsTo
+    {
+        return $this->belongsTo(SalaryProfile::class);
     }
 
     /** @return BelongsTo<self, $this> */

@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property string $name
  * @property HeadType $type
  * @property CalcMethod $calc_method
+ * @property bool $is_basic THE basic salary: its amount is set per employee, the other heads are worked out from it
  * @property Money|null $amount fixed amount, or amount per day for Attendance
  * @property string|null $rate percent for the "% of ..." methods, decimal as a string
  * @property string|null $formula
@@ -43,13 +44,13 @@ class SalaryHead extends TenantModel
     use HasFactory;
 
     protected $fillable = [
-        'code', 'name', 'type', 'calc_method', 'amount', 'rate', 'formula', 'in_gross', 'taxable_percent',
+        'code', 'name', 'type', 'calc_method', 'is_basic', 'amount', 'rate', 'formula', 'in_gross', 'taxable_percent',
         'tax_exemption_cap', 'prorate', 'arrear_eligible', 'pay_cycle', 'sequence', 'gl_account',
         'eligible_after_months', 'is_active',
     ];
 
     protected $attributes = [
-        'in_gross' => true, 'taxable_percent' => 100, 'prorate' => true, 'arrear_eligible' => true,
+        'is_basic' => false, 'in_gross' => true, 'taxable_percent' => 100, 'prorate' => true, 'arrear_eligible' => true,
         'pay_cycle' => 'monthly', 'sequence' => 0, 'eligible_after_months' => 0, 'is_active' => true,
     ];
 
@@ -64,6 +65,7 @@ class SalaryHead extends TenantModel
             'rate' => 'decimal:4',
             'taxable_percent' => 'decimal:2',
             'tax_exemption_cap' => MoneyCast::class,
+            'is_basic' => 'boolean',
             'in_gross' => 'boolean',
             'prorate' => 'boolean',
             'arrear_eligible' => 'boolean',
@@ -77,9 +79,19 @@ class SalaryHead extends TenantModel
         $query->orderBy('sequence')->orderBy('name');
     }
 
+    /** The basic salary head, or null when none is marked yet. */
+    public static function basic(): ?self
+    {
+        return self::where('is_basic', true)->first();
+    }
+
     /** The rule in words, e.g. "50% of basic", "Fixed 5,000.00", "500.00 per attendance day". */
     public function rule(): string
     {
+        if ($this->is_basic) {
+            return __('Basic salary (set per employee)');
+        }
+
         $rate = rtrim(rtrim((string) ($this->rate ?? '0'), '0'), '.') ?: '0';
 
         return match ($this->calc_method) {
@@ -97,6 +109,10 @@ class SalaryHead extends TenantModel
      */
     public function preview(Money $basic, Money $gross, int $payableDays): ?Money
     {
+        if ($this->is_basic) {
+            return $basic;
+        }
+
         $amount = $this->amount ?? Money::zero();
         $rate = (string) ($this->rate ?? '0');
 

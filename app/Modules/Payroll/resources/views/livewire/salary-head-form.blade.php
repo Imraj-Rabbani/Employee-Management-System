@@ -6,11 +6,18 @@
 
         <div class="grid gap-4 sm:grid-cols-2">
             <x-form.select wire:model.live="form.type" :label="__('Type')" :options="$types" required />
-            <x-form.select wire:model.live="form.calc_method" :label="__('Calculation')" :options="$methods" required />
+            @unless ($form['is_basic'] ?? false)
+                <x-form.select wire:model.live="form.calc_method" :label="__('Calculation')" :options="$methods" required />
+            @endunless
         </div>
 
-        {{-- Only the field the chosen calculation needs. --}}
-        @php $method = \App\Modules\Payroll\Enums\CalcMethod::tryFrom((string) ($form['calc_method'] ?? '')); @endphp
+        <x-form.toggle wire:model.live="form.is_basic" :label="__('This is the basic salary')" :hint="__('Its amount is set per employee; salary profiles work out the other heads from it.')" />
+        @error('form.is_basic')
+            <flux:text class="text-sm !text-red-600">{{ $message }}</flux:text>
+        @enderror
+
+        {{-- Only the field the chosen calculation needs (none for the basic head). --}}
+        @php $method = ($form['is_basic'] ?? false) ? null : \App\Modules\Payroll\Enums\CalcMethod::tryFrom((string) ($form['calc_method'] ?? '')); @endphp
         @if ($method?->usesAmount())
             <x-form.input wire:model.live.debounce.400ms="form.amount" type="number" min="0" step="0.01" :label="$method === \App\Modules\Payroll\Enums\CalcMethod::Attendance ? __('Amount per day') : __('Amount')" required />
         @elseif ($method?->usesRate())

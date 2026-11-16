@@ -38,7 +38,7 @@ class SalaryHeadForm extends LookupForm
     {
         return [
             'code' => '', 'name' => '',
-            'type' => HeadType::Earning->value, 'calc_method' => CalcMethod::Fixed->value,
+            'type' => HeadType::Earning->value, 'calc_method' => CalcMethod::Fixed->value, 'is_basic' => false,
             'amount' => '', 'rate' => '', 'formula' => '',
             'in_gross' => true, 'taxable_percent' => '100', 'tax_exemption_cap' => '',
             'prorate' => true, 'arrear_eligible' => true,
@@ -49,15 +49,17 @@ class SalaryHeadForm extends LookupForm
 
     protected function fieldRules(): array
     {
-        $method = fn () => CalcMethod::tryFrom((string) ($this->form['calc_method'] ?? ''));
+        // The basic head has no rule of its own (its amount is set per employee), so no amount / rate / formula.
+        $method = fn () => ($this->form['is_basic'] ?? false) ? null : CalcMethod::tryFrom((string) ($this->form['calc_method'] ?? ''));
 
         return [
             'code' => ['required', 'string', 'max:50', 'regex:/^[A-Za-z][A-Za-z0-9_]*$/', Rule::unique(SalaryHead::class, 'code')->ignore($this->recordId)],
             'name' => ['required', 'string', 'max:100', Rule::unique(SalaryHead::class, 'name')->ignore($this->recordId)],
             'type' => ['required', Rule::enum(HeadType::class)],
             'calc_method' => ['required', Rule::enum(CalcMethod::class)],
+            'is_basic' => ['boolean'],
             'amount' => [Rule::requiredIf(fn () => $method()?->usesAmount() ?? false), 'nullable', 'numeric', 'min:0', 'max:9999999999999'],
-            'rate' => [Rule::requiredIf(fn () => $method()?->usesRate() ?? false), 'nullable', 'numeric', 'min:0', 'max:100000'],
+            'rate' => [Rule::requiredIf(fn () => $method()?->usesRate() ?? false), 'nullable', 'numeric', 'min:0', 'max:1000'],   // DECIMAL(9,4); over 1000 % is a typo
             'formula' => [Rule::requiredIf(fn () => $method() === CalcMethod::Formula), 'nullable', 'string', 'max:500'],
             'in_gross' => ['boolean'],
             'taxable_percent' => ['required', 'numeric', 'min:0', 'max:100'],
@@ -70,6 +72,29 @@ class SalaryHeadForm extends LookupForm
             'eligible_after_months' => ['required', 'integer', 'min:0', 'max:600'],
             'is_active' => ['boolean'],
         ];
+    }
+
+    /** Only ONE basic head, and it must be an earning counted in gross (every profile builds the gross on it). */
+    protected function check(array $values): bool
+    {
+        if (! ($values['is_basic'] ?? false)) {
+            return true;
+        }
+
+        $other = SalaryHead::where('is_basic', true)->whereKeyNot($this->recordId ?? 0)->value('name');
+        if ($other !== null) {
+            $this->addError('form.is_basic', __(':name is already the basic salary head.', ['name' => $other]));
+
+            return false;
+        }
+
+        if ($values['type'] !== HeadType::Earning->value || ! $values['in_gross']) {
+            $this->addError('form.is_basic', __('The basic salary must be an earning counted in gross salary.'));
+
+            return false;
+        }
+
+        return true;
     }
 
     protected function labels(): array
@@ -114,6 +139,7 @@ class SalaryHeadForm extends LookupForm
 
         $head = new SalaryHead([
             'calc_method' => $method,
+            'is_basic' => (bool) ($this->form['is_basic'] ?? false),
             'amount' => $this->numeric($this->form['amount'] ?? null),
             'rate' => $this->numeric($this->form['rate'] ?? null),
             'formula' => $this->form['formula'] ?? null,
@@ -131,7 +157,7 @@ class SalaryHeadForm extends LookupForm
             'rule' => $head->rule(),
             'amount' => $amount?->format(),
             'taxable' => $amount ? $head->taxablePart($amount)->format() : null,
-            'formula' => $method === CalcMethod::Formula,
+            'formula' => $method === CalcMethod::Formula && ! $head->is_basic,
         ];
     }
 
