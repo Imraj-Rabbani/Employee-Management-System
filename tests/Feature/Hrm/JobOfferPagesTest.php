@@ -29,7 +29,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.7: Make offer (form with live comparison), the offer's page, the letter PDF and email, the answer. [REC-06]
+ * Make offer (form with live comparison), the offer's page, the letter PDF and email, the answer.
  */
 class JobOfferPagesTest extends TestCase
 {

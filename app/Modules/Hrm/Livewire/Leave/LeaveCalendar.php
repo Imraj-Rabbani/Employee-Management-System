@@ -14,12 +14,12 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * HRM → Leave → Calendar (8.7): who is on leave in a month. Employees × days, only those with leave in the
+ * HRM → Leave → Calendar: who is on leave in a month. Employees × days, only those with leave in the
  * month (approved, or still waiting: shown lighter), for the employees the user can see; filter by org unit
  * (incl. units below) and name / code. The bottom row counts people on leave per day (approved + waiting),
- * to plan cover. Click a day: the application (LeaveApplicationDetails). [LV-04]
+ * to plan cover. Click a day: the application (LeaveApplicationDetails).
  *
- * Attendance's own calendars (7.8) already show approved leave as "L" through ApprovedLeaveCalendar.
+ * Attendance's own calendars already show approved leave as "L" through ApprovedLeaveCalendar.
  */
 class LeaveCalendar extends Component
 {

@@ -5,8 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Marks THE basic salary head (schema.mmd `is_basic`, left out in 9.2). At most one head has it; salary profiles
- * (9.3) work out every other head from it, and from the gross. [PC-01, PC-02]
+ * Marks THE basic salary head (schema.mmd `is_basic`, left out of the first salary heads migration). At most one head has it; salary profiles
+ * work out every other head from it, and from the gross.
  */
 return new class extends Migration
 {

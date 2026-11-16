@@ -2,82 +2,55 @@
 
 namespace App\Modules\Workflow\Livewire;
 
-use App\Core\Livewire\Table\Column;
-use App\Core\Livewire\Table\DataTable;
-use App\Core\Livewire\Table\SelectFilter;
+use App\Core\Exports\ArrayExport;
 use App\Models\User;
 use App\Modules\Workflow\Contracts\Approvable;
 use App\Modules\Workflow\Enums\ApprovalStatus;
 use App\Modules\Workflow\Models\Approval;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\HtmlString;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Workflow → My Approvals: what the logged-in user must answer (default) or has answered. [WF-06]
+ * Workflow → My Approvals: what the logged-in user must answer (default) or has answered.
  * No permission needed: everyone sees only their own rows.
+ *
+ * View: app/Modules/Workflow/resources/views/livewire/my-approvals-table.blade.php
  */
-class MyApprovalsTable extends DataTable
+class MyApprovalsTable extends Component
 {
+    use WithPagination;
+
+    #[Url(as: 'sort', except: '')]
+    public string $sortBy = '';
+
+    #[Url(as: 'dir', except: 'asc')]
+    public string $sortDir = 'asc';
+
+    /** Filter "Show": '' = all */
+    #[Url(as: 'show', except: '')]
+    public string $show = '';
+
+    #[Url(as: 'per_page', except: 10)]
+    public int $perPage = 10;
+
+    /** Columns the user may sort by. Anything else sent from the browser is ignored. */
+    private const SORTABLE = ['level', 'created_at'];
+
     /** @var array<int, string> users.id => name, so each name is looked up once per render */
     private array $userNames = [];
 
-    /** @return Builder<Approval> */
-    protected function query(): Builder
-    {
-        $me = (int) auth()->id();
-
-        $query = Approval::query()->with(['approvable', 'step.workflow.approvalType']);
-
-        return ($this->filters['show'] ?? 'waiting') === 'answered'
-            ? $query->where('responded_by', $me)
-            : $query->where('approver_user_id', $me)->where('status', ApprovalStatus::Pending);
-    }
-
-    protected function filters(): array
-    {
-        return [
-            // Handled in query() (the "waiting" default must apply even with no filter chosen).
-            SelectFilter::make('show', __('Show'), ['waiting' => __('Waiting for me'), 'answered' => __('Answered by me')])
-                ->query(fn () => null),
-        ];
-    }
-
-    protected function defaultSort(): array
-    {
-        return ['created_at' => 'desc'];
-    }
-
-    protected function columns(): array
-    {
-        return [
-            Column::make(__('Type'), 'type')->alwaysVisible()
-                ->format(fn (Approval $a) => $a->step->workflow->approvalType->name),
-            Column::make(__('Subject'), 'subject')->alwaysVisible()
-                ->format(fn (Approval $a) => new HtmlString(Blade::render(
-                    '<button type="button" x-on:click="$dispatch(\'open-approval\', { id: {{ $id }} })" class="text-left font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $subject }}</button>',
-                    ['id' => $a->id, 'subject' => $this->subject($a)],
-                ))),
-            Column::make(__('Requested by'), 'requester_user_id')
-                ->format(fn (Approval $a) => $this->userName($a->requester_user_id)),
-            Column::make(__('Level'), 'level')->sortable(),
-            Column::make(__('Asked'), 'created_at')->sortable()
-                ->format(fn (Approval $a) => format_datetime($a->created_at)),
-            Column::make(__('Status'), 'status')
-                ->format(fn (Approval $a) => new HtmlString(Blade::render(
-                    '<x-ui.badge :color="$color">{{ $label }}</x-ui.badge>',
-                    ['color' => $a->status->color(), 'label' => $a->status->label()],
-                ))),
-        ];
-    }
-
-    private function subject(Approval $approval): string
+    public function subject(Approval $approval): string
     {
         return $approval->approvable instanceof Approvable ? $approval->approvable->approvalSubject() : __('(deleted)');
     }
 
-    private function userName(?int $id): string
+    public function userName(?int $id): string
     {
         if ($id === null) {
             return '-';
@@ -90,5 +63,92 @@ class MyApprovalsTable extends DataTable
     public function refreshList(): void
     {
         // Re-renders the list.
+    }
+
+    public function sort(string $field): void
+    {
+        if (! in_array($field, self::SORTABLE, true)) {
+            return;
+        }
+
+        // Clicking the same column again flips the direction.
+        $this->sortDir = $this->sortBy === $field && $this->sortDir === 'asc' ? 'desc' : 'asc';
+        $this->sortBy = $field;
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset('show');
+        $this->resetPage();
+    }
+
+    public function export(): BinaryFileResponse
+    {
+        $rows = $this->filteredQuery()->get()->map(fn (Approval $approval) => [
+            $approval->step->workflow->approvalType->name,
+            $this->subject($approval),
+            $this->userName($approval->requester_user_id),
+            $approval->level,
+            format_datetime($approval->created_at),
+            $approval->status->label(),
+        ])->all();
+
+        return Excel::download(
+            new ArrayExport([__('Type'), __('Subject'), __('Requested by'), __('Level'), __('Asked'), __('Status')], $rows),
+            'my-approvals-table-'.now()->format('Y-m-d').'.xlsx',
+        );
+    }
+
+    /** Typing a search or picking a filter or page size starts again at page 1. */
+    public function updated(string $property): void
+    {
+        if (in_array($property, ['show', 'perPage'], true)) {
+            $this->resetPage();
+        }
+    }
+
+    /** @return Builder<Approval> */
+    private function query(): Builder
+    {
+        $me = (int) auth()->id();
+
+        $query = Approval::query()->with(['approvable', 'step.workflow.approvalType']);
+
+        return ($this->show ?: 'waiting') === 'answered'
+            ? $query->where('responded_by', $me)
+            : $query->where('approver_user_id', $me)->where('status', ApprovalStatus::Pending);
+    }
+
+    /** @return array<int|string, string> choices of the "Show" filter */
+    private function showOptions(): array
+    {
+        return ['waiting' => __('Waiting for me'), 'answered' => __('Answered by me')];
+    }
+
+    /** @return Builder<Approval> */
+    private function filteredQuery(): Builder
+    {
+        $query = $this->query();
+
+        // Filter "show" is applied in query().
+
+        if (in_array($this->sortBy, self::SORTABLE, true)) {
+            $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        return $query;
+    }
+
+    public function render(): View
+    {
+        // A page size typed into the URL that is not offered falls back to 10.
+        $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
+
+        return view('workflow::livewire.my-approvals-table', [
+            'rows' => $this->filteredQuery()->paginate($perPage),
+            'showOptions' => $this->showOptions(),
+        ]);
     }
 }

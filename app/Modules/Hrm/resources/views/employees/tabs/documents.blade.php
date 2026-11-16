@@ -1,2 +1,2 @@
-{{-- Profile → Documents. [EMP-03] --}}
+{{-- Profile → Documents. --}}
 <livewire:hrm::employees.documents :$employee />

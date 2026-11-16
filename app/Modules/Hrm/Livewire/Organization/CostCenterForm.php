@@ -7,7 +7,7 @@ use App\Modules\Hrm\Models\CostCenter;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete cost center (modal "cost-center-form"). [ORG-01]
+ * New / Edit / Delete cost center (modal "cost-center-form").
  * Everything except the fields comes from LookupForm.
  */
 class CostCenterForm extends LookupForm

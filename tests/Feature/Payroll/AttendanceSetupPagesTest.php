@@ -21,7 +21,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 7.1: Payroll → Attendance setup pages, and assigning them on the employee's Job tab. [TA-01, TA-02]
+ * Payroll → Attendance setup pages, and assigning them on the employee's Job tab.
  */
 class AttendanceSetupPagesTest extends TestCase
 {
@@ -45,7 +45,7 @@ class AttendanceSetupPagesTest extends TestCase
         Holiday::factory()->create(['title' => 'Victory Day', 'date' => now()->toDateString()]);
         HolidayProfile::factory()->create(['name' => 'Head office']);
 
-        $this->get('/payroll/attendance')->assertRedirect(route('payroll.attendance.days'));   // first tab (7.5)
+        $this->get('/payroll/attendance')->assertRedirect(route('payroll.attendance.days'));   // first tab
         $this->get('/payroll/attendance/shifts')->assertOk()->assertSee('Night shift')->assertSee(route('payroll.attendance.holidays'));
         $this->get('/payroll/attendance/weekends')->assertOk()->assertSee('Fri-Sat');
         $this->get('/payroll/attendance/holidays')->assertOk()->assertSee('Victory Day');

@@ -11,13 +11,26 @@
         ->orderBy('punched_at')->pluck('punched_at');
     $time = fn ($at) => \App\Modules\Payroll\Models\AttendanceCorrection::timeLabel($at, $document->date);
 @endphp
-<x-ui.details :items="[
-    __('Correction') => $document->number(),
-    __('Employee') => ($document->employee?->code ?? '').' · '.($document->employee?->name ?? '?'),
-    __('Day') => format_date($document->date).' · '.$document->date->translatedFormat('l'),
-    __('Asked: in') => $time($document->requested_in_at).($document->requested_in_at ? '' : ' ('.__('keep the punch').')'),
-    __('Asked: out') => $time($document->requested_out_at).($document->requested_out_at ? '' : ' ('.__('keep the punch').')'),
-    __('Reason') => $document->reason,
-    __('Processed now') => $day ? $day->status->label().', '.__('in').' '.$time($day->in_at).', '.__('out').' '.$time($day->out_at) : __('Not processed yet'),
-    __('Punches (that day and the next)') => $punches->map(fn ($p) => $time($p))->join(', ') ?: __('None'),
-]" />
+<dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+    @foreach ([
+            __('Correction') => $document->number(),
+            __('Employee') => ($document->employee?->code ?? '').' · '.($document->employee?->name ?? '?'),
+            __('Day') => format_date($document->date).' · '.$document->date->translatedFormat('l'),
+            __('Asked: in') => $time($document->requested_in_at).($document->requested_in_at ? '' : ' ('.__('keep the punch').')'),
+            __('Asked: out') => $time($document->requested_out_at).($document->requested_out_at ? '' : ' ('.__('keep the punch').')'),
+            __('Reason') => $document->reason,
+            __('Processed now') => $day ? $day->status->label().', '.__('in').' '.$time($day->in_at).', '.__('out').' '.$time($day->out_at) : __('Not processed yet'),
+            __('Punches (that day and the next)') => $punches->map(fn ($p) => $time($p))->join(', ') ?: __('None'),
+    ] as $detailLabel => $detailValue)
+        <div>
+            <dt class="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ $detailLabel }}</dt>
+            <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                @if ($detailValue === null || $detailValue === '')
+                    <span class="text-zinc-400">—</span>
+                @else
+                    {{ $detailValue }}
+                @endif
+            </dd>
+        </div>
+    @endforeach
+</dl>

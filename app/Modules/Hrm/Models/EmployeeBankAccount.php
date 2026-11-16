@@ -6,7 +6,7 @@ use App\Core\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * A bank account of an employee. The primary one receives the salary (Phase 12). [EMP-01]
+ * A bank account of an employee. The primary one receives the salary.
  *
  * @property int $id
  * @property int $employee_id

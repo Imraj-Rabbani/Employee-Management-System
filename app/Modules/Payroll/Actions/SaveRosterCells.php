@@ -7,7 +7,7 @@ use App\Modules\Payroll\Models\RosterItem;
 use App\Modules\Payroll\Models\Shift;
 
 /**
- * Saves cells of a roster's grid. The ONE way cells are written: by the grid editor and by the Excel import. [TA-03]
+ * Saves cells of a roster's grid. The ONE way cells are written: by the grid editor and by the Excel import.
  *
  *     $cells = [employee_id => ['2026-12-01' => '3' (shift id) | 'off' | 'call' | '' (not planned), ...]]
  *

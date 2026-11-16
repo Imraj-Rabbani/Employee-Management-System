@@ -6,7 +6,7 @@ use App\Core\Enums\HasOptions;
 
 /**
  * How a family member or nominee is related to the employee (legacy `EmployeeRelations`).
- * Same integers as legacy (Phase 15 import). Legacy 0 = "None" → NULL.
+ * Same integers as legacy (for the data import). Legacy 0 = "None" → NULL.
  */
 enum EmployeeRelation: int
 {

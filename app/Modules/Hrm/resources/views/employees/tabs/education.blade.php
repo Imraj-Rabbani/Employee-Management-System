@@ -1,2 +1,2 @@
-{{-- Profile → Education. [EMP-03] --}}
+{{-- Profile → Education. --}}
 <livewire:hrm::employees.educations :$employee />

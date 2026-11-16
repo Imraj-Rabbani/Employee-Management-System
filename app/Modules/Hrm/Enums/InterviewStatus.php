@@ -5,7 +5,7 @@ namespace App\Modules\Hrm\Enums;
 use App\Core\Enums\HasOptions;
 
 /**
- * Where an interview is (interviews.status, 6.6). [REC-05]
+ * Where an interview is (interviews.status, 6.6).
  *
  *     Scheduled   planned; panelists can score it (also afterwards, until it is completed)
  *     Completed   HR closed it: the scores count for the ranking, no more changes

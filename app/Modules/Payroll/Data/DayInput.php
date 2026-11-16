@@ -8,7 +8,7 @@ use Carbon\CarbonImmutable;
 /**
  * Everything AttendanceProcessor needs for ONE employee's working day, already worked out (no database):
  * the kind of day, the shift (if any), leave, the punches of the day's window, an approved correction's
- * times (7.6), and how often grace was used earlier this month. Built by AttendanceInputs (7.4c); built by
+ * times, and how often grace was used earlier this month. Built by AttendanceInputs; built by
  * hand in the unit tests.
  */
 final readonly class DayInput

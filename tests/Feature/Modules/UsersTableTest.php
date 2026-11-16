@@ -11,8 +11,8 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Tests the DataTable base (search, sort, filters, pagination, columns, bulk actions, export)
- * through its first real screen: Setup → Users.
+ * Tests the Users list (search, sort, filter, pagination, bulk actions, export)
+ * on Setup → Users.
  */
 class UsersTableTest extends TestCase
 {
@@ -83,10 +83,10 @@ class UsersTableTest extends TestCase
         User::factory()->for($this->tenant)->unverified()->create(['name' => 'Pending Person']);
 
         Livewire::test(UsersTable::class)
-            ->set('filters.verified', 'no')
+            ->set('status', 'no')
             ->assertSee('Pending Person')
             ->assertDontSee('Admin Person')
-            ->set('filters.verified', 'yes')
+            ->set('status', 'yes')
             ->assertSee('Admin Person')
             ->assertDontSee('Pending Person')
             ->call('clearFilters')
@@ -105,18 +105,6 @@ class UsersTableTest extends TestCase
             ->assertViewHas('rows', fn ($rows) => $rows->count() === 15)
             ->set('perPage', 9999)
             ->assertViewHas('rows', fn ($rows) => $rows->count() === 10);
-    }
-
-    public function test_columns_can_be_hidden_except_always_visible_ones(): void
-    {
-        Livewire::test(UsersTable::class)
-            ->assertSee('admin@example.com')
-            ->call('toggleColumn', 'email')
-            ->assertDontSee('admin@example.com')
-            ->call('toggleColumn', 'name')
-            ->assertSee('Admin Person')
-            ->call('toggleColumn', 'email')
-            ->assertSee('admin@example.com');
     }
 
     public function test_status_column_shows_a_badge(): void

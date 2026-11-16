@@ -19,7 +19,7 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
 /**
- * New / Edit / Delete applicant (modal "applicant-form"). [REC-03]
+ * New / Edit / Delete applicant (modal "applicant-form").
  *
  *   New:  personal details + CV + (optional) the open posting they apply to.
  *         $dispatch('create-applicant', { postingId: 3 }) presets the posting (from the posting's page).

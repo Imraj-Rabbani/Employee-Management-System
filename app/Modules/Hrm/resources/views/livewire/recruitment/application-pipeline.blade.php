@@ -1,11 +1,17 @@
 @php use App\Modules\Hrm\Enums\ApplicationStage; @endphp
 <div>
-    <x-ui.card :heading="__('Pipeline')" :subheading="trans_choice(':count application|:count applications', $counts['all'], ['count' => $counts['all']])" :padding="false">
-        @if ($posting->isAcceptingApplications())
-            <x-slot:actions>
-                <flux:button size="sm" icon="plus" x-on:click="$dispatch('create-applicant', { postingId: {{ $posting->id }} })">{{ __('Add applicant') }}</flux:button>
-            </x-slot:actions>
-        @endif
+    <div class="glass overflow-hidden rounded-2xl">
+        <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+            <div>
+                <flux:heading size="lg">{{ __('Pipeline') }}</flux:heading>
+                <flux:text class="mt-1">{{ trans_choice(':count application|:count applications', $counts['all'], ['count' => $counts['all']]) }}</flux:text>
+            </div>
+            @if ($posting->isAcceptingApplications())
+                <div class="flex shrink-0 items-center gap-2">
+                    <flux:button size="sm" icon="plus" x-on:click="$dispatch('create-applicant', { postingId: {{ $posting->id }} })">{{ __('Add applicant') }}</flux:button>
+                </div>
+            @endif
+        </div>
 
         {{-- Tabs: "Open" (still in the running), each stage, "All". The count is shown on each. --}}
         <nav class="flex flex-wrap gap-1 border-b border-white/50 px-4 dark:border-white/10" aria-label="{{ __('Stages') }}">
@@ -21,8 +27,15 @@
         </nav>
 
         @if ($rows->isEmpty())
-            <x-ui.empty icon="users" :heading="__('Nobody here')"
-                :description="$counts['all'] === 0 && ! $posting->isAcceptingApplications() ? __('Applicants can be added while the posting is open and inside its dates.') : null" />
+            <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                    <flux:icon name="users" />
+                </div>
+                <flux:heading size="lg" class="mt-4">{{ __('Nobody here') }}</flux:heading>
+                @if ($counts['all'] === 0 && ! $posting->isAcceptingApplications())
+                    <flux:text class="mt-1 max-w-sm">{{ __('Applicants can be added while the posting is open and inside its dates.') }}</flux:text>
+                @endif
+            </div>
         @else
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
@@ -88,18 +101,41 @@
                 </table>
             </div>
         @endif
-    </x-ui.card>
+    </div>
 
     {{-- Move modal --}}
     <x-ui.modal name="application-move" :heading="$moving ? __('Move :name', ['name' => $moving->applicant->name]) : __('Move')"
         :subheading="$moving ? __('Now: :stage', ['stage' => $moving->stage->label()]) : null">
         <form wire:submit="move" id="application-move" class="space-y-4">
-            <x-form.select wire:model.live="to" :label="__('Move to')" :options="$targets" :placeholder="__('Choose…')" required
-                :hint="__('Offered and Hired are set by the offer and the hire.')" />
+            <flux:field>
+                <flux:label>{{ __('Move to') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                <flux:description>{{ __('Offered and Hired are set by the offer and the hire.') }}</flux:description>
+                <flux:select aria-required="true" wire:model.live="to">
+                    <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
+                    @foreach ($targets as $optionValue => $optionLabel)
+                        <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:error name="to" />
+            </flux:field>
             @if ($needsReason)
-                <x-form.select wire:model="reasonId" :label="__('Reason')" :options="$reasons" :placeholder="$reasons ? __('Choose…') : __('Add reasons in Recruitment setup first')" required />
+                <flux:field>
+                    <flux:label>{{ __('Reason') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:select aria-required="true" wire:model="reasonId">
+                        <flux:select.option value="">{{ $reasons ? __('Choose…') : __('Add reasons in Recruitment setup first') }}</flux:select.option>
+                        @foreach ($reasons as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="reasonId" />
+                </flux:field>
             @endif
-            <x-form.textarea wire:model="note" :label="__('Note')" :hint="__('Kept in the application\'s history')" rows="3" />
+            <flux:field>
+                <flux:label>{{ __('Note') }}</flux:label>
+                <flux:description>{{ __('Kept in the application\'s history') }}</flux:description>
+                <flux:textarea wire:model="note" rows="3" />
+                <flux:error name="note" />
+            </flux:field>
         </form>
         <x-slot:footer>
             <flux:button type="submit" form="application-move" variant="primary">{{ __('Move') }}</flux:button>

@@ -9,7 +9,7 @@ use App\Modules\Payroll\Enums\ProfileValueType;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * One head in a salary profile with its value (legacy `salaryheadvalues`). [PC-02]
+ * One head in a salary profile with its value (legacy `salaryheadvalues`).
  * Written only through SalaryProfile::syncItems(), which logs ONE entry on the profile.
  *
  * @property int $id

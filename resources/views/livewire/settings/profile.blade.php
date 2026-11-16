@@ -115,16 +115,29 @@ new class extends Component {
                 @endif
             </div>
 
-            <x-form.select wire:model="locale" :label="__('Language')" :options="\App\Http\Middleware\SetLocale::LOCALES" :hint="__('The language the app is shown in for you.')" required />
+            <flux:field>
+                <flux:label>{{ __('Language') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                <flux:description>{{ __('The language the app is shown in for you.') }}</flux:description>
+                <flux:select aria-required="true" wire:model="locale">
+                    @foreach (\App\Http\Middleware\SetLocale::LOCALES as $optionValue => $optionLabel)
+                        <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:error name="locale" />
+            </flux:field>
 
             <div class="flex items-center gap-4">
                 <div class="flex items-center justify-end">
                     <flux:button variant="primary" type="submit" class="w-full">{{ __('Save') }}</flux:button>
                 </div>
 
-                <x-action-message class="me-3" on="profile-updated">
+                {{-- "Saved." that fades out 2 seconds after the component dispatches profile-updated --}}
+                <div x-data="{ shown: false, timeout: null }"
+                    x-init="$wire.on('profile-updated', () => { clearTimeout(timeout); shown = true; timeout = setTimeout(() => { shown = false }, 2000) })"
+                    x-show="shown" x-transition:leave.opacity.duration.1500ms style="display: none"
+                    class="me-3 text-sm text-gray-600">
                     {{ __('Saved.') }}
-                </x-action-message>
+                </div>
             </div>
         </form>
 

@@ -1,5 +1,5 @@
 {{--
-    HRM → Applicants → one applicant (6.4). The route passes $applicant. [REC-03]
+    HRM → Applicants → one applicant. The route passes $applicant.
 --}}
 <x-layouts.app :title="$applicant->name">
     <div class="space-y-4">

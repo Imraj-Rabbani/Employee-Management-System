@@ -14,7 +14,7 @@ use Tests\Fixtures\Plugins\StageTwo;
 use Tests\TestCase;
 
 /**
- * Task 2.6f: each company can pick its own plugins.
+ * Each company can pick its own plugins.
  */
 class PluginRegistryTest extends TestCase
 {

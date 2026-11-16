@@ -10,7 +10,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Withdraws (cancels) a leave application. [LV-04] No approval needed.
+ * Withdraws (cancels) a leave application. No approval needed.
  *
  *   not decided yet (waiting / sent back)  its pending approvals are removed (WorkflowEngine::withdraw)
  *   approved                               the days go back to the balance (LeaveLedger::reverse) and attendance

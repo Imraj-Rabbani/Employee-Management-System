@@ -4,7 +4,7 @@ namespace App\Core\Support;
 
 use App\Core\Enums\HasOptions;
 
-/** Which part of the month a payroll period covers. [PR-01] */
+/** Which part of the month a payroll period covers. */
 enum PeriodCycle: string
 {
     use HasOptions;

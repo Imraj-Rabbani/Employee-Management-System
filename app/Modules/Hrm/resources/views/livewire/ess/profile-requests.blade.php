@@ -1,18 +1,30 @@
 <div class="space-y-4">
     @if (! $employee)
-        <x-ui.card>
-            <x-ui.empty icon="user" :heading="__('Your login is not linked to an employee record')"
-                :description="__('Ask HR to link it (Employees → profile → Login).')" />
-        </x-ui.card>
+        <div class="glass overflow-hidden rounded-2xl">
+            <div class="p-6">
+                <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                    <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                        <flux:icon name="user" />
+                    </div>
+                    <flux:heading size="lg" class="mt-4">{{ __('Your login is not linked to an employee record') }}</flux:heading>
+                    <flux:text class="mt-1 max-w-sm">{{ __('Ask HR to link it (Employees → profile → Login).') }}</flux:text>
+                </div>
+            </div>
+        </div>
     @else
         <div class="flex items-center justify-between gap-4">
             <flux:subheading>{{ __('Changes to your personal details are applied after approval.') }}</flux:subheading>
             <flux:button variant="primary" icon="pencil-square" wire:click="open">{{ __('Request a change') }}</flux:button>
         </div>
 
-        <x-ui.card :padding="false">
+        <div class="glass overflow-hidden rounded-2xl">
             @if ($requests->isEmpty())
-                <x-ui.empty icon="document-text" :heading="__('No requests yet')" />
+                <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                    <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                        <flux:icon name="document-text" />
+                    </div>
+                    <flux:heading size="lg" class="mt-4">{{ __('No requests yet') }}</flux:heading>
+                </div>
             @else
                 <ul class="divide-y divide-white/50 dark:divide-white/10">
                     @foreach ($requests as $request)
@@ -38,33 +50,129 @@
                     @endforeach
                 </ul>
             @endif
-        </x-ui.card>
+        </div>
 
         <x-ui.modal name="profile-request-form" size="lg" :heading="__('Request a change')"
             :subheading="__('Change only what is wrong. HR sees your old and new values side by side.')">
             <form wire:submit="submit" id="profile-request-form" class="space-y-6">
                 <div class="grid gap-4 sm:grid-cols-[1fr_2fr_2fr]">
-                    <x-form.input wire:model="form.title" :label="__('Title')" />
-                    <x-form.input wire:model="form.first_name" :label="__('First name')" required />
-                    <x-form.input wire:model="form.last_name" :label="__('Last name')" />
+                    <flux:field>
+                        <flux:label>{{ __('Title') }}</flux:label>
+                        <flux:input wire:model="form.title" />
+                        <flux:error name="form.title" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('First name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                        <flux:input aria-required="true" wire:model="form.first_name" />
+                        <flux:error name="form.first_name" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Last name') }}</flux:label>
+                        <flux:input wire:model="form.last_name" />
+                        <flux:error name="form.last_name" />
+                    </flux:field>
                 </div>
-                <x-form.input wire:model="form.name_local" :label="__('Name (local)')" />
+                <flux:field>
+                    <flux:label>{{ __('Name (local)') }}</flux:label>
+                    <flux:input wire:model="form.name_local" />
+                    <flux:error name="form.name_local" />
+                </flux:field>
                 <div class="grid gap-4 sm:grid-cols-3">
-                    <x-form.select wire:model="form.gender" :label="__('Gender')" :options="$genders" :placeholder="__('Not set')" />
-                    <x-form.date wire:model="form.birth_date" :label="__('Date of birth')" />
-                    <x-form.select wire:model="form.marital_status" :label="__('Marital status')" :options="$maritalStatuses" :placeholder="__('Not set')" />
-                    <x-form.select wire:model="form.blood_group" :label="__('Blood group')" :options="$bloodGroups" :placeholder="__('Not set')" />
-                    <x-form.select wire:model="form.religion" :label="__('Religion')" :options="$religions" :placeholder="__('Not set')" />
-                    <x-form.input wire:model="form.nationality" :label="__('Nationality')" />
+                    <flux:field>
+                        <flux:label>{{ __('Gender') }}</flux:label>
+                        <flux:select wire:model="form.gender">
+                            <flux:select.option value="">{{ __('Not set') }}</flux:select.option>
+                            @foreach ($genders as $optionValue => $optionLabel)
+                                <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="form.gender" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Date of birth') }}</flux:label>
+                        <flux:input type="date" wire:model="form.birth_date" />
+                        <flux:error name="form.birth_date" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Marital status') }}</flux:label>
+                        <flux:select wire:model="form.marital_status">
+                            <flux:select.option value="">{{ __('Not set') }}</flux:select.option>
+                            @foreach ($maritalStatuses as $optionValue => $optionLabel)
+                                <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="form.marital_status" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Blood group') }}</flux:label>
+                        <flux:select wire:model="form.blood_group">
+                            <flux:select.option value="">{{ __('Not set') }}</flux:select.option>
+                            @foreach ($bloodGroups as $optionValue => $optionLabel)
+                                <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="form.blood_group" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Religion') }}</flux:label>
+                        <flux:select wire:model="form.religion">
+                            <flux:select.option value="">{{ __('Not set') }}</flux:select.option>
+                            @foreach ($religions as $optionValue => $optionLabel)
+                                <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="form.religion" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Nationality') }}</flux:label>
+                        <flux:input wire:model="form.nationality" />
+                        <flux:error name="form.nationality" />
+                    </flux:field>
                 </div>
                 <div class="grid gap-4 sm:grid-cols-3">
-                    <x-form.input wire:model="form.national_id" :label="__('National ID')" />
-                    <x-form.input wire:model="form.tin" :label="__('TIN')" />
-                    <x-form.input wire:model="form.passport_no" :label="__('Passport no.')" />
-                    <x-form.input wire:model="form.mobile" :label="__('Mobile')" type="tel" />
-                    <x-form.input wire:model="form.personal_email" :label="__('Personal email')" type="email" />
+                    <flux:field>
+                        <flux:label>{{ __('National ID') }}</flux:label>
+                        <flux:input wire:model="form.national_id" />
+                        <flux:error name="form.national_id" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('TIN') }}</flux:label>
+                        <flux:input wire:model="form.tin" />
+                        <flux:error name="form.tin" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Passport no.') }}</flux:label>
+                        <flux:input wire:model="form.passport_no" />
+                        <flux:error name="form.passport_no" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Mobile') }}</flux:label>
+                        <flux:input wire:model="form.mobile" type="tel" />
+                        <flux:error name="form.mobile" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Personal email') }}</flux:label>
+                        <flux:input wire:model="form.personal_email" type="email" />
+                        <flux:error name="form.personal_email" />
+                    </flux:field>
                 </div>
-                <x-form.textarea wire:model="reason" :label="__('Reason')" rows="2" :hint="__('e.g. new phone number, name changed after marriage')" />
+                <flux:field>
+                    <flux:label>{{ __('Reason') }}</flux:label>
+                    <flux:description>{{ __('e.g. new phone number, name changed after marriage') }}</flux:description>
+                    <flux:textarea wire:model="reason" rows="2" />
+                    <flux:error name="reason" />
+                </flux:field>
             </form>
 
             <x-slot:footer>

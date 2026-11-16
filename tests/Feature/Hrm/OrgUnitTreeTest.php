@@ -13,7 +13,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 4.3: org unit tree view: nested display, drag to re-parent, "add sub-unit". [ORG-01]
+ * Org unit tree view: nested display, drag to re-parent, "add sub-unit".
  *
  * Structure used: Head Office (Company) › Operations, Sales (Divisions) › Accounts (Department, under Operations).
  */

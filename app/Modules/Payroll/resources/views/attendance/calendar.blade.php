@@ -1,5 +1,5 @@
 {{--
-    Payroll → Attendance → Calendar (7.8): the team grid, or (?employee=5) one employee's month. [TA-08]
+    Payroll → Attendance → Calendar: the team grid, or (?employee=5) one employee's month.
 --}}
 <x-layouts.app :title="__('Attendance')">
     <div class="space-y-4">

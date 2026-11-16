@@ -15,8 +15,8 @@ use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 /**
- * "Process again" on the Daily attendance tab (7.5): HR picks a date range and, if they like, one org unit
- * or one employee; one ProcessAttendance job per employee is queued. [TA-06]
+ * "Process again" on the Daily attendance tab: HR picks a date range and, if they like, one org unit
+ * or one employee; one ProcessAttendance job per employee is queued.
  *
  * Only employees the user can see. Locked days (closed payroll) and future days are not changed.
  * Use after changing a shift, a weekend profile or an employee's calendar: those changes do not

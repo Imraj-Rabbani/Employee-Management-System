@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * One counted day of a leave application (1 or 0.5). Written with the application by ApplyForLeave;
- * no own history (the application is logged). [LV-04]
+ * no own history (the application is logged).
  *
  * @property int $id
  * @property int $leave_application_id

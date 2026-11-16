@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Which org unit an employee belonged to, and when (legacy `entityitems`). [EMP-04]
+ * Which org unit an employee belonged to, and when (legacy `entityitems`).
  *
  * One row per period. effective_to NULL = the current one. employees.org_unit_id is a copy of the
  * current row's unit (kept in step by ChangeOrgUnit), because every employee query filters on it.

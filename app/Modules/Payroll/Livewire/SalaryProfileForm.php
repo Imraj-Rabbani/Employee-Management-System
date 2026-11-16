@@ -20,11 +20,11 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete salary profile (modal "salary-profile-form"), with the value of each head. [PC-02]
+ * New / Edit / Delete salary profile (modal "salary-profile-form"), with the value of each head.
  *
  * $items = [salary_head_id => ['value_type' => 'percent_basic', 'value' => '50']]. Empty value = the head is NOT in
  * the profile. The basic head is never an item (it is the base), nor are formula / per-attendance-day heads (the
- * payroll run works those out, Phase 10).
+ * payroll run works those out).
  *
  * "Apply profile" preview: type a basic or a gross and see every head's amount, from the values typed (not saved).
  */

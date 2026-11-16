@@ -7,8 +7,22 @@
         :subheading="$application ? $application->applicant->name.' · '.$application->jobPosting->title : null">
         <form wire:submit="save" id="offer-form" class="space-y-6">
             <div class="grid gap-4 sm:grid-cols-2">
-                <x-form.input wire:model.live.debounce.400ms="form.gross_salary" type="number" min="1" step="0.01" :label="__('Gross salary (monthly)')" required />
-                <x-form.select wire:model.live="form.grade_id" :label="__('Grade')" :options="$grades" :placeholder="__('None')" />
+                <flux:field>
+                    <flux:label>{{ __('Gross salary (monthly)') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:input aria-required="true" wire:model.live.debounce.400ms="form.gross_salary" type="number" min="1" step="0.01" />
+                    <flux:error name="form.gross_salary" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Grade') }}</flux:label>
+                    <flux:select wire:model.live="form.grade_id">
+                        <flux:select.option value="">{{ __('None') }}</flux:select.option>
+                        @foreach ($grades as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="form.grade_id" />
+                </flux:field>
             </div>
 
             {{-- Live comparison while typing (JobOffer::comparisons() on the unsaved values). --}}
@@ -27,12 +41,46 @@
             @endif
 
             <div class="grid gap-4 sm:grid-cols-2">
-                <x-form.select wire:model="form.designation_id" :label="__('Designation')" :options="$designations" required />
-                <x-form.select wire:model="form.employment_type_id" :label="__('Employment type')" :options="$types" :placeholder="__('None')" />
-                <x-form.date wire:model="form.joining_date" :label="__('Joining date')" required />
-                <x-form.date wire:model="form.expires_on" :label="__('Answer by')" :hint="__('The offer is valid until this date')" />
+                <flux:field>
+                    <flux:label>{{ __('Designation') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:select aria-required="true" wire:model="form.designation_id">
+                        @foreach ($designations as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="form.designation_id" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Employment type') }}</flux:label>
+                    <flux:select wire:model="form.employment_type_id">
+                        <flux:select.option value="">{{ __('None') }}</flux:select.option>
+                        @foreach ($types as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="form.employment_type_id" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Joining date') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:input type="date" aria-required="true" wire:model="form.joining_date" />
+                    <flux:error name="form.joining_date" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Answer by') }}</flux:label>
+                    <flux:description>{{ __('The offer is valid until this date') }}</flux:description>
+                    <flux:input type="date" wire:model="form.expires_on" />
+                    <flux:error name="form.expires_on" />
+                </flux:field>
             </div>
-            <x-form.textarea wire:model="form.terms" :label="__('Terms')" rows="4" :hint="__('Extra conditions printed in the offer letter, e.g. probation period')" />
+            <flux:field>
+                <flux:label>{{ __('Terms') }}</flux:label>
+                <flux:description>{{ __('Extra conditions printed in the offer letter, e.g. probation period') }}</flux:description>
+                <flux:textarea wire:model="form.terms" rows="4" />
+                <flux:error name="form.terms" />
+            </flux:field>
         </form>
 
         <x-slot:footer>

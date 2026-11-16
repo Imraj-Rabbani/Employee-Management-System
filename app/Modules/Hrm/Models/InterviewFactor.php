@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
- * Something interviewers score, e.g. "Communication" (legacy `interviewfactors`, type 0). [REC-05]
+ * Something interviewers score, e.g. "Communication" (legacy `interviewfactors`, type 0).
  *
  *     InterviewFactor::ordered()->where('is_active', true)->get()   the score sheet, in order
  *

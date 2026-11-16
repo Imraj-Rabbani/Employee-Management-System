@@ -18,7 +18,7 @@ use Livewire\Component;
 
 /**
  * Hire (modal "hire-form") on an ACCEPTED offer's page: the few things the offer does not say, then
- * HireApplicant makes the employee and the browser opens their profile. [REC-07]
+ * HireApplicant makes the employee and the browser opens their profile.
  *
  *     $dispatch('hire', { offerId: 3 })
  *

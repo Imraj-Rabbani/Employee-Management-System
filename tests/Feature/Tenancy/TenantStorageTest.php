@@ -11,7 +11,7 @@ use LogicException;
 use Tests\TestCase;
 
 /**
- * Task 2.5: Storage::disk('tenant') saves into the current company's own folder.
+ * Storage::disk('tenant') saves into the current company's own folder.
  */
 class TenantStorageTest extends TestCase
 {

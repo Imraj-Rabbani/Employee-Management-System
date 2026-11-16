@@ -2,30 +2,108 @@
 
 namespace App\Modules\Payroll\Livewire\Attendance;
 
-use App\Core\Livewire\Table\Column;
-use App\Core\Livewire\Table\DataTable;
-use App\Core\Livewire\Table\SelectFilter;
+use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Payroll\Enums\AttendanceStatus;
 use App\Modules\Payroll\Models\AttendanceDay;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\HtmlString;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Payroll → Attendance → Daily attendance (7.5): the processed days (attendance_days), newest first. [TA-05]
- * Only employees the user can see. Read-only: a wrong day is fixed by a correction (7.6) or by processing again.
+ * Payroll → Attendance → Daily attendance: the processed days (attendance_days), newest first.
+ * Only employees the user can see. Read-only: a wrong day is fixed by a correction or by processing again.
+ *
+ * View: app/Modules/Payroll/resources/views/livewire/attendance/attendance-day-table.blade.php
  */
-class AttendanceDayTable extends DataTable
+class AttendanceDayTable extends Component
 {
+    use WithPagination;
+
+    #[Url(as: 'sort', except: '')]
+    public string $sortBy = '';
+
+    #[Url(as: 'dir', except: 'asc')]
+    public string $sortDir = 'asc';
+
+    /** Filter "Month": '' = all */
+    #[Url(as: 'month', except: '')]
+    public string $month = '';
+
+    /** Filter "Status": '' = all */
+    #[Url(as: 'status', except: '')]
+    public string $status = '';
+
+    /** Filter "Org unit": '' = all */
+    #[Url(as: 'org_unit', except: '')]
+    public string $orgUnit = '';
+
+    #[Url(as: 'per_page', except: 10)]
+    public int $perPage = 10;
+
+    /** Columns the user may sort by. Anything else sent from the browser is ignored. */
+    private const SORTABLE = ['date', 'status', 'worked_minutes', 'late_minutes', 'ot_minutes'];
+
     /** @var array<string, string> */
     protected $listeners = ['attendance-days-saved' => '$refresh'];
 
+    public function sort(string $field): void
+    {
+        if (! in_array($field, self::SORTABLE, true)) {
+            return;
+        }
+
+        // Clicking the same column again flips the direction.
+        $this->sortDir = $this->sortBy === $field && $this->sortDir === 'asc' ? 'desc' : 'asc';
+        $this->sortBy = $field;
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset('month', 'status', 'orgUnit');
+        $this->resetPage();
+    }
+
+    public function export(): BinaryFileResponse
+    {
+        $rows = $this->filteredQuery()->get()->map(fn (AttendanceDay $attendanceDay) => [
+            format_date($attendanceDay->date).' · '.$attendanceDay->date->translatedFormat('D'),
+            $attendanceDay->employee ? $attendanceDay->employee->code.' · '.$attendanceDay->employee->name : '—',
+            $attendanceDay->shift->code ?? '—',
+            implode(', ', array_filter([$attendanceDay->status->label(), $attendanceDay->is_late ? __('Late') : null, $attendanceDay->is_corrected ? __('Corrected') : null, $attendanceDay->is_locked ? __('Locked') : null])),
+            ($attendanceDay->in_at === null ? '—' : $attendanceDay->in_at->format('H:i')),
+            ($attendanceDay->out_at === null ? '—' : $attendanceDay->out_at->format('H:i')),
+            ($attendanceDay->worked_minutes === 0 ? '—' : AttendanceDay::hoursLabel($attendanceDay->worked_minutes)),
+            ($attendanceDay->late_minutes === 0 ? '—' : AttendanceDay::hoursLabel($attendanceDay->late_minutes)),
+            ($attendanceDay->early_exit_minutes === 0 ? '—' : AttendanceDay::hoursLabel($attendanceDay->early_exit_minutes)),
+            ($attendanceDay->ot_minutes === 0 ? '—' : AttendanceDay::hoursLabel($attendanceDay->ot_minutes)),
+            $attendanceDay->note ?? '',
+            $attendanceDay->processed_at ? format_datetime($attendanceDay->processed_at) : '—',
+        ])->all();
+
+        return Excel::download(
+            new ArrayExport([__('Date'), __('Employee'), __('Shift'), __('Status'), __('In'), __('Out'), __('Worked'), __('Late'), __('Early exit'), __('Overtime'), __('Note'), __('Processed')], $rows),
+            'attendance-day-table-'.now()->format('Y-m-d').'.xlsx',
+        );
+    }
+
+    /** Typing a search or picking a filter or page size starts again at page 1. */
+    public function updated(string $property): void
+    {
+        if (in_array($property, ['month', 'status', 'orgUnit', 'perPage'], true)) {
+            $this->resetPage();
+        }
+    }
+
     /** @return Builder<AttendanceDay> */
-    protected function query(): Builder
+    private function query(): Builder
     {
         // whereHas('employee') goes through Employee's visibility scope: only employees this user may see.
         return AttendanceDay::query()
@@ -33,57 +111,69 @@ class AttendanceDayTable extends DataTable
             ->whereHas('employee');
     }
 
-    protected function defaultSort(): array
+    /** @return array<int|string, string> choices of the "Month" filter */
+    private function monthOptions(): array
     {
-        return ['date' => 'desc', 'employee_id' => 'asc'];
-    }
-
-    protected function filters(): array
-    {
-        // This month and the twelve before it, as "2026-12" => "December 2026".
         $months = [];
+
         for ($m = now()->startOfMonth(), $i = 0; $i < 13; $i++, $m = $m->subMonth()) {
             $months[$m->format('Y-m')] = $m->translatedFormat('F Y');
         }
 
-        return [
-            SelectFilter::make('month', __('Month'), $months)->query(function (Builder $q, string $month) {
-                $start = Carbon::createFromFormat('!Y-m', $month);
-                $q->whereBetween('date', [$start->toDateString(), $start->copy()->endOfMonth()->toDateString()]);
-            }),
-            SelectFilter::make('status', __('Status'), $this->stringKeys(AttendanceStatus::options())),
-            SelectFilter::make('org_unit', __('Org unit'), $this->stringKeys(app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user())))
-                ->query(fn (Builder $q, string $id) => $q->whereHas('employee', fn (Builder $e) => $e
-                    ->whereIn('org_unit_id', [(int) $id, ...(OrgUnit::find((int) $id)?->descendantIds() ?? [])]))),
-        ];
+        return $months;
     }
 
-    protected function columns(): array
+    /** @return array<int|string, string> choices of the "Status" filter */
+    private function statusOptions(): array
     {
-        $time = fn (?Carbon $at) => $at === null ? '—' : $at->format('H:i');
-        $hours = fn (int $minutes) => $minutes === 0 ? '—' : AttendanceDay::hoursLabel($minutes);
+        return AttendanceStatus::options();
+    }
 
-        return [
-            Column::make(__('Date'), 'date')->sortable()->alwaysVisible()
-                ->format(fn (AttendanceDay $d) => format_date($d->date).' · '.$d->date->translatedFormat('D')),
-            Column::make(__('Employee'), 'employee_id')->alwaysVisible()
-                ->format(fn (AttendanceDay $d) => $d->employee ? $d->employee->code.' · '.$d->employee->name : '—'),
-            Column::make(__('Shift'), 'shift_id')->format(fn (AttendanceDay $d) => $d->shift->code ?? '—'),
-            Column::make(__('Status'), 'status')->sortable()->format(fn (AttendanceDay $d) => new HtmlString(Blade::render(
-                '<x-ui.badge :color="$d->status->color()">{{ $d->status->label() }}</x-ui.badge>'
-                .'@if ($d->is_late) <x-ui.badge color="warning">{{ __(\'Late\') }}</x-ui.badge>@endif'
-                .'@if ($d->is_corrected) <x-ui.badge color="info">{{ __(\'Corrected\') }}</x-ui.badge>@endif'
-                .'@if ($d->is_locked) <x-ui.badge color="neutral">{{ __(\'Locked\') }}</x-ui.badge>@endif',
-                ['d' => $d],
-            ))),
-            Column::make(__('In'), 'in_at')->format(fn (AttendanceDay $d) => $time($d->in_at)),
-            Column::make(__('Out'), 'out_at')->format(fn (AttendanceDay $d) => $time($d->out_at)),
-            Column::make(__('Worked'), 'worked_minutes')->sortable()->alignRight()->format(fn (AttendanceDay $d) => $hours($d->worked_minutes)),
-            Column::make(__('Late'), 'late_minutes')->sortable()->alignRight()->format(fn (AttendanceDay $d) => $hours($d->late_minutes)),
-            Column::make(__('Early exit'), 'early_exit_minutes')->alignRight()->format(fn (AttendanceDay $d) => $hours($d->early_exit_minutes)),
-            Column::make(__('Overtime'), 'ot_minutes')->sortable()->alignRight()->format(fn (AttendanceDay $d) => $hours($d->ot_minutes)),
-            Column::make(__('Note'), 'note')->format(fn (AttendanceDay $d) => $d->note ?? ''),
-            Column::make(__('Processed'), 'processed_at')->format(fn (AttendanceDay $d) => $d->processed_at ? format_datetime($d->processed_at) : '—'),
-        ];
+    /** @return array<int|string, string> choices of the "Org unit" filter */
+    private function orgUnitOptions(): array
+    {
+        return app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user());
+    }
+
+    /** @return Builder<AttendanceDay> */
+    private function filteredQuery(): Builder
+    {
+        $query = $this->query();
+
+        if ($this->month !== '' && array_key_exists($this->month, $this->monthOptions())) {
+            $start = Carbon::createFromFormat('!Y-m', $this->month);
+            $query->whereBetween('date', [$start->toDateString(), $start->copy()->endOfMonth()->toDateString()]);
+        }
+
+        if ($this->status !== '' && array_key_exists($this->status, $this->statusOptions())) {
+            $query->where('status', $this->status);
+        }
+
+        if ($this->orgUnit !== '' && array_key_exists($this->orgUnit, $this->orgUnitOptions())) {
+            $query->whereHas('employee', fn (Builder $e) => $e
+                ->whereIn('org_unit_id', [(int) $this->orgUnit, ...(OrgUnit::find((int) $this->orgUnit)?->descendantIds() ?? [])]));
+        }
+
+        if (in_array($this->sortBy, self::SORTABLE, true)) {
+            $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('date', 'desc');
+            $query->orderBy('employee_id', 'asc');
+        }
+
+        return $query;
+    }
+
+    public function render(): View
+    {
+        // A page size typed into the URL that is not offered falls back to 10.
+        $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
+
+        return view('payroll::livewire.attendance.attendance-day-table', [
+            'rows' => $this->filteredQuery()->paginate($perPage),
+            'monthOptions' => $this->monthOptions(),
+            'statusOptions' => $this->statusOptions(),
+            'orgUnitOptions' => $this->orgUnitOptions(),
+        ]);
     }
 }

@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * The weekly days off of a group of employees, e.g. Friday + Saturday (legacy `weekendprofiles`). [TA-02]
+ * The weekly days off of a group of employees, e.g. Friday + Saturday (legacy `weekendprofiles`).
  *
  * Up to two weekend days. Each may alternate: off only on the odd (1st, 3rd …) or even (2nd, 4th …)
  * occurrences of that weekday in the year, e.g. "every Friday + every 2nd Saturday".
@@ -52,7 +52,7 @@ class WeekendProfile extends TenantModel
         ];
     }
 
-    /** Is $date a day off under this profile? Used by attendance processing (7.4). */
+    /** Is $date a day off under this profile? Used by attendance processing. */
     public function isWeekend(CarbonInterface $date): bool
     {
         return $this->matches($date, $this->day_one, $this->alternate_one)

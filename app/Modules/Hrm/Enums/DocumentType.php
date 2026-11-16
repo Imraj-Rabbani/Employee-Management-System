@@ -5,7 +5,7 @@ namespace App\Modules\Hrm\Enums;
 use App\Core\Enums\HasOptions;
 
 /**
- * Kind of an employee document (5.5). New in the rebuild (legacy had free text), so the numbers are ours.
+ * Kind of an employee document. New in the rebuild (legacy had free text), so the numbers are ours.
  * "Other" uses the document's title, e.g. "Gun licence".
  */
 enum DocumentType: int

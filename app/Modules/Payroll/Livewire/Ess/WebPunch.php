@@ -13,11 +13,11 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 /**
- * Self Service → My Attendance: "Punch now" in the browser, and my punches of the last days. (7.3e) [TA-04]
+ * Self Service → My Attendance: "Punch now" in the browser, and my punches of the last days.
  *
  * Rules (checked on the server; the browser only sends its location):
  *   - the company allows web punch (Payroll → Attendance → Devices → Web punch)
- *   - the user has an employee record (5.7) — punches are always their OWN
+ *   - the user has an employee record — punches are always their OWN
  *   - location required (company setting) → refused without one
  *   - today's shift (approved roster, else own shift, else the default) has a geofence → must be within its radius
  *   - not twice within a minute (double clicks)

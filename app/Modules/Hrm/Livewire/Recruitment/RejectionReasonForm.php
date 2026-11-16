@@ -7,7 +7,7 @@ use App\Modules\Hrm\Models\RejectionReason;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete rejection reason (modal "rejection-reason-form"). [REC-04]
+ * New / Edit / Delete rejection reason (modal "rejection-reason-form").
  * Everything except the fields comes from LookupForm.
  */
 class RejectionReasonForm extends LookupForm

@@ -26,7 +26,7 @@ use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use Throwable;
 
 /**
- * Imports new employees from an Excel file (the template from EmployeeImportTemplate). [EMP-06]
+ * Imports new employees from an Excel file (the template from EmployeeImportTemplate).
  *
  *     app(EmployeeImporter::class)->run($import);   reads $import->file_path, fills status / counts / errors
  *

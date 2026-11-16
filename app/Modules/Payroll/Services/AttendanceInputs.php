@@ -19,16 +19,16 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
 /**
- * Collects from the database what AttendanceProcessor needs, for one employee and a range of days. [TA-05]
+ * Collects from the database what AttendanceProcessor needs, for one employee and a range of days.
  * A handful of queries for the whole range (not one per day).
  *
  *   shift      approved roster cell (its own times if set) → the employee's own shift → the default shift
  *   day type   holiday in their calendar (festival if marked) — always wins
  *              → roster cell: off / on call = Weekend, a shift = Workday (even on a weekend-profile day)
  *              → weekend profile → Workday
- *   leave      LeaveCalendar (Phase 8)
+ *   leave      LeaveCalendar
  *   punches    those inside the day's window (AttendanceProcessor::windowFor)
- *   correction the newest APPROVED attendance correction of the day (7.6): its times replace first / last punch
+ *   correction the newest APPROVED attendance correction of the day: its times replace first / last punch
  *
  * The monthly grace count is NOT set here (it depends on the results of the days before):
  * AttendanceService keeps it, starting from graceUsedBefore().
@@ -110,7 +110,7 @@ class AttendanceInputs
     }
 
     /**
-     * Only the kind of each day (no shifts, punches or leave): what leave counting needs (8.3, AttendanceWorkCalendar).
+     * Only the kind of each day (no shifts, punches or leave): what leave counting needs (AttendanceWorkCalendar).
      * Same rules as forEmployee(): holiday → approved roster cell → weekend profile.
      *
      * @return array<string, DayType> 'Y-m-d' => day type, every date from $from to $to

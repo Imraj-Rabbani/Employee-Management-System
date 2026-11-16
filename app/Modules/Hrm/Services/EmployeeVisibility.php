@@ -8,7 +8,7 @@ use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\OrgUnit;
 
 /**
- * Which employees may this login see? Applies the role's org-unit scope (Role::$org_unit_id). [FND-05]
+ * Which employees may this login see? Applies the role's org-unit scope (Role::$org_unit_id).
  *
  *     app(EmployeeVisibility::class)->orgUnitIdsFor($user)   null = everyone, [3, 7, 8] = only these units
  *     app(EmployeeVisibility::class)->canSee($user, $emp)    one employee

@@ -19,7 +19,7 @@ use Livewire\Component;
 
 /**
  * One job offer's page: status, details + salary comparison, approval timeline, and the buttons for
- * where it is now. [REC-06]
+ * where it is now.
  *
  *   Draft / sent back   Edit · Send for approval
  *   Approved            Download letter · Email letter to applicant · Record answer

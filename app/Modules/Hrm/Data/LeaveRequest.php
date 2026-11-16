@@ -7,7 +7,7 @@ use App\Modules\Hrm\Enums\Religion;
 use Carbon\CarbonImmutable;
 
 /**
- * Everything LeaveRules needs to judge ONE leave request, as plain values (no database). [LV-01]
+ * Everything LeaveRules needs to judge ONE leave request, as plain values (no database).
  * Built from the database by LeaveRequestInputs; built by hand in unit tests.
  *
  * $daysOff must cover the request PLUS the days around it (the sandwich rule looks at the days off right

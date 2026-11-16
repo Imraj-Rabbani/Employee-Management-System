@@ -14,7 +14,7 @@ use LogicException;
 
 /**
  * One unit of the company's structure (legacy `entities`). The units form a TREE:
- * every unit has one parent (NULL for the top) and any number of children. [ORG-01]
+ * every unit has one parent (NULL for the top) and any number of children.
  *
  *     $unit->parent                  the unit above (self-referencing belongsTo)
  *     $unit->children                the units directly below (self-referencing hasMany)

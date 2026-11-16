@@ -24,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * A plan of who works which shift on which day, for one org unit and a date range. [TA-03]
+ * A plan of who works which shift on which day, for one org unit and a date range.
  * The cells are RosterItems. Goes through an approval workflow (approval type "roster");
  * only approved rosters count for attendance.
  *
@@ -215,7 +215,7 @@ class Roster extends TenantModel implements Approvable, ShowsApprovalDetails
 
     /**
      * From now on the plan counts for attendance. forceFill: approved_at is not fillable.
-     * Days of the roster that are already past are processed again (7.5), for everyone in this plan and in the
+     * Days of the roster that are already past are processed again, for everyone in this plan and in the
      * plan it replaces (someone taken out of the roster goes back to their own shift).
      */
     public function onApproved(Approval $final): void

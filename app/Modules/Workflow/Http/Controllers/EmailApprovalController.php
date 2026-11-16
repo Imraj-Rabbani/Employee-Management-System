@@ -18,7 +18,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 /**
- * Approve / reject straight from the email, without logging in. [WF-03]
+ * Approve / reject straight from the email, without logging in.
  *
  * Who is answering? The approver the link was sent to: only we can make a valid signed link,
  * and we only send it to them. (Legacy used a stored `token` column for the same purpose.)

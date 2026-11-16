@@ -32,7 +32,7 @@ use Maatwebsite\Excel\Imports\HeadingRowFormatter;
 use Throwable;
 
 /**
- * Imports employee salaries from Excel (the template from SalaryImportTemplate). [PC-03]
+ * Imports employee salaries from Excel (the template from SalaryImportTemplate).
  *
  *     app(SalaryImporter::class)->run($import);   reads $import->file_path, fills status / counts / errors
  *

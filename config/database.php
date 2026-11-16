@@ -90,7 +90,7 @@ return [
         | Tenant database (ems_tenant_{code}): one per company, holding its
         | employees, attendance, payroll... Same server as central, but the
         | database name is left empty here. It is filled in at runtime, after
-        | login, for the company of the logged-in user (task 2.2).
+        | login, for the company of the logged-in user.
         */
         'tenant' => [
             'driver' => 'mysql',

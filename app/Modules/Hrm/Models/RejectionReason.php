@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
- * Why an application was rejected or withdrawn, e.g. "Salary expectation too high". [REC-04]
- * Picked in the stage change form (6.5) when ApplicationStage::needsReason() is true.
+ * Why an application was rejected or withdrawn, e.g. "Salary expectation too high".
+ * Picked in the stage change form when ApplicationStage::needsReason() is true.
  *
  * @property int $id
  * @property string $name

@@ -2,17 +2,30 @@
     <x-ui.modal name="approval-type-form" :heading="$typeId ? __('Edit approval type') : __('New approval type')">
         <form wire:submit="save" id="approval-type-form" class="space-y-6">
             @if ($typeId)
-                <x-form.input :value="$key" :label="__('Key')" disabled :hint="__('Used by the program. Cannot be changed.')" />
+                <flux:field>
+                    <flux:label>{{ __('Key') }}</flux:label>
+                    <flux:description>{{ __('Used by the program. Cannot be changed.') }}</flux:description>
+                    <flux:input :value="$key" disabled />
+                </flux:field>
             @else
-                <x-form.input wire:model="key" :label="__('Key')" required :hint="__('Used by the program, e.g. leave. Cannot be changed later.')" />
+                <flux:field>
+                    <flux:label>{{ __('Key') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:description>{{ __('Used by the program, e.g. leave. Cannot be changed later.') }}</flux:description>
+                    <flux:input aria-required="true" wire:model="key" />
+                    <flux:error name="key" />
+                </flux:field>
             @endif
 
-            <x-form.input wire:model="name" :label="__('Name')" required :hint="__('Shown on screen, e.g. Leave application')" />
+            <flux:field>
+                <flux:label>{{ __('Name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                <flux:description>{{ __('Shown on screen, e.g. Leave application') }}</flux:description>
+                <flux:input aria-required="true" wire:model="name" />
+                <flux:error name="name" />
+            </flux:field>
 
-            <x-form.toggle wire:model="isChained" :label="__('Levels one after another')"
-                :hint="__('On: level 2 is asked after level 1 approves. Off: all levels are asked at once.')" />
+            <flux:switch wire:model="isChained" :label="__('Levels one after another')" :description="__('On: level 2 is asked after level 1 approves. Off: all levels are asked at once.')" />
 
-            <x-form.toggle wire:model="isActive" :label="__('Active')" :hint="__('Inactive: documents of this type cannot be submitted.')" />
+            <flux:switch wire:model="isActive" :label="__('Active')" :description="__('Inactive: documents of this type cannot be submitted.')" />
         </form>
 
         <x-slot:footer>

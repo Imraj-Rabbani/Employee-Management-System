@@ -8,7 +8,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * "You have been given a login: set your password." (5.7) [EMP-07]
+ * "You have been given a login: set your password."
  * With register: true, "You are invited to join: complete your registration." (HRM → Employees → Invite user):
  * the person has no employee record yet and fills in their own details.
  * Queued, plain values only (like the Workflow notifications), so the worker needs no company database.

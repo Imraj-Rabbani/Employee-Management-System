@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * "On 3 December I came at 09:00 and left at 18:00" (legacy `attcorrections`). [TA-06]
+ * "On 3 December I came at 09:00 and left at 18:00" (legacy `attcorrections`).
  * Asked by the employee (Self Service) or by HR for them; goes through the approval type "attendance_correction".
  * Once APPROVED, its times replace the first / last punch of that day (AttendanceInputs → AttendanceProcessor),
  * and the day is processed again. An empty time keeps the punch, e.g. only the forgotten "out".

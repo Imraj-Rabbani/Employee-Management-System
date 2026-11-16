@@ -10,7 +10,7 @@ use App\Modules\Payroll\Services\AttendanceReprocessor;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete holiday (modal "holiday-form"). [TA-02]
+ * New / Edit / Delete holiday (modal "holiday-form").
  * Also picks the holiday calendars it belongs to (pivot holiday_holiday_profile): $profileIds.
  */
 class HolidayForm extends LookupForm
@@ -74,7 +74,7 @@ class HolidayForm extends LookupForm
     }
 
     /**
-     * Saves the ticked calendars, then processes attendance again (7.5) on the holiday's past days, for the
+     * Saves the ticked calendars, then processes attendance again on the holiday's past days, for the
      * employees of every calendar it was or is in. Also the OLD date when the date was changed.
      * The jobs wait for the transaction (LookupForm::save) to be committed.
      *

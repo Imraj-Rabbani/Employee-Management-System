@@ -15,7 +15,7 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * Profile header → "Login": who logs in as this employee, and Give login / Resend / Unlink. [EMP-07]
+ * Profile header → "Login": who logs in as this employee, and Give login / Resend / Unlink.
  * Changes need EmployeePolicy::manageLogin (hrm.employee.login + org-unit scope).
  * Choosing a role needs core.users.manage; the Administrator role only an Administrator may give
  * (same rules as Setup → Users).

@@ -22,7 +22,7 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
 /**
- * "Apply for leave" (modal "leave-form"), new or changed after it was sent back. [LV-04]
+ * "Apply for leave" (modal "leave-form"), new or changed after it was sent back.
  *
  *   HR       (HRM → Leave → Applications,   $self = false)  any employee they can see; hrm.leave.manage;
  *            HR-only types allowed, no notice / post-facto limits

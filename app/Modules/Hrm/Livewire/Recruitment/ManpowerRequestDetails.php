@@ -13,7 +13,7 @@ use Livewire\Component;
 
 /**
  * The body of one manpower request's page: status, details, approval timeline, and the buttons
- * Edit / Send for approval. [REC-01]
+ * Edit / Send for approval.
  *
  * A Livewire component (not plain Blade) so it can redraw itself after "Send" or after the edit modal
  * saved, without reloading the page.

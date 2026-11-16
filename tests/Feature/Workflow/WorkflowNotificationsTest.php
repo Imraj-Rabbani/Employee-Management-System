@@ -24,7 +24,7 @@ use Tests\Fixtures\ApprovableNote;
 use Tests\TestCase;
 
 /**
- * Task 3.5: in-app + email notifications, and approving from the email with a signed link. [WF-03]
+ * In-app + email notifications, and approving from the email with a signed link.
  *
  * Set-up: level 1 = role "Managers" (Mina), level 2 = role "Finance" (Farid).
  */

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
 /**
- * Self Service web punch settings (company settings, 7.3e), shown on the Devices tab. [TA-04]
+ * Self Service web punch settings (company settings, 7.3e), shown on the Devices tab.
  *
  *   attendance.web_punch          may employees punch in the browser (My Attendance)?   default: no
  *   attendance.web_punch_location must the browser send its location?                   default: yes

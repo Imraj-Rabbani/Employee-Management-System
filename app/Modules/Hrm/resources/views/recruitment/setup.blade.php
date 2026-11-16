@@ -14,7 +14,16 @@
     <div class="space-y-4">
         <x-ui.section-tabs section="hrm.recruitment" />
 
-        <x-ui.link-tabs size="sm" :label="__('Recruitment setup')" :tabs="collect($sections)->map(fn ($x, $key) => ['label' => $x[0], 'href' => route('hrm.recruitment.setup.'.$key), 'current' => $key === $section])->all()" />
+        {{-- Second row of tabs: each one is its own page. --}}
+        <nav class="flex gap-1 overflow-x-auto border-b border-zinc-200 [scrollbar-width:none] dark:border-white/10" aria-label="{{ __('Recruitment setup') }}">
+            @foreach ($sections as $key => $tab)
+                <a href="{{ route('hrm.recruitment.setup.'.$key) }}" wire:navigate @class([
+                    '-mb-px shrink-0 whitespace-nowrap border-b-2 px-2.5 py-1.5 text-xs font-medium transition',
+                    'border-brand-800 text-brand-900 dark:border-white dark:text-white' => $key === $section,
+                    'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200' => $key !== $section,
+                ]) @if ($key === $section) aria-current="page" @endif>{{ $tab[0] }}</a>
+            @endforeach
+        </nav>
 
         <div class="flex items-center justify-between gap-4">
             <flux:subheading>{{ $intro }}</flux:subheading>

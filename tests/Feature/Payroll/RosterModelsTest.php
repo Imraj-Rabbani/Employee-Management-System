@@ -24,7 +24,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 7.2a: rosters + roster items, approvable. [TA-03]
+ * Rosters + roster items, approvable.
  */
 class RosterModelsTest extends TestCase
 {

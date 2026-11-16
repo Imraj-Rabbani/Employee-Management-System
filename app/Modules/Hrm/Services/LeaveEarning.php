@@ -9,7 +9,7 @@ use App\Modules\Hrm\Models\LeaveType;
 use Carbon\CarbonImmutable;
 
 /**
- * Which earning periods of one leave type are due for one employee, and how many days each earns. [LV-05]
+ * Which earning periods of one leave type are due for one employee, and how many days each earns.
  * PURE: no database, no clock (tests/Unit/LeaveEarningTest.php). AccrueEarnedLeave loads the inputs,
  * skips periods already credited (leave_accruals) and writes the rest.
  *

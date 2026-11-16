@@ -3,7 +3,7 @@
 namespace App\Modules\Hrm\Enums;
 
 /**
- * Where a job offer is (6.7). NOT stored: JobOffer::status() works it out. [REC-06]
+ * Where a job offer is. NOT stored: JobOffer::status() works it out.
  *
  *     draft → pending approval → approved → letter sent → accepted / declined
  *                             ↘ sent back (edit, send again)   ↘ rejected (by the approver: dead)

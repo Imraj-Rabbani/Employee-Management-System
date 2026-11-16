@@ -16,7 +16,7 @@ use Livewire\Component;
 
 /**
  * One leave application (modal "leave-details"): details, counted days, approval timeline, and the buttons
- * "Change and send again" (sent back) and "Withdraw" (WithdrawLeave). [LV-04]
+ * "Change and send again" (sent back) and "Withdraw" (WithdrawLeave).
  *
  *   HR   ($self = false)  applications of employees they can see; hrm.leave.manage; may withdraw started leave
  *   ESS  ($self = true)   own applications only

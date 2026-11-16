@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Task 7.6: attendance corrections (legacy `attcorrections` / the correction part of `attclearances`). [TA-06]
+ * Attendance corrections (legacy `attcorrections` / the correction part of `attclearances`).
  * "On 3 December I came at 09:00 and left at 18:00": once approved, these times replace the punches
  * of that day when attendance is processed.
  *

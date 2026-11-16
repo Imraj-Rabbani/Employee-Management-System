@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * One employee's processed day (legacy `attendance`). Written by attendance processing only. [TA-05]
+ * One employee's processed day (legacy `attendance`). Written by attendance processing only.
  * All durations are minutes.
  *
  * @property int $id
@@ -47,7 +47,7 @@ class AttendanceDay extends TenantModel
 
     /**
      * No activity-log entry per day: every employee's days are rewritten nightly and on every change.
-     * Who changed attendance is in the corrections (7.6), not here.
+     * Who changed attendance is in the corrections, not here.
      *
      * @var list<string>
      */

@@ -7,7 +7,7 @@ use App\Core\Support\PeriodCycle;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
-/** Task 9.1: year + month + cycle → start, end, days. [PR-01] */
+/** Year + month + cycle → start, end, days. */
 class PeriodTest extends TestCase
 {
     public function test_a_monthly_period(): void

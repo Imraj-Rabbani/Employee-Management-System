@@ -7,7 +7,7 @@ use App\Modules\Hrm\Models\InterviewFactor;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete interview factor (modal "interview-factor-form"). [REC-05]
+ * New / Edit / Delete interview factor (modal "interview-factor-form").
  * Everything except the fields and the weight check comes from LookupForm.
  */
 class InterviewFactorForm extends LookupForm

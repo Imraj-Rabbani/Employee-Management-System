@@ -6,7 +6,7 @@ use App\Core\Enums\HasOptions;
 
 /**
  * "Sandwich rule" (legacy `leavetypes.bridgingType`): weekends / holidays right before or after the leave
- * are added to it, so nobody takes Thursday + Sunday off and gets a free long weekend. Checked in 8.3. [LV-01]
+ * are added to it, so nobody takes Thursday + Sunday off and gets a free long weekend. Checked when leave is applied for (LeaveRules).
  *
  *     None       not added
  *     OneSided   added on ONE side (the shorter run of days off, as in legacy)

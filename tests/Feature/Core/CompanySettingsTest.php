@@ -11,7 +11,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 2.8b: Setup → Company Settings. [FND-03]
+ * Setup → Company Settings.
  */
 class CompanySettingsTest extends TestCase
 {

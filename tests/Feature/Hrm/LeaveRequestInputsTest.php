@@ -26,8 +26,8 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 8.3: the database side of the leave rules: LeaveRequestInputs and the days off from the attendance
- * setup (WorkCalendar → AttendanceWorkCalendar). The rules themselves: tests/Unit/LeaveRulesTest.php. [LV-01]
+ * The database side of the leave rules: LeaveRequestInputs and the days off from the attendance
+ * setup (WorkCalendar → AttendanceWorkCalendar). The rules themselves: tests/Unit/LeaveRulesTest.php.
  *
  *     December 2026:  Tue 1  Wed 2  Thu 3  Fri 4  Sat 5  Sun 6
  */

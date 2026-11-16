@@ -17,7 +17,16 @@
             <flux:button size="sm" variant="ghost" icon="chevron-right" wire:click="next" :aria-label="__('Next month')" />
         </div>
         @if ($mode === 'hr')
-            <div class="w-64"><x-form.select wire:model.live="orgUnitId" :options="$units" :placeholder="__('All org units')" /></div>
+            <div class="w-64">
+            <flux:field>
+                <flux:select wire:model.live="orgUnitId">
+                    <flux:select.option value="">{{ __('All org units') }}</flux:select.option>
+                    @foreach ($units as $optionValue => $optionLabel)
+                        <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:error name="orgUnitId" />
+            </flux:field></div>
         @endif
         <div class="w-56"><flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Name or code')" size="sm" /></div>
     </div>
@@ -26,9 +35,14 @@
         <flux:callout variant="warning" icon="information-circle" :heading="__('Only the first :n employees are shown. Choose an org unit or search to see the others.', ['n' => \App\Modules\Payroll\Livewire\Attendance\TeamCalendar::MAX_ROWS])" />
     @endif
 
-    <x-ui.card :padding="false">
+    <div class="glass overflow-hidden rounded-2xl">
         @if ($employees->isEmpty())
-            <x-ui.empty icon="users" :heading="$mode === 'team' ? __('Nobody reports to you') : __('No employees')" />
+            <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                    <flux:icon name="users" />
+                </div>
+                <flux:heading size="lg" class="mt-4">{{ $mode === 'team' ? __('Nobody reports to you') : __('No employees') }}</flux:heading>
+            </div>
         @else
             <div class="max-h-[70vh] overflow-auto">
                 <table class="text-[11px]">
@@ -67,7 +81,7 @@
                 </table>
             </div>
         @endif
-    </x-ui.card>
+    </div>
 
     <flux:text class="text-xs">
         {{ __('P present · ½ half day · A absent · L leave · O off · H holiday · orange dot = late. Hover a day for its times. Empty = not processed yet.') }}

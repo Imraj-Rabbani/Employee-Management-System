@@ -8,7 +8,7 @@ use App\Modules\Payroll\Models\SalaryImport;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-/** Runs a salary Excel import in the background (9.6), like Hrm\Jobs\ImportEmployees. Needs a queue worker. */
+/** Runs a salary Excel import in the background, like Hrm\Jobs\ImportEmployees. Needs a queue worker. */
 class ImportSalaries implements ShouldQueue
 {
     use Queueable;

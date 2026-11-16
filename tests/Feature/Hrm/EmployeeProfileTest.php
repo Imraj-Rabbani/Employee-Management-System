@@ -12,7 +12,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 5.3: the employee profile page with tabs. [EMP-01]
+ * The employee profile page with tabs.
  *
  * Structure: Head Office › Finance and Head Office › Sales.
  * Rahim (Finance) reports to Salma (Sales).

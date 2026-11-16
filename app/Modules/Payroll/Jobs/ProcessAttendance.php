@@ -12,7 +12,7 @@ use Illuminate\Foundation\Queue\Queueable;
 
 /**
  * Queued: (re)process one employee's attendance for a range of days. One job per employee, so a big
- * company's night run is spread over the queue workers and one bad employee does not stop the rest. [TA-05]
+ * company's night run is spread over the queue workers and one bad employee does not stop the rest.
  *
  *     ProcessAttendance::dispatch($employee->id, '2026-12-01', '2026-12-31');
  */

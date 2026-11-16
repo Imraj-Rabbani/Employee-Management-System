@@ -27,7 +27,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.6: score sheets (by the interviewer or HR), My Interviews, and results / ranking. [REC-05]
+ * Score sheets (by the interviewer or HR), My Interviews, and results / ranking.
  */
 class InterviewScoreSheetTest extends TestCase
 {

@@ -7,7 +7,7 @@ use App\Modules\Hrm\Enums\Gender;
 use Illuminate\Validation\Rule;
 
 /**
- * Profile → Family & Nominees → "Family members" card. [EMP-02]
+ * Profile → Family & Nominees → "Family members" card.
  */
 class FamilyMembers extends EmployeeRecords
 {

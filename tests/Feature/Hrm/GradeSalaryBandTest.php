@@ -11,7 +11,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.7: a salary band (monthly gross from / to) per grade, for comparing offers. [REC-06]
+ * A salary band (monthly gross from / to) per grade, for comparing offers.
  */
 class GradeSalaryBandTest extends TestCase
 {

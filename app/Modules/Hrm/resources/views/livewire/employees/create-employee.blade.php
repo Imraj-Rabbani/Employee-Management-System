@@ -3,23 +3,101 @@
         :subheading="__('The basics only. You fill in the rest on the profile, which opens after saving.')">
         <form wire:submit="save" id="employee-create-form" class="space-y-6">
             <div class="grid gap-4 sm:grid-cols-[1fr_2fr_2fr]">
-                <x-form.input wire:model="form.code" :label="__('Employee code')" required />
-                <x-form.input wire:model="form.first_name" :label="__('First name')" required />
-                <x-form.input wire:model="form.last_name" :label="__('Last name')" />
+                <flux:field>
+                    <flux:label>{{ __('Employee code') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:input aria-required="true" wire:model="form.code" />
+                    <flux:error name="form.code" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('First name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:input aria-required="true" wire:model="form.first_name" />
+                    <flux:error name="form.first_name" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Last name') }}</flux:label>
+                    <flux:input wire:model="form.last_name" />
+                    <flux:error name="form.last_name" />
+                </flux:field>
             </div>
             <div class="grid gap-4 sm:grid-cols-[1fr_2fr_2fr]">
-                <x-form.input wire:model="form.title" :label="__('Title')" :hint="__('Mr, Ms, Dr')" />
-                <x-form.input wire:model="form.name_local" :label="__('Name (local)')" />
-                <x-form.select wire:model="form.gender" :label="__('Gender')" :options="$genders" :placeholder="__('Not set')" />
+                <flux:field>
+                    <flux:label>{{ __('Title') }}</flux:label>
+                    <flux:description>{{ __('Mr, Ms, Dr') }}</flux:description>
+                    <flux:input wire:model="form.title" />
+                    <flux:error name="form.title" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Name (local)') }}</flux:label>
+                    <flux:input wire:model="form.name_local" />
+                    <flux:error name="form.name_local" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Gender') }}</flux:label>
+                    <flux:select wire:model="form.gender">
+                        <flux:select.option value="">{{ __('Not set') }}</flux:select.option>
+                        @foreach ($genders as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="form.gender" />
+                </flux:field>
             </div>
 
             <flux:separator :text="__('Job')" />
             <div class="grid gap-4 sm:grid-cols-2">
-                <x-form.date wire:model="form.join_date" :label="__('Join date')" required />
-                <x-form.select wire:model="form.org_unit_id" :label="__('Org unit')" :options="$units" :placeholder="__('Choose…')" required />
-                <x-form.select wire:model="form.designation_id" :label="__('Designation')" :options="$designations" :placeholder="__('None')" />
-                <x-form.select wire:model="form.employment_type_id" :label="__('Employment type')" :options="$types" :placeholder="__('None')" />
-                <x-form.select wire:model="form.grade_id" :label="__('Grade')" :options="$grades" :placeholder="__('None')" />
+                <flux:field>
+                    <flux:label>{{ __('Join date') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:input type="date" aria-required="true" wire:model="form.join_date" />
+                    <flux:error name="form.join_date" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Org unit') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:select aria-required="true" wire:model="form.org_unit_id">
+                        <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
+                        @foreach ($units as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="form.org_unit_id" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Designation') }}</flux:label>
+                    <flux:select wire:model="form.designation_id">
+                        <flux:select.option value="">{{ __('None') }}</flux:select.option>
+                        @foreach ($designations as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="form.designation_id" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Employment type') }}</flux:label>
+                    <flux:select wire:model="form.employment_type_id">
+                        <flux:select.option value="">{{ __('None') }}</flux:select.option>
+                        @foreach ($types as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="form.employment_type_id" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Grade') }}</flux:label>
+                    <flux:select wire:model="form.grade_id">
+                        <flux:select.option value="">{{ __('None') }}</flux:select.option>
+                        @foreach ($grades as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="form.grade_id" />
+                </flux:field>
             </div>
         </form>
 

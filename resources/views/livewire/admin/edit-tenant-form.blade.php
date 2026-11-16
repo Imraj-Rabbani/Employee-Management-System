@@ -1,11 +1,21 @@
 <div>
     <x-ui.modal name="edit-tenant" :heading="__('Edit company')" :subheading="$code ? __('Code: :code (cannot be changed)', ['code' => $code]) : null">
         <form wire:submit="save" class="space-y-6" id="edit-tenant-form">
-            <x-form.input wire:model="name" :label="__('Company name')" required />
+            <flux:field>
+                <flux:label>{{ __('Company name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                <flux:input aria-required="true" wire:model="name" />
+                <flux:error name="name" />
+            </flux:field>
 
             <div class="grid gap-4 sm:grid-cols-2">
-                <x-form.toggle wire:model="isActive" :label="__('Active')" :hint="__('Inactive companies cannot log in.')" />
-                <x-form.date wire:model="expiresAt" :label="__('Subscription ends')" :hint="__('Empty = no end date.')" />
+                <flux:switch wire:model="isActive" :label="__('Active')" :description="__('Inactive companies cannot log in.')" />
+
+                <flux:field>
+                    <flux:label>{{ __('Subscription ends') }}</flux:label>
+                    <flux:description>{{ __('Empty = no end date.') }}</flux:description>
+                    <flux:input type="date" wire:model="expiresAt" />
+                    <flux:error name="expiresAt" />
+                </flux:field>
             </div>
 
             <flux:checkbox.group wire:model="modules" :label="__('Modules')" :description="__('Core and Self Service are always on.')">
@@ -31,8 +41,19 @@
                             @endforelse
                         </flux:checkbox.group>
                     @else
-                        <x-form.select wire:model="plugins.{{ $key }}" :label="__($slot['label'])" :options="$slot['options']" :placeholder="__('Default')"
-                            :hint="$moduleOff ? __('Only used when :module is switched on.', ['module' => $moduleOptions[$slot['module']]]) : null" />
+                        <flux:field>
+                            <flux:label>{{ __($slot['label']) }}</flux:label>
+                            @if ($moduleOff)
+                                <flux:description>{{ __('Only used when :module is switched on.', ['module' => $moduleOptions[$slot['module']]]) }}</flux:description>
+                            @endif
+                            <flux:select wire:model="plugins.{{ $key }}">
+                                <flux:select.option value="">{{ __('Default') }}</flux:select.option>
+                                @foreach ($slot['options'] as $optionValue => $optionLabel)
+                                    <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:error name="plugins.{{ $key }}" />
+                        </flux:field>
                     @endif
                     <flux:error name="plugins.{{ $key }}.*" />
                 @endforeach

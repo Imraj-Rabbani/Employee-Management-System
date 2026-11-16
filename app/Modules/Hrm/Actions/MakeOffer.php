@@ -12,13 +12,12 @@ use LogicException;
 
 /**
  * Everything that changes a job offer, except the approval itself (that is the workflow: JobOffer::onApproved()).
- * [REC-06]
  *
  *     $offers = app(MakeOffer::class);
  *     $offers->problem($application)                       can an offer be made now?
  *     $offers->create($application, [...], auth()->id())   a draft
  *     $offers->update($offer, [...])                       draft / sent back only
- *     $offers->letterSent($offer)                          after the letter was emailed (6.7d)
+ *     $offers->letterSent($offer)                          after the letter was emailed
  *     $offers->accept($offer, $date)                       the applicant said yes → 6.8 can hire
  *     $offers->decline($offer, $date, $reasonId, $note)    said no → the application is WITHDRAWN with that reason
  *

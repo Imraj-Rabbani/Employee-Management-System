@@ -13,7 +13,7 @@ use App\Modules\Payroll\Services\PayrollSettings;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete salary head (modal "salary-head-form"). [PC-01]
+ * New / Edit / Delete salary head (modal "salary-head-form").
  * Besides the fields, the form shows a RULE PREVIEW: type a sample basic / gross / days and see what the head
  * would come to, live, before saving. The sample values are not saved.
  */

@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT tables for leave balances (8.2). [LV-03] Architecture §11.
+ * TENANT tables for leave balances. Architecture §11.
  *
  *   leave_ledger    APPEND-ONLY: every change of a balance is one row (+ adds days, − takes them).
  *                   Rows are never edited or deleted: a mistake is fixed with a new row (correction or reversal).
@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Schema;
  *
  * `year` = the LEAVE year, named after the calendar year it starts in (setting leave.year_start_month;
  * July 2026 – June 2027 = 2026). See App\Modules\Hrm\Data\LeaveYear.
- * Amounts decimal(7,2): accrual (8.5) earns fractions such as 0.85 day.
+ * Amounts decimal(7,2): accrual earns fractions such as 0.85 day.
  *
  * Nothing in the legacy system matches this: it recomputed balances from `leaves` + profile values every time.
  */

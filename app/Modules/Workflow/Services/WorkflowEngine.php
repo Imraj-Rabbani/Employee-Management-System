@@ -24,12 +24,12 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Moves documents through their approval workflow. [WF-03]
+ * Moves documents through their approval workflow.
  *
  *     $leave->submitForApproval();                       (HasApprovals calls start())
  *     app(WorkflowEngine::class)->start($leave, $user);  same, with an explicit requester
  *     app(WorkflowEngine::class)->findWorkflow($leave);  which workflow would be used (or null)
- *     app(WorkflowEngine::class)->respond($approval, ApprovalStatus::Approved, $user, 'OK');   [WF-04]
+ *     app(WorkflowEngine::class)->respond($approval, ApprovalStatus::Approved, $user, 'OK');
  *
  * After each commit it fires ApprovalRequested / ApprovalAnswered; their listeners send notifications.
  */
@@ -60,7 +60,7 @@ class WorkflowEngine
             throw WorkflowException::noSteps($workflow->name);
         }
 
-        // Chained: only level 1 now, the next level once it approves (3.4). Not chained: all levels at once.
+        // Chained: only level 1 now, the next level once it approves. Not chained: all levels at once.
         $firstSteps = $workflow->approvalType->is_chained
             ? $steps->where('level', $steps->min('level'))
             : $steps;
@@ -77,14 +77,14 @@ class WorkflowEngine
             fn () => new Collection(array_map(fn (array $row) => $document->approvals()->create($row), $rows))
         );
 
-        // Committed: now it is safe to tell the approvers (task 3.5).
+        // Committed: now it is safe to tell the approvers.
         $created->each(fn (Approval $approval) => ApprovalRequested::dispatch($approval));
 
         return $created;
     }
 
     /**
-     * One approver answers one approval row. [WF-04, WF-05]
+     * One approver answers one approval row.
      *
      *   Approved  → other approvers of the same level are no longer asked; then either the next
      *               level is asked (chained), or we wait for other levels (not chained), or it was
@@ -143,7 +143,7 @@ class WorkflowEngine
                 throw WorkflowException::attachmentRequired();
             }
 
-            // Documents that ask the approver for a number (7.7): required to approve, between 0 and the max.
+            // Documents that ask the approver for a number: required to approve, between 0 and the max.
             $document = $row->approvable;
             $asksAmount = $document instanceof AsksApproverForAmount;
             if ($decision === ApprovalStatus::Approved && $asksAmount
@@ -200,7 +200,7 @@ class WorkflowEngine
 
         $approval->refresh();
 
-        // Committed: notify (task 3.5). If anything above threw, we never get here and nobody is told.
+        // Committed: notify. If anything above threw, we never get here and nobody is told.
         ApprovalAnswered::dispatch($approval);
         foreach ($nextRows as $newRow) {
             ApprovalRequested::dispatch($newRow);

@@ -5,16 +5,16 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT tables for leave setup (8.1). [LV-01, LV-02]
+ * TENANT tables for leave setup.
  *
  *   leave_types          (legacy `leavetypes`)          Casual leave, Sick leave ... and ALL their rules
  *   leave_profiles       (legacy `leaveprofiles`)       "Staff", "Workers" ... assigned to employees
  *   leave_profile_items  (legacy `leaveitems`)          days per year of each leave type in a profile
  *
- * The rules are only STORED here. They are checked by LeaveRules (8.3), earned by the accrual job (8.5),
- * carried forward by CarryForwardLeave (8.5), encashed in 8.6.
+ * The rules are only STORED here. They are checked by LeaveRules, earned by the accrual job,
+ * carried forward by CarryForwardLeave, encashed by leave encashments.
  *
- * Day counts are decimal(5,1) so half days (0.5) fit. NULL = "no limit" / "not used", never 0:
+ * Day counts are decimal(5,1) so half days fit. NULL = "no limit" / "not used", never 0:
  * 0 is a real value (e.g. attachment needed for MORE than 0 days = always).
  *
  * Legacy columns NOT ported: lfa / minForLfa (leave fare assistance), deductionPriority / mandatoryPriority
@@ -59,16 +59,16 @@ return new class extends Migration
             $table->boolean('requires_balance')->default(true);         // may not go below 0
             $table->decimal('max_balance', 5, 1)->nullable();           // at most this much can be available
 
-            // Earning (8.5).
+            // Earning.
             $table->unsignedTinyInteger('earn_type')->default(0);       // LeaveEarnType
             $table->decimal('earn_per_days_worked', 5, 2)->nullable();  // PerDaysWorked: 1 day per N days
 
-            // Year end (8.5).
+            // Year end.
             $table->boolean('can_carry_forward')->default(false);
             $table->decimal('carry_forward_limit', 5, 1)->nullable();   // NULL = everything left
             $table->unsignedSmallInteger('carry_forward_expiry_months')->nullable();  // NULL = never expires
 
-            // Encashment (8.6).
+            // Encashment.
             $table->boolean('is_encashable')->default(false);
             $table->decimal('encash_limit', 5, 1)->nullable();          // days per encashment; NULL = all
 
@@ -96,7 +96,7 @@ return new class extends Migration
             $table->unique(['leave_profile_id', 'leave_type_id']);
         });
 
-        // employees.leave_profile_id was a plain id since Phase 5: now the table exists.
+        // employees.leave_profile_id was a plain id until now: now the table exists.
         Schema::table('employees', function (Blueprint $table) {
             $table->foreign('leave_profile_id')->references('id')->on('leave_profiles')->restrictOnDelete();
         });

@@ -7,7 +7,7 @@ use App\Modules\Payroll\Models\OvertimeRequest;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * Fake overtime requests: OvertimeRequest::factory()->for($employee)->approved(2.5)->create(['date' => '2026-12-03']).
+ * Fake overtime requests: OvertimeRequest::factory()->for($employee)->approved->create(['date' => '2026-12-03']).
  * Default: 1 December 2026, 2 hours, not sent for approval.
  *
  * @extends Factory<OvertimeRequest>

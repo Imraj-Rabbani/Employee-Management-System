@@ -13,7 +13,7 @@ use Livewire\Component;
 
 /**
  * Payroll → Salary Setup → Settings: which head does which job for the payroll run (head mapping, legacy headTax,
- * headPF ...) and the default pay scale profile. [PC-04, PC-05]
+ * headPF ...) and the default pay scale profile.
  *
  * A head must be of the role's type (tax: deduction, overtime: earning ...), not the basic, and do one job only.
  */

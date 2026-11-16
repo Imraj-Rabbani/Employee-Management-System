@@ -2,7 +2,7 @@
 
 namespace App\Modules\Hrm\Livewire\Recruitment;
 
-/** Applicant profile → "Work history" card. Same fields and rules as the employee's. [REC-03] */
+/** Applicant profile → "Work history" card. Same fields and rules as the employee's. */
 class ApplicantWorkHistories extends ApplicantRecords
 {
     protected function relation(): string

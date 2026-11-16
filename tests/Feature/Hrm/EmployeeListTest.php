@@ -15,7 +15,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 5.2: HRM → Employees list. [EMP-05]
+ * HRM → Employees list.
  *
  * Structure used: Head Office › Finance › Accounts, and Head Office › Sales.
  * Employees: Rahim (Finance), Karim (Accounts, separated), Salma (Sales, Grade 5, Contract).
@@ -88,7 +88,7 @@ class EmployeeListTest extends TestCase
     public function test_the_org_unit_filter_includes_sub_units(): void
     {
         Livewire::test(EmployeeTable::class)
-            ->set('filters.org_unit', (string) $this->finance->id)
+            ->set('orgUnit', (string) $this->finance->id)
             ->assertSee('Rahim Uddin')
             ->assertSee('Karim Hasan')     // in Accounts, under Finance
             ->assertDontSee('Salma Begum');
@@ -97,17 +97,17 @@ class EmployeeListTest extends TestCase
     public function test_status_grade_and_type_filters(): void
     {
         Livewire::test(EmployeeTable::class)
-            ->set('filters.status', '3')   // Separated
+            ->set('status', '3')   // Separated
             ->assertSee('Karim Hasan')
             ->assertDontSee('Rahim Uddin');
 
         Livewire::test(EmployeeTable::class)
-            ->set('filters.grade_id', (string) $this->grade5->id)
+            ->set('gradeId', (string) $this->grade5->id)
             ->assertSee('Salma Begum')
             ->assertDontSee('Rahim Uddin');
 
         Livewire::test(EmployeeTable::class)
-            ->set('filters.employment_type_id', (string) $this->contract->id)
+            ->set('employmentTypeId', (string) $this->contract->id)
             ->assertSee('Salma Begum')
             ->assertDontSee('Karim Hasan');
     }
@@ -122,16 +122,6 @@ class EmployeeListTest extends TestCase
 
         Livewire::test(EmployeeTable::class)->set('search', 'সালমা')
             ->assertSee('Salma Begum')->assertDontSee('Rahim Uddin');
-    }
-
-    public function test_columns_can_be_hidden(): void
-    {
-        Livewire::test(EmployeeTable::class)
-            ->assertSee('Head Office')     // org unit filter option path
-            ->call('toggleColumn', 'mobile')
-            ->assertSet('hiddenColumns', ['mobile'])
-            ->call('toggleColumn', 'code')       // always visible: ignored
-            ->assertSet('hiddenColumns', ['mobile']);
     }
 
     public function test_export_downloads_an_excel_file(): void

@@ -44,7 +44,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 8.4: leave applications → approval → ledger debit + attendance; withdrawal. [LV-04]
+ * Leave applications → approval → ledger debit + attendance; withdrawal.
  *
  * Today = Thursday 10 December 2026. Friday + Saturday are the weekend.
  *     December 2026:  Sun 6  Mon 7  Tue 8  Wed 9  Thu 10  Fri 11  Sat 12  Sun 13  Mon 14  Tue 15  Wed 16

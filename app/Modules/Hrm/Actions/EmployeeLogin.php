@@ -13,7 +13,7 @@ use LogicException;
 use Throwable;
 
 /**
- * Gives an employee a login, or takes it away (5.7). [EMP-07]
+ * Gives an employee a login, or takes it away.
  *
  *     $logins = app(EmployeeLogin::class);
  *     $logins->invite($employee, 'rahim@acme.com', $role, auth()->user());   new login + email

@@ -6,7 +6,7 @@ use App\Core\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * One degree / exam of an employee (legacy `academics`). [EMP-03]
+ * One degree / exam of an employee (legacy `academics`).
  *
  * @property int $id
  * @property int $employee_id

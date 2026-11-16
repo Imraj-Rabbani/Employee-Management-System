@@ -8,7 +8,7 @@ use Carbon\CarbonInterface;
 /**
  * One leave year. It starts on the 1st of the company's start month (setting leave.year_start_month,
  * default 1 = January, like legacy `leaveStartMonth`) and is named after the calendar year it STARTS in:
- * with start month 7, LeaveYear 2026 = 1 July 2026 – 30 June 2027. [LV-03]
+ * with start month 7, LeaveYear 2026 = 1 July 2026 – 30 June 2027.
  *
  *     LeaveYear::containing('2027-03-10')    the leave year that date is in
  *     LeaveYear::of(2026)                    by its number

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * One credited earning period (8.5): written only by Services\AccrueEarnedLeave. [LV-05]
+ * One credited earning period: written only by Services\AccrueEarnedLeave.
  * Its Earned ledger row has this as source. No own history: the ledger is the history.
  *
  * @property int $id

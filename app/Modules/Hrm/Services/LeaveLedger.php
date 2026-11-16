@@ -16,21 +16,21 @@ use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 /**
- * The ONE place that changes leave balances. [LV-03] Architecture §11.
+ * The ONE place that changes leave balances. Architecture §11.
  *
  * Every change is a new leave_ledger row (never an edit), and after each row the cached leave_balances
  * row is rebuilt from the ledger, in the same transaction. So a balance is always SUM(ledger) and every
  * number on screen can be explained row by row.
  *
  *     $ledger->credit($employee, $casual, $year, 10, LeaveEntryType::Earned)
- *     $ledger->debit($employee, $casual, $year, 2, LeaveEntryType::Taken, source: $application)   (8.4)
+ *     $ledger->debit($employee, $casual, $year, 2, LeaveEntryType::Taken, source: $application)
  *     $ledger->adjust($employee, $casual, $year, -1.5, 'Counted twice in March')
  *     $ledger->reverse($application)                     withdrawn leave: undoes all its rows
- *     $ledger->closeYear($employee, $casual, $year)      year end: carry forward, the rest expires (8.5)
- *     $ledger->expireCarriedForward($today)             carried days past their expiry (8.5)
+ *     $ledger->closeYear($employee, $casual, $year)      year end: carry forward, the rest expires
+ *     $ledger->expireCarriedForward($today)             carried days past their expiry
  *     $ledger->balance($employee, $casual, $year)        float
  *
- * Rules such as "may this employee take 3 days?" are NOT here: that is LeaveRules (8.3). This class
+ * Rules such as "may this employee take 3 days?" are NOT here: that is LeaveRules. This class
  * only refuses entries that make no sense (a negative credit, a Taken credit).
  */
 class LeaveLedger

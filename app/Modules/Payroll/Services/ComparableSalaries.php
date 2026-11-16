@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * Current monthly gross of the employees (still employed) in a grade or designation: count, min, max, average.
  * Company-wide on purpose (not limited to the org units the user may see): only totals come out, and only from
- * MIN_PEOPLE people up. [PC-03, REC-06]
+ * MIN_PEOPLE people up.
  */
 class ComparableSalaries implements SalaryBenchmarks
 {

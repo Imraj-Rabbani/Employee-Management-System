@@ -1,6 +1,6 @@
 {{--
-    HRM → Leave → Applications (8.4). Leave applications of the employees the user can see; apply for one.
-    Approvers answer in their Approvals inbox. [LV-04]
+    HRM → Leave → Applications. Leave applications of the employees the user can see; apply for one.
+    Approvers answer in their Approvals inbox.
 --}}
 <x-layouts.app :title="__('Leave')">
     <div class="space-y-4">

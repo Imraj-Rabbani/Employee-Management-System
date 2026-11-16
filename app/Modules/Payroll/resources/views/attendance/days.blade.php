@@ -1,5 +1,5 @@
 {{--
-    Payroll → Attendance → Daily attendance (7.5). The processed days, and "Process again" for a date range. [TA-05, TA-06]
+    Payroll → Attendance → Daily attendance. The processed days, and "Process again" for a date range.
 --}}
 <x-layouts.app :title="__('Attendance')">
     <div class="space-y-4">

@@ -6,7 +6,7 @@ use App\Modules\Hrm\Enums\DocumentType;
 use Illuminate\Validation\Rule;
 
 /**
- * Profile → Documents: NID, passport, licences ... with expiry warnings and a scan per row. [EMP-03]
+ * Profile → Documents: NID, passport, licences ... with expiry warnings and a scan per row.
  */
 class Documents extends EmployeeRecords
 {

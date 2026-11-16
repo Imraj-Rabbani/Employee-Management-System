@@ -30,18 +30,18 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 
 /**
- * A person employed by the company (legacy `employees`). [EMP-01]
+ * A person employed by the company (legacy `employees`).
  *
  *     $employee->name                    "Rahim Uddin" (first + last)
  *     $employee->status                  EmployeeStatus::Active (enum, thanks to the cast)
- *     $employee->grade->name             org data (Phase 4) through belongsTo relations
+ *     $employee->grade->name             org data through belongsTo relations
  *     $employee->supervisor              another Employee (self-referencing)
  *     $employee->subordinates            employees who report to this one
- *     $employee->orgAssignments          org unit history, newest first (5.4)
- *     $employee->familyMembers / nominees   family and nominees (5.5)
- *     $employee->educations / workHistories education and earlier jobs (5.5)
- *     $employee->documents / bankAccounts   documents with expiry, bank accounts (5.5)
- *     $employee->user                    the login (central DB), set in 5.7
+ *     $employee->orgAssignments          org unit history, newest first
+ *     $employee->familyMembers / nominees   family and nominees
+ *     $employee->educations / workHistories education and earlier jobs
+ *     $employee->documents / bankAccounts   documents with expiry, bank accounts
+ *     $employee->user                    the login (central DB), set when the employee is invited
  *     Employee::active()->get()          only Active ones
  *
  * Every query only returns the employees the logged-in user may see: #[ScopedBy] attaches the
@@ -90,8 +90,8 @@ use Illuminate\Validation\Rule;
  * @property int|null $holiday_profile_id
  * @property int|null $leave_profile_id
  * @property int|null $salary_profile_id
- * @property bool $salary_on_hold Payroll (9.4): the payroll run leaves the salary unpaid until switched off
- * @property bool $bank_transfer_on_hold Payroll (9.4): paid, but not sent to the bank
+ * @property bool $salary_on_hold Payroll: the payroll run leaves the salary unpaid until switched off
+ * @property bool $bank_transfer_on_hold Payroll: paid, but not sent to the bank
  * @property string|null $salary_hold_reason
  * @property int|null $pay_scale_profile_id
  * @property int|null $tax_profile_id
@@ -108,7 +108,7 @@ class Employee extends TenantModel
     use HasFactory;
 
     /**
-     * user_id is deliberately not fillable: the login link is made only by the "link user" action (5.7),
+     * user_id is deliberately not fillable: the login link is made only by the "link user" action,
      * never from a form.
      */
     protected $fillable = [
@@ -199,8 +199,8 @@ class Employee extends TenantModel
     }
 
     /**
-     * Validation rules for the personal fields, shared by HR's Personal form (5.3) and the employee's
-     * profile update request (5.8), so both check exactly the same. $ignoreId = the employee being changed.
+     * Validation rules for the personal fields, shared by HR's Personal form and the employee's
+     * profile update request, so both check exactly the same. $ignoreId = the employee being changed.
      *
      * @return array<string, list<mixed>>
      */
@@ -261,7 +261,7 @@ class Employee extends TenantModel
     }
 
     /**
-     * Org unit history, newest first. Change it only through ChangeOrgUnit. [EMP-04]
+     * Org unit history, newest first. Change it only through ChangeOrgUnit.
      *
      * @return HasMany<EmployeeOrgAssignment, $this>
      */
@@ -271,7 +271,7 @@ class Employee extends TenantModel
     }
 
     /**
-     * Family members: parents first, then spouse, children ... (by relation number), oldest first. [EMP-02]
+     * Family members: parents first, then spouse, children ... (by relation number), oldest first.
      *
      * @return HasMany<EmployeeFamilyMember, $this>
      */
@@ -281,7 +281,7 @@ class Employee extends TenantModel
     }
 
     /**
-     * Nominees, in the order they were added. Their shares must total 100%. [EMP-02]
+     * Nominees, in the order they were added. Their shares must total 100%.
      *
      * @return HasMany<EmployeeNominee, $this>
      */
@@ -291,7 +291,7 @@ class Employee extends TenantModel
     }
 
     /**
-     * Education, newest first. [EMP-03]
+     * Education, newest first.
      *
      * @return HasMany<EmployeeEducation, $this>
      */
@@ -301,7 +301,7 @@ class Employee extends TenantModel
     }
 
     /**
-     * Jobs before this company, newest first. [EMP-03]
+     * Jobs before this company, newest first.
      *
      * @return HasMany<EmployeeWorkHistory, $this>
      */
@@ -311,7 +311,7 @@ class Employee extends TenantModel
     }
 
     /**
-     * Documents: those expiring first on top, documents without expiry last. [EMP-03]
+     * Documents: those expiring first on top, documents without expiry last.
      *
      * @return HasMany<EmployeeDocument, $this>
      */
@@ -321,7 +321,7 @@ class Employee extends TenantModel
     }
 
     /**
-     * Bank accounts, primary first. [EMP-01]
+     * Bank accounts, primary first.
      *
      * @return HasMany<EmployeeBankAccount, $this>
      */
@@ -389,7 +389,7 @@ class Employee extends TenantModel
     }
 
     /**
-     * Which leave types this employee may take and how many days per year (8.1). NULL = no leave set up yet.
+     * Which leave types this employee may take and how many days per year. NULL = no leave set up yet.
      *
      * @return BelongsTo<LeaveProfile, $this>
      */
@@ -399,7 +399,7 @@ class Employee extends TenantModel
     }
 
     /**
-     * Salary structure (Payroll, 9.3); the employee's own salary heads come in 9.4. NULL = none.
+     * Salary structure (Payroll module); the employee's own salary heads are separate. NULL = none.
      *
      * @return BelongsTo<SalaryProfile, $this>
      */

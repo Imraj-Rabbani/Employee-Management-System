@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * One level of a workflow and who approves it (legacy `workflows` level rows). [WF-02]
+ * One level of a workflow and who approves it (legacy `workflows` level rows).
  *
  * @property int $id
  * @property int $workflow_id

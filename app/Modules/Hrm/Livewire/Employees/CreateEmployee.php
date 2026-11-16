@@ -17,7 +17,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * HRM → Employees → "New employee" (modal "employee-create-form"). [EMP-01]
+ * HRM → Employees → "New employee" (modal "employee-create-form").
  *
  * Only the basics; the rest is filled in on the profile, where the user lands after saving.
  * The org unit must be one the user may see, or they would create someone they cannot open.

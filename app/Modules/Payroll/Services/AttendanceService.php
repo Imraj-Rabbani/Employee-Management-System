@@ -10,8 +10,8 @@ use Illuminate\Support\Carbon;
 
 /**
  * Processes one employee's days and saves them in attendance_days: AttendanceInputs → AttendanceProcessor →
- * updateOrCreate. Used by the ProcessAttendance job (nightly, and on every change, 7.5). [TA-05]
- * Also copies approved overtime hours (7.7) into ot_approved_minutes.
+ * updateOrCreate. Used by the ProcessAttendance job (nightly, and on every change, 7.5).
+ * Also copies approved overtime hours into ot_approved_minutes.
  *
  * Skipped: days before joining, after separation, in the future, and LOCKED days (payroll closed).
  */
@@ -36,7 +36,7 @@ class AttendanceService
             ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
             ->pluck('date')->map(fn ($d) => Carbon::parse($d)->toDateString())->flip();
 
-        // Approved overtime (7.7): what payroll pays, next to the overtime the punches show.
+        // Approved overtime: what payroll pays, next to the overtime the punches show.
         $approvedOt = OvertimeRequest::query()->where('employee_id', $employee->id)->whereNotNull('approved_at')
             ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
             ->get(['date', 'approved_hours'])

@@ -21,7 +21,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * A job offer to an applicant: salary, grade, designation, joining date. Approved through the "job_offer"
- * workflow, then sent as a letter, then accepted or declined. [REC-06]
+ * workflow, then sent as a letter, then accepted or declined.
  *
  *     $offer->status()          OfferStatus, worked out from the columns + approval rows
  *     $offer->comparisons()     the salary against the grade band, the request's range, the expected salary

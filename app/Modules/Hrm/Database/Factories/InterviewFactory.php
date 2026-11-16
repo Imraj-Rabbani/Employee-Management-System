@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * Fake interviews for tests: Interview::factory()->for($application)->create(['round' => 2]).
- * Skips the scheduling rules (6.6b); add panelists yourself.
+ * Skips the scheduling rules; add panelists yourself.
  *
  * @extends Factory<Interview>
  */

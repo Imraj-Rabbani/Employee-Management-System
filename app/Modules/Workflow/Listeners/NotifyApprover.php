@@ -9,7 +9,7 @@ use App\Modules\Workflow\Notifications\ApprovalNeeded;
 use Illuminate\Support\Facades\URL;
 
 /**
- * ApprovalRequested → tell the approver (in-app + email with a signed approve/reject link). [WF-03]
+ * ApprovalRequested → tell the approver (in-app + email with a signed approve/reject link).
  * Runs in the web request (the tenant is active); the notification itself is queued.
  */
 class NotifyApprover

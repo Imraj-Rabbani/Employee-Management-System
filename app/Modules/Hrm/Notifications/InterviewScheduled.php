@@ -8,7 +8,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * To an interviewer: "you are on the panel of an interview" (6.6). [REC-05]
+ * To an interviewer: "you are on the panel of an interview".
  * Sent when an interview is scheduled, and again ($changed) when its time / place changes.
  *
  * Queued, plain values only (like the Workflow notifications), so the worker needs no company database.

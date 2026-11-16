@@ -31,7 +31,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.7: job offers (rules, salary comparison, approval → Offered, answer). [REC-06]
+ * Job offers (rules, salary comparison, approval → Offered, answer).
  */
 class JobOfferTest extends TestCase
 {
@@ -109,7 +109,7 @@ class JobOfferTest extends TestCase
 
         $rows = collect($offer->fresh()->comparisons());
 
-        // band ≤ 38,000 · 35–50k · expects 45,000 · same grade / designation now: nobody has a salary (9.4)
+        // band ≤ 38,000 · 35–50k · expects 45,000 · same grade / designation now: nobody has a salary
         $this->assertSame(['above', 'inside', 'below', null, null], $rows->pluck('verdict')->all());
         $this->assertSame('30,000 – 38,000', $rows[0]['range']);
         $this->assertSame('35,000 – 50,000', $rows[1]['range']);

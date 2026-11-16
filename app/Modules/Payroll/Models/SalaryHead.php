@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
- * A pay component with its calculation rules (legacy `salaryheads`). [PC-01]
+ * A pay component with its calculation rules (legacy `salaryheads`).
  * Always listed by `sequence`: SalaryHead::ordered()->get().
  *
  * @property int $id
@@ -105,7 +105,7 @@ class SalaryHead extends TenantModel
 
     /**
      * What the head comes to for a sample employee: the "rule preview". Null for a formula, because formulas are
-     * evaluated by the payroll run (Phase 10).
+     * evaluated by the payroll run.
      */
     public function preview(Money $basic, Money $gross, int $payableDays): ?Money
     {

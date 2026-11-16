@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Task 8.4: leave applications (legacy `leaves`). [LV-04]
+ * Leave applications (legacy `leaves`).
  *
  *   leave_applications       one request: type, from–to, half day, delegatee, contact, reason, attachment
  *   leave_application_days   the days it COUNTS, one row per date (1 or 0.5). Not simply from–to: excluded

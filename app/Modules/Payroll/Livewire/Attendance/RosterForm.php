@@ -15,8 +15,8 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * New / Edit / Delete roster: the HEADER only (org unit, title, dates). The cells are filled in the grid (7.2c).
- * Modal "roster-form". [TA-03]
+ * New / Edit / Delete roster: the HEADER only (org unit, title, dates). The cells are filled in the grid.
+ * Modal "roster-form".
  *
  * Rules beyond the fields:
  *   - the org unit must be one the user can see (EmployeeVisibility), and cannot change once cells exist

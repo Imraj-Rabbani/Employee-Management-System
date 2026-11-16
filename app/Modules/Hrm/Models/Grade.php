@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $code
  * @property string $name
  * @property int $sequence
- * @property string|null $salary_min monthly gross band (6.7), decimal as a string
+ * @property string|null $salary_min monthly gross band, decimal as a string
  * @property string|null $salary_max
  * @property string|null $description
  * @property bool $is_active

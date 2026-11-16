@@ -9,7 +9,7 @@ use App\Modules\Hrm\Models\LeaveType;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete leave profile (modal "leave-profile-form"), with its days per year per leave type. [LV-02]
+ * New / Edit / Delete leave profile (modal "leave-profile-form"), with its days per year per leave type.
  *
  * $days = [leave_type_id => days]. Empty = the type is NOT in the profile (cannot be taken);
  * 0 = in the profile without days (for leave that needs no balance, e.g. without pay).

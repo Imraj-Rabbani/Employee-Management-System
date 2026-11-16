@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT table: currencies the company works with (legacy `currencies`). [ORG-01, FND-03]
+ * TENANT table: currencies the company works with (legacy `currencies`).
  * The company's DEFAULT currency is still the "currency" setting (Company Settings);
  * this table adds the symbol and an exchange rate against that default (default = 1).
  */

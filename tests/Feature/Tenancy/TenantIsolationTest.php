@@ -14,7 +14,7 @@ use Tests\Fixtures\Note;
 use Tests\TestCase;
 
 /**
- * Task 2.2 "Done when": two tenants each see only their own data.
+ * Two tenants each see only their own data.
  * Uses real databases for both tenants and a real HTTP request through IdentifyTenant.
  */
 class TenantIsolationTest extends TestCase

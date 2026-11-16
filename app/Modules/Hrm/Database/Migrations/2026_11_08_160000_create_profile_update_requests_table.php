@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * An employee asks to change their own personal details; the change is applied when the workflow
- * approves it (legacy `profileupdaterequests`). [EMP-08]
+ * approves it (legacy `profileupdaterequests`).
  *
  *   field_changes  JSON {field: {old, new}}: only the fields that change, with the value at request time
  *   applied_at  set by onApproved() when the new values are written to the employee

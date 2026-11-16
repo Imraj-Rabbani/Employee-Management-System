@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Education (legacy `academics`) and earlier jobs (legacy `workhistory`) of an employee. [EMP-03]
+ * Education (legacy `academics`) and earlier jobs (legacy `workhistory`) of an employee.
  *
  *   score + out_of     "3.75" out of "4.00" (GPA / CGPA) or "65" out of "100" (%). Legacy had only score.
  *   attachment_path    file on the tenant disk (certificate, experience letter); attachment_name = the

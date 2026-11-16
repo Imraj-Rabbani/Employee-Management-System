@@ -16,17 +16,30 @@
                     @endif
                 </div>
 
-                <x-ui.details :items="[
-                    __('Employee') => ($application->employee?->code ?? '').' · '.($application->employee?->name ?? '?'),
-                    __('Leave type') => $application->leaveType?->optionLabel(),
-                    __('Dates') => $application->datesLabel(),
-                    __('Days counted') => $num($application->days).' · '.$application->leaveDays->map(fn ($d) => $d->date->translatedFormat('D j M').($d->days < 1 ? ' (½)' : ''))->implode(', '),
-                    __('Delegatee') => $application->delegatee?->name,
-                    __('Contact during leave') => $application->contact_during_leave,
-                    __('Reason') => $application->reason,
-                    __('Attachment') => $application->attachment_name,
-                    __('Applied on') => format_datetime($application->created_at),
-                ]" />
+                <dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach ([
+                            __('Employee') => ($application->employee?->code ?? '').' · '.($application->employee?->name ?? '?'),
+                            __('Leave type') => $application->leaveType?->optionLabel(),
+                            __('Dates') => $application->datesLabel(),
+                            __('Days counted') => $num($application->days).' · '.$application->leaveDays->map(fn ($d) => $d->date->translatedFormat('D j M').($d->days < 1 ? ' (½)' : ''))->implode(', '),
+                            __('Delegatee') => $application->delegatee?->name,
+                            __('Contact during leave') => $application->contact_during_leave,
+                            __('Reason') => $application->reason,
+                            __('Attachment') => $application->attachment_name,
+                            __('Applied on') => format_datetime($application->created_at),
+                    ] as $detailLabel => $detailValue)
+                        <div>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ $detailLabel }}</dt>
+                            <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                @if ($detailValue === null || $detailValue === '')
+                                    <span class="text-zinc-400">—</span>
+                                @else
+                                    {{ $detailValue }}
+                                @endif
+                            </dd>
+                        </div>
+                    @endforeach
+                </dl>
                 @if ($application->attachment_path)
                     <flux:button size="sm" icon="paper-clip" :href="route('hrm.leave.attachment', $application->id)">{{ __('Download attachment') }}</flux:button>
                 @endif
@@ -49,8 +62,12 @@
                     @else
                         <div class="flex flex-wrap items-end gap-3">{{-- not a form: Enter must not withdraw without the confirmation --}}
                             <div class="min-w-64 flex-1">
-                                <x-form.input wire:model="withdrawReason" :label="__('Withdraw')" :placeholder="__('Reason (optional)')"
-                                    :hint="$application->approved_at ? __('The days go back to the balance.') : __('The approvers are no longer asked.')" />
+                                <flux:field>
+                                    <flux:label>{{ __('Withdraw') }}</flux:label>
+                                    <flux:description>{{ $application->approved_at ? __('The days go back to the balance.') : __('The approvers are no longer asked.') }}</flux:description>
+                                    <flux:input wire:model="withdrawReason" :placeholder="__('Reason (optional)')" />
+                                    <flux:error name="withdrawReason" />
+                                </flux:field>
                             </div>
                             <flux:button variant="danger" icon="x-mark" x-on:click="$dispatch('confirm', {
                                 title: @js(__('Withdraw this leave?')),

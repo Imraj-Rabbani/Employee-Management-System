@@ -188,5 +188,12 @@
     "Resize menu": "মেনুর আকার বদলান",
     "Drag to resize, double-click to reset": "আকার বদলাতে টানুন, আগের মাপে ফেরাতে ডাবল-ক্লিক করুন",
     "Recruitment reports": "নিয়োগ প্রতিবেদন",
-    "Recruitment setup": "নিয়োগ সেটআপ"
+    "Recruitment setup": "নিয়োগ সেটআপ",
+    "The unit head cannot be chosen here yet.": "ইউনিট প্রধান এখনো এখান থেকে বেছে নেওয়া যায় না।",
+    "Switch off once someone holds this position.": "কেউ এই পদে নিযুক্ত হলে এটি বন্ধ করুন।",
+    "Pay levels, in order. A salary profile (Payroll) can be linked to each grade.": "বেতনের স্তর, ক্রমানুসারে। প্রতিটি গ্রেডের সাথে একটি বেতন প্রোফাইল (পেরোল) যুক্ত করা যায়।",
+    "Set the salary afterwards, on the employee's Salary tab.": "বেতন পরে কর্মীর \"বেতন\" ট্যাবে নির্ধারণ করুন।",
+    "Today or earlier. Moves with a future date are not supported yet.": "আজ বা তার আগের তারিখ। ভবিষ্যৎ তারিখের বদলি এখনো সমর্থিত নয়।",
+    "Shift planned day by day on a roster (Attendance → Rosters).": "রোস্টারে দিনভিত্তিক শিফট পরিকল্পনা (হাজিরা → রোস্টার)।",
+    ":name is no longer employed, so leave cannot be encashed.": ":name আর কর্মরত নেই, তাই ছুটি নগদায়ন করা যাবে না।"
 }

@@ -7,9 +7,6 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-/**
- * Task 2.7b: login and logout through Fortify, with our company rules.
- */
 class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;

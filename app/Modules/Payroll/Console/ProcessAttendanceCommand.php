@@ -7,7 +7,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 
 /**
- * Queues attendance processing for the current company (one ProcessAttendance job per employee). [TA-05]
+ * Queues attendance processing for the current company (one ProcessAttendance job per employee).
  *
  *     php artisan tenants:run payroll:process-attendance                     yesterday (the 01:00 schedule)
  *     php artisan tenants:run "payroll:process-attendance --from=2026-12-01 --to=2026-12-31"

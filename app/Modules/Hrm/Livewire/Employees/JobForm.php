@@ -19,10 +19,10 @@ use Illuminate\Validation\Rule;
 
 /**
  * Profile → Job → Edit: code, placement, reporting lines, dates, payment method,
- * attendance: shift, weekend profile, holiday calendar (7.1), and the leave profile (8.1). [EMP-01, TA-01, TA-02, LV-02]
+ * attendance: shift, weekend profile, holiday calendar, and the leave profile.
  *
- * Not here on purpose: status and separation (Lifecycle, Phase 13), and the org unit: that is changed on
- * the History tab (OrgHistory → ChangeOrgUnit) so every move is dated and kept. (5.4)
+ * Not here on purpose: status and separation (Lifecycle), and the org unit: that is changed on
+ * the History tab (OrgHistory → ChangeOrgUnit) so every move is dated and kept.
  *
  * Extra rules:
  *   - supervisor / dotted-line manager: not the employee themself, and no loop (A → B → A)

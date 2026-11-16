@@ -12,7 +12,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 2.8d: Setup → Fiscal Years. [FND-04]
+ * Setup → Fiscal Years.
  */
 class FiscalYearsPageTest extends TestCase
 {

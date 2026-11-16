@@ -14,7 +14,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 2.9b + 2.9c: permission keys from the modules, permissions:sync, and the Gate rules. [FND-05]
+ * Permission keys from the modules, permissions:sync, and the Gate rules.
  */
 class PermissionsTest extends TestCase
 {

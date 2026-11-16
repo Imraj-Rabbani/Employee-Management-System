@@ -5,7 +5,7 @@ namespace App\Modules\Hrm\Data;
 use Carbon\CarbonImmutable;
 
 /**
- * One earning period that is due (LeaveEarning): what to credit, when, to which leave year, and why. [LV-05]
+ * One earning period that is due (LeaveEarning): what to credit, when, to which leave year, and why.
  * $start is also the "already done?" key (leave_accruals.period_start).
  */
 final readonly class EarnedPeriod

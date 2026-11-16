@@ -9,7 +9,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 2.6e: a company only reaches the modules the super admin switched on.
+ * A company only reaches the modules the super admin switched on.
  */
 class ModuleAccessTest extends TestCase
 {

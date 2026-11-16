@@ -15,7 +15,7 @@ use Tests\Concerns\CreatesTenantDatabases;
 use Tests\TestCase;
 
 /**
- * Task 7.3a: devices + punch_logs. [TA-04]
+ * Devices + punch_logs.
  */
 class PunchModelsTest extends TestCase
 {

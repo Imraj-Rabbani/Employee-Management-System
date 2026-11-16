@@ -5,7 +5,7 @@ namespace Tests\Feature\Hrm;
 use App\Modules\Hrm\Enums\ApplicationStage;
 use Tests\TestCase;
 
-/** Task 6.1: the stages of a job application. */
+/** The stages of a job application. */
 class ApplicationStageTest extends TestCase
 {
     public function test_stages_in_pipeline_order(): void

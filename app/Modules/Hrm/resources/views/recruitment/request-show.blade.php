@@ -1,5 +1,5 @@
 {{--
-    HRM → Recruitment → one manpower request (6.2). The route passes $request (already checked with visibleTo).
+    HRM → Recruitment → one manpower request. The route passes $request (already checked with visibleTo).
 --}}
 <x-layouts.app :title="$request->number()">
     <div class="space-y-4">

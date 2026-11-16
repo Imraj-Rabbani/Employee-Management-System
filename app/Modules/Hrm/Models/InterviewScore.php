@@ -6,7 +6,7 @@ use App\Core\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * One panelist's score for one interview factor. [REC-05]
+ * One panelist's score for one interview factor.
  * `weight` is the factor's weight when the score was given, so later setup changes do not rewrite results.
  *
  * @property int $id

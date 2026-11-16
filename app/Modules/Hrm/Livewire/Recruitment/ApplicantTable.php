@@ -2,45 +2,118 @@
 
 namespace App\Modules\Hrm\Livewire\Recruitment;
 
-use App\Core\Livewire\Table\Column;
-use App\Core\Livewire\Table\DataTable;
+use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Models\Applicant;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\HtmlString;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * HRM → Applicants: the talent pool. Search by name, email or phone. [REC-03]
+ * HRM → Applicants: the talent pool. Search by name, email or phone.
  * Phones are stored as digits only (01711000000), so search a phone without spaces or dashes.
+ *
+ * View: app/Modules/Hrm/resources/views/livewire/recruitment/applicant-table.blade.php
  */
-class ApplicantTable extends DataTable
+class ApplicantTable extends Component
 {
+    use WithPagination;
+
+    #[Url(as: 'q', except: '')]
+    public string $search = '';
+
+    #[Url(as: 'sort', except: '')]
+    public string $sortBy = '';
+
+    #[Url(as: 'dir', except: 'asc')]
+    public string $sortDir = 'asc';
+
+    #[Url(as: 'per_page', except: 10)]
+    public int $perPage = 10;
+
+    /** Columns the user may sort by. Anything else sent from the browser is ignored. */
+    private const SORTABLE = ['first_name', 'applications_count', 'created_at'];
+
+    public function sort(string $field): void
+    {
+        if (! in_array($field, self::SORTABLE, true)) {
+            return;
+        }
+
+        // Clicking the same column again flips the direction.
+        $this->sortDir = $this->sortBy === $field && $this->sortDir === 'asc' ? 'desc' : 'asc';
+        $this->sortBy = $field;
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset('search');
+        $this->resetPage();
+    }
+
+    public function export(): BinaryFileResponse
+    {
+        $rows = $this->filteredQuery()->get()->map(fn (Applicant $applicant) => [
+            $applicant->name,
+            $applicant->email,
+            $applicant->phone,
+            $applicant->current_employer,
+            $applicant->applications_count,
+            $applicant->cv_path ? __('Yes') : '',
+            format_date($applicant->created_at),
+        ])->all();
+
+        return Excel::download(
+            new ArrayExport([__('Name'), __('Email'), __('Phone'), __('Current employer'), __('Applications'), __('CV'), __('Added')], $rows),
+            'applicant-table-'.now()->format('Y-m-d').'.xlsx',
+        );
+    }
+
+    /** Typing a search or picking a filter or page size starts again at page 1. */
+    public function updated(string $property): void
+    {
+        if (in_array($property, ['search', 'perPage'], true)) {
+            $this->resetPage();
+        }
+    }
+
     /** @return Builder<Applicant> */
-    protected function query(): Builder
+    private function query(): Builder
     {
         // withCount: one extra column "applications_count" in the same query, no query per row.
         return Applicant::query()->withCount('applications');
     }
 
-    protected function defaultSort(): array
+    /** @return Builder<Applicant> */
+    private function filteredQuery(): Builder
     {
-        return ['id' => 'desc'];
+        $query = $this->query();
+
+        if (trim($this->search) !== '') {
+            // addcslashes: a search for "50%" means the text "50%", not "50 followed by anything".
+            $like = '%'.addcslashes(trim($this->search), '%_\\').'%';
+            $query->where(fn (Builder $q) => $q->where('first_name', 'like', $like)->orWhere('last_name', 'like', $like)->orWhere('email', 'like', $like)->orWhere('phone', 'like', $like));
+        }
+
+        if (in_array($this->sortBy, self::SORTABLE, true)) {
+            $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('id', 'desc');
+        }
+
+        return $query;
     }
 
-    protected function columns(): array
+    public function render(): View
     {
-        return [
-            Column::make(__('Name'), 'first_name')->sortable()->searchable('last_name', 'email', 'phone')->alwaysVisible()
-                ->format(fn (Applicant $a) => new HtmlString(Blade::render(
-                    '<a href="{{ route(\'hrm.recruitment.applicants.show\', $a) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $a->name }}</a>',
-                    ['a' => $a],
-                ))),
-            Column::make(__('Email'), 'email'),
-            Column::make(__('Phone'), 'phone'),
-            Column::make(__('Current employer'), 'current_employer'),
-            Column::make(__('Applications'), 'applications_count')->sortable()->alignRight(),
-            Column::make(__('CV'), 'cv_path')->format(fn (Applicant $a) => $a->cv_path ? __('Yes') : ''),
-            Column::make(__('Added'), 'created_at')->sortable()->format(fn (Applicant $a) => format_date($a->created_at)),
-        ];
+        // A page size typed into the URL that is not offered falls back to 10.
+        $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
+
+        return view('hrm::livewire.recruitment.applicant-table', [
+            'rows' => $this->filteredQuery()->paginate($perPage),
+        ]);
     }
 }

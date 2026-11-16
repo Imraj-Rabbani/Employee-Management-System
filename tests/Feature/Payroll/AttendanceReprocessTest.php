@@ -36,8 +36,8 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 7.5: "Process again" on the Daily attendance tab, and the changes that reprocess by themselves
- * (roster approved, holiday saved / deleted, new or matched punches). [TA-05, TA-06]
+ * "Process again" on the Daily attendance tab, and the changes that reprocess by themselves
+ * (roster approved, holiday saved / deleted, new or matched punches).
  *
  * Today = Thursday 10 December 2026.
  */

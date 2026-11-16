@@ -8,9 +8,9 @@ use App\Modules\Hrm\Models\EmployeeBankAccount;
 use Illuminate\Validation\Rule;
 
 /**
- * Profile → Bank: the employee's accounts. [EMP-01]
+ * Profile → Bank: the employee's accounts.
  *
- * Exactly one is primary as soon as there is any account (salary goes there, Phase 12):
+ * Exactly one is primary as soon as there is any account (salary goes there):
  *   - the first account becomes primary by itself
  *   - marking one primary un-marks the others
  *   - deleting the primary makes the next one primary

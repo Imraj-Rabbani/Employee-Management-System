@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * A change to an APPROVED roster is a new roster ("Plan a change", 7.2d) that points at the one it changes.
- * Once approved, its cells win: RosterItem::planFor() takes the most recently approved roster. [TA-03]
+ * Once approved, its cells win: RosterItem::planFor() takes the most recently approved roster.
  */
 return new class extends Migration
 {

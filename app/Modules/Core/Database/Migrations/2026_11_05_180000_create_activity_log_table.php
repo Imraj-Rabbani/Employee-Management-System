@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT table: who changed what, when (spatie/laravel-activitylog). [FND-06]
+ * TENANT table: who changed what, when (spatie/laravel-activitylog).
  * Filled automatically for every TenantModel; shown by the History component.
  */
 return new class extends Migration

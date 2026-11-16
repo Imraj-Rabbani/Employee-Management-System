@@ -35,7 +35,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 7.3b–e: devices + sync, punch upload, punch list, Self Service web punch. [TA-04]
+ * Devices + sync, punch upload, punch list, Self Service web punch.
  */
 class PunchCaptureTest extends TestCase
 {
@@ -84,7 +84,7 @@ class PunchCaptureTest extends TestCase
         return ['code' => $code, 'punched_at' => Carbon::parse($at)];
     }
 
-    // ---- devices + sync (7.3b, 7.3d) --------------------------------------------------------------
+    // ---- devices + sync --------------------------------------------------------------
 
     public function test_devices_are_set_up_on_their_tab(): void
     {
@@ -158,7 +158,7 @@ class PunchCaptureTest extends TestCase
         $this->assertTrue($event->withoutOverlapping);
     }
 
-    // ---- upload + list (7.3c) ---------------------------------------------------------------------
+    // ---- upload + list ---------------------------------------------------------------------
 
     public function test_the_file_reader_accepts_both_layouts_and_lists_every_problem(): void
     {
@@ -234,7 +234,7 @@ class PunchCaptureTest extends TestCase
         $this->get('/payroll/attendance/punches')->assertOk()->assertSee('E-FAC')->assertDontSee('E-OFF')->assertDontSee('X-UNMATCHED');
     }
 
-    // ---- web punch (7.3e) ----------------------------------------------------------------------------
+    // ---- web punch ----------------------------------------------------------------------------
 
     private function me(array $attributes = []): Employee
     {

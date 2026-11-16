@@ -3,7 +3,7 @@
 namespace App\Modules\Hrm\Livewire\Employees;
 
 /**
- * Profile → Work History → "Earlier jobs" card, with an experience letter per row. [EMP-03]
+ * Profile → Work History → "Earlier jobs" card, with an experience letter per row.
  */
 class WorkHistories extends EmployeeRecords
 {

@@ -15,8 +15,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A kind of leave with its rules: Casual, Sick, Earned, Maternity ... (legacy `leavetypes`). [LV-01]
- * The rules are only stored here (8.1); LeaveRules (8.3) checks them on an application.
+ * A kind of leave with its rules: Casual, Sick, Earned, Maternity ... (legacy `leavetypes`).
+ * The rules are only stored here; LeaveRules checks them on an application.
  * Day counts: NULL = no limit / not used (see the migration).
  *
  * @property int $id

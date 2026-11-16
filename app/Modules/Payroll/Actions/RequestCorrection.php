@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Asks for an attendance correction (new, or changed after it was sent back) and sends it for approval. [TA-06]
+ * Asks for an attendance correction (new, or changed after it was sent back) and sends it for approval.
  * The ONE way corrections are written: by HR (Corrections tab) and by the employee (Self Service).
  *
  *     $values = ['date' => '2026-12-03', 'in' => '09:00' | '', 'out' => '18:00' | '', 'reason' => 'Forgot my card'];

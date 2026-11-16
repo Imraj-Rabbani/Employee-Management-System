@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 /**
- * Self Service → My Attendance → My corrections (7.6): my last corrections with their status and the
- * approver's comment, "Request a correction", and "Change and send again" for one that was sent back. [TA-06, ESS-02]
+ * Self Service → My Attendance → My corrections: my last corrections with their status and the
+ * approver's comment, "Request a correction", and "Change and send again" for one that was sent back.
  * The form itself is CorrectionForm with self = true (own employee record, company limits).
  */
 class MyCorrections extends Component

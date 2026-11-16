@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Each login belongs to one company (tenant).
- * Empty (null) = a platform user, e.g. the super admin who creates tenants (task 2.6).
+ * Empty (null) = a platform user, e.g. the super admin who creates tenants.
  */
 return new class extends Migration
 {

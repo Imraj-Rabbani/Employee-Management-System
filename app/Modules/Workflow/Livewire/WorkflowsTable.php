@@ -2,67 +2,139 @@
 
 namespace App\Modules\Workflow\Livewire;
 
-use App\Core\Livewire\Table\Column;
-use App\Core\Livewire\Table\DataTable;
-use App\Core\Livewire\Table\SelectFilter;
+use App\Core\Exports\ArrayExport;
 use App\Modules\Workflow\Models\ApprovalType;
 use App\Modules\Workflow\Models\Workflow;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\HtmlString;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-/** Workflow → Workflow Setup → Workflows tab. [WF-01] */
-class WorkflowsTable extends DataTable
+/** Workflow → Workflow Setup → Workflows tab. */
+class WorkflowsTable extends Component
 {
-    /** @return Builder<Workflow> */
-    protected function query(): Builder
-    {
-        return Workflow::query()->with(['approvalType', 'scopeOrgUnit', 'scopeEmploymentType'])->withCount('steps');
-    }
+    use WithPagination;
 
-    protected function defaultSort(): array
-    {
-        return ['approval_type_id' => 'asc', 'name' => 'asc'];
-    }
+    #[Url(as: 'q', except: '')]
+    public string $search = '';
 
-    protected function filters(): array
-    {
-        return [
-            SelectFilter::make('approval_type_id', __('Type'), ApprovalType::orderBy('name')->pluck('name', 'id')->mapWithKeys(fn ($name, $id) => [(string) $id => $name])->all()),
-        ];
-    }
+    #[Url(as: 'sort', except: '')]
+    public string $sortBy = '';
 
-    protected function columns(): array
-    {
-        return [
-            Column::make(__('Workflow'), 'name')->sortable()->searchable()->alwaysVisible()
-                ->format(fn (Workflow $w) => new HtmlString(Blade::render(
-                    '<button type="button" x-on:click="$dispatch(\'edit-workflow\', { id: {{ $id }} })" class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $name }}</button>',
-                    ['id' => $w->id, 'name' => $w->name],
-                ))),
-            Column::make(__('Type'), 'approval_type_id')
-                ->format(fn (Workflow $w) => $w->approvalType->name),
-            Column::make(__('Applies to'), 'min_amount')
-                ->format(fn (Workflow $w) => collect([
-                    $w->scopeOrgUnit?->name,
-                    $w->scopeEmploymentType?->name,
-                    $w->min_amount !== null ? __('from :amount', ['amount' => number_format((float) $w->min_amount, 2)]) : null,
-                ])->filter()->implode(' · ') ?: __('Everything')),
-            Column::make(__('Levels'), 'steps_count')->sortable(),
-            Column::make(__('Email'), 'send_email')
-                ->format(fn (Workflow $w) => $w->send_email ? __('Yes') : __('No')),
-            Column::make(__('Active'), 'is_active')->sortable()
-                ->format(fn (Workflow $w) => new HtmlString(Blade::render(
-                    '<x-ui.badge :color="$on ? \'success\' : \'neutral\'">{{ $on ? __(\'Active\') : __(\'Inactive\') }}</x-ui.badge>',
-                    ['on' => $w->is_active],
-                ))),
-        ];
-    }
+    #[Url(as: 'dir', except: 'asc')]
+    public string $sortDir = 'asc';
+
+    /** Filter "Type": '' = all */
+    #[Url(as: 'approval_type_id', except: '')]
+    public string $approvalTypeId = '';
+
+    #[Url(as: 'per_page', except: 10)]
+    public int $perPage = 10;
+
+    /** Columns the user may sort by. Anything else sent from the browser is ignored. */
+    private const SORTABLE = ['name', 'steps_count', 'is_active'];
 
     #[On('workflow-saved')]
     public function refreshList(): void
     {
         // Re-renders the list.
+    }
+
+    public function sort(string $field): void
+    {
+        if (! in_array($field, self::SORTABLE, true)) {
+            return;
+        }
+
+        // Clicking the same column again flips the direction.
+        $this->sortDir = $this->sortBy === $field && $this->sortDir === 'asc' ? 'desc' : 'asc';
+        $this->sortBy = $field;
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset('search', 'approvalTypeId');
+        $this->resetPage();
+    }
+
+    public function export(): BinaryFileResponse
+    {
+        $rows = $this->filteredQuery()->get()->map(fn (Workflow $workflow) => [
+            $workflow->name,
+            $workflow->approvalType->name,
+            collect([
+                $workflow->scopeOrgUnit?->name,
+                $workflow->scopeEmploymentType?->name,
+                $workflow->min_amount !== null ? __('from :amount', ['amount' => number_format((float) $workflow->min_amount, 2)]) : null,
+            ])->filter()->implode(' · ') ?: __('Everything'),
+            $workflow->steps_count,
+            $workflow->send_email ? __('Yes') : __('No'),
+            $workflow->is_active ? __('Active') : __('Inactive'),
+        ])->all();
+
+        return Excel::download(
+            new ArrayExport([__('Workflow'), __('Type'), __('Applies to'), __('Levels'), __('Email'), __('Active')], $rows),
+            'workflows-table-'.now()->format('Y-m-d').'.xlsx',
+        );
+    }
+
+    /** Typing a search or picking a filter or page size starts again at page 1. */
+    public function updated(string $property): void
+    {
+        if (in_array($property, ['search', 'approvalTypeId', 'perPage'], true)) {
+            $this->resetPage();
+        }
+    }
+
+    /** @return Builder<Workflow> */
+    private function query(): Builder
+    {
+        return Workflow::query()->with(['approvalType', 'scopeOrgUnit', 'scopeEmploymentType'])->withCount('steps');
+    }
+
+    /** @return array<int|string, string> choices of the "Type" filter */
+    private function approvalTypeIdOptions(): array
+    {
+        return ApprovalType::orderBy('name')->pluck('name', 'id')->mapWithKeys(fn ($name, $id) => [(string) $id => $name])->all();
+    }
+
+    /** @return Builder<Workflow> */
+    private function filteredQuery(): Builder
+    {
+        $query = $this->query();
+
+        if (trim($this->search) !== '') {
+            // addcslashes: a search for "50%" means the text "50%", not "50 followed by anything".
+            $like = '%'.addcslashes(trim($this->search), '%_\\').'%';
+            $query->where(fn (Builder $q) => $q->where('name', 'like', $like));
+        }
+
+        if ($this->approvalTypeId !== '' && array_key_exists($this->approvalTypeId, $this->approvalTypeIdOptions())) {
+            $query->where('approval_type_id', $this->approvalTypeId);
+        }
+
+        if (in_array($this->sortBy, self::SORTABLE, true)) {
+            $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('approval_type_id', 'asc');
+            $query->orderBy('name', 'asc');
+        }
+
+        return $query;
+    }
+
+    public function render(): View
+    {
+        // A page size typed into the URL that is not offered falls back to 10.
+        $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
+
+        return view('workflow::livewire.workflows-table', [
+            'rows' => $this->filteredQuery()->paginate($perPage),
+            'approvalTypeIdOptions' => $this->approvalTypeIdOptions(),
+        ]);
     }
 }

@@ -19,7 +19,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 9.5: pay scale profiles [PC-04] and the payroll settings screen (head mapping, default pay scale) [PC-05].
+ * Pay scale profiles and the payroll settings screen (head mapping, default pay scale).
  */
 class PayrollSettingsTest extends TestCase
 {

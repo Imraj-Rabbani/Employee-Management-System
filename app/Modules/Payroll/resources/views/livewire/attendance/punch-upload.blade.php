@@ -10,7 +10,12 @@
                 {{ __('A CSV or Excel file. First row: the column names access_code and punched_at (or access_code, date and time). One punch per row, e.g. 1001, 2026-12-01 08:55. Punches already stored are skipped.') }}
             </flux:text>
             <flux:link :href="route('payroll.attendance.punches.template')" class="text-sm">{{ __('Download an example file') }}</flux:link>
-            <x-form.file wire:model="file" :label="__('File')" accept=".csv,.txt,.xlsx,.xls" />
+            <flux:field>
+                <flux:label>{{ __('File') }}</flux:label>
+                <flux:input type="file" wire:model="file" accept=".csv,.txt,.xlsx,.xls" />
+                <flux:text wire:loading wire:target="file" class="mt-2 text-sm">{{ __('Uploading…') }}</flux:text>
+                <flux:error name="file" />
+            </flux:field>
 
             @if ($problems)
                 <flux:callout variant="danger" icon="exclamation-triangle" :heading="__('Nothing was saved. Fix these and upload again:')">

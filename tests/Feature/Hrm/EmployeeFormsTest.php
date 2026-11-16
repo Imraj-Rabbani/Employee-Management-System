@@ -22,7 +22,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 5.3b–d: New employee, edit Personal / Job, photo. [EMP-01]
+ * New employee, edit Personal / Job, photo.
  *
  * Structure: Head Office › Finance and Head Office › Sales. Rahim works in Finance, Salma in Sales.
  */
@@ -72,7 +72,7 @@ class EmployeeFormsTest extends TestCase
         return $user;
     }
 
-    // ---- New employee (5.3b) -------------------------------------------------------------
+    // ---- New employee -------------------------------------------------------------
 
     public function test_a_new_employee_is_created_and_the_profile_opens(): void
     {
@@ -123,7 +123,7 @@ class EmployeeFormsTest extends TestCase
         Livewire::test(CreateEmployee::class)->call('open')->assertForbidden();
     }
 
-    // ---- Personal (5.3b) -----------------------------------------------------------------
+    // ---- Personal -----------------------------------------------------------------
 
     public function test_personal_details_are_saved(): void
     {
@@ -169,7 +169,7 @@ class EmployeeFormsTest extends TestCase
         Livewire::test(PersonalForm::class, ['employee' => $this->salma])->call('open')->assertNotFound();
     }
 
-    // ---- Job (5.3c) ----------------------------------------------------------------------
+    // ---- Job ----------------------------------------------------------------------
 
     public function test_job_details_are_saved(): void
     {
@@ -241,7 +241,7 @@ class EmployeeFormsTest extends TestCase
             ->assertHasErrors('form.position_id');
     }
 
-    // ---- Photo (5.3d) --------------------------------------------------------------------
+    // ---- Photo --------------------------------------------------------------------
 
     public function test_a_photo_is_uploaded_shown_replaced_and_removed(): void
     {

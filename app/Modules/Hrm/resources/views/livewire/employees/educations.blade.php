@@ -1,13 +1,23 @@
 <div>
-    <x-ui.card :heading="__('Education')" :padding="false">
-        @if ($canUpdate)
-            <x-slot:actions>
-                <flux:button size="sm" icon="plus" wire:click="add">{{ __('Add education') }}</flux:button>
-            </x-slot:actions>
-        @endif
+    <div class="glass overflow-hidden rounded-2xl">
+        <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+            <div>
+                <flux:heading size="lg">{{ __('Education') }}</flux:heading>
+            </div>
+            @if ($canUpdate)
+                <div class="flex shrink-0 items-center gap-2">
+                    <flux:button size="sm" icon="plus" wire:click="add">{{ __('Add education') }}</flux:button>
+                </div>
+            @endif
+        </div>
 
         @if ($rows->isEmpty())
-            <x-ui.empty icon="academic-cap" :heading="__('No education added yet')" />
+            <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                    <flux:icon name="academic-cap" />
+                </div>
+                <flux:heading size="lg" class="mt-4">{{ __('No education added yet') }}</flux:heading>
+            </div>
         @else
             <table class="w-full text-sm">
                 <thead class="text-left text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
@@ -48,28 +58,95 @@
                 </tbody>
             </table>
         @endif
-    </x-ui.card>
+    </div>
 
     @if ($canUpdate)
-        <x-form.lookup-modal :$modal :$record size="lg" :heading="$record ? __('Edit education') : __('Add education')"
-            :delete-message="__('The row and its certificate file are deleted.')">
-            <div class="grid gap-4 sm:grid-cols-2">
-                <x-form.input wire:model="form.degree" :label="__('Degree / exam')" required list="degree-suggestions" :hint="__('e.g. SSC, HSC, B Sc (Hon\'s), MBA')" />
-                <datalist id="degree-suggestions">
-                    @foreach ($degreeSuggestions as $degree)
-                        <option value="{{ $degree }}"></option>
-                    @endforeach
-                </datalist>
-                <x-form.input wire:model="form.subject" :label="__('Subject / group')" />
-            </div>
-            <x-form.input wire:model="form.institution" :label="__('Institution')" />
-            <div class="grid gap-4 sm:grid-cols-3">
-                <x-form.input wire:model="form.score" :label="__('Score')" type="number" step="0.01" min="0" :hint="__('GPA, CGPA or %')" />
-                <x-form.input wire:model="form.out_of" :label="__('Out of')" type="number" step="0.01" min="0" :hint="__('e.g. 5, 4 or 100')" />
-                <x-form.input wire:model="form.passing_year" :label="__('Passing year')" type="number" min="1950" :max="now()->year + 1" />
-            </div>
-            <x-form.attachment :$record :label="$record?->attachment_path ? __('Replace certificate') : __('Certificate')"
-                :url="$record ? route('hrm.employees.attachment', [$employee, $section, $record->id]) : null" />
-        </x-form.lookup-modal>
+        <div>
+            <x-ui.modal :name="$modal" size="lg" :heading="$record ? __('Edit education') : __('Add education')">
+                <form wire:submit="save" id="{{ $modal }}" class="space-y-6">
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <flux:field>
+                            <flux:label>{{ __('Degree / exam') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                            <flux:description>{{ __('e.g. SSC, HSC, B Sc (Hon\'s), MBA') }}</flux:description>
+                            <flux:input aria-required="true" wire:model="form.degree" list="degree-suggestions" />
+                            <flux:error name="form.degree" />
+                        </flux:field>
+                        <datalist id="degree-suggestions">
+                            @foreach ($degreeSuggestions as $degree)
+                                <option value="{{ $degree }}"></option>
+                            @endforeach
+                        </datalist>
+                        <flux:field>
+                            <flux:label>{{ __('Subject / group') }}</flux:label>
+                            <flux:input wire:model="form.subject" />
+                            <flux:error name="form.subject" />
+                        </flux:field>
+                    </div>
+                    <flux:field>
+                        <flux:label>{{ __('Institution') }}</flux:label>
+                        <flux:input wire:model="form.institution" />
+                        <flux:error name="form.institution" />
+                    </flux:field>
+                    <div class="grid gap-4 sm:grid-cols-3">
+                        <flux:field>
+                            <flux:label>{{ __('Score') }}</flux:label>
+                            <flux:description>{{ __('GPA, CGPA or %') }}</flux:description>
+                            <flux:input wire:model="form.score" type="number" step="0.01" min="0" />
+                            <flux:error name="form.score" />
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>{{ __('Out of') }}</flux:label>
+                            <flux:description>{{ __('e.g. 5, 4 or 100') }}</flux:description>
+                            <flux:input wire:model="form.out_of" type="number" step="0.01" min="0" />
+                            <flux:error name="form.out_of" />
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>{{ __('Passing year') }}</flux:label>
+                            <flux:input wire:model="form.passing_year" type="number" min="1950" :max="now()->year + 1" />
+                            <flux:error name="form.passing_year" />
+                        </flux:field>
+                    </div>
+                    {{-- Attachment: the current file (download + Remove), then the input to add or replace it. --}}
+                    <div class="space-y-2">
+                        @if ($record?->attachment_path)
+                            <div class="flex items-center gap-2 text-sm">
+                                <flux:icon.paper-clip variant="micro" class="text-zinc-500" />
+                                <a href="{{ route('hrm.employees.attachment', [$employee, $section, $record->id]) }}" class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $record->attachment_name ?? __('Attachment') }}</a>
+                                <flux:button size="xs" variant="ghost" class="!text-red-600" x-on:click="$dispatch('confirm', {
+                                    title: @js(__('Remove this file?')),
+                                    confirmText: @js(__('Remove')),
+                                    onConfirm: () => $wire.removeAttachment(),
+                                })">{{ __('Remove') }}</flux:button>
+                            </div>
+                        @endif
+
+                        <flux:field>
+                            <flux:label>{{ $record?->attachment_path ? __('Replace certificate') : __('Certificate') }}</flux:label>
+                            <flux:description>{{ __('PDF, JPG, PNG or Word, max 5 MB.') }}</flux:description>
+                            <flux:input type="file" wire:model="upload" accept=".pdf,.jpg,.jpeg,.png,.docx" />
+                            <flux:text wire:loading wire:target="upload" class="mt-2 text-sm">{{ __('Uploading…') }}</flux:text>
+                            <flux:error name="upload" />
+                        </flux:field>
+                    </div>
+
+                    {{-- Delete: only when editing an existing record --}}
+                    @if ($record)
+                        <flux:separator />
+                        <flux:button size="sm" variant="ghost" icon="trash" class="!text-red-600" x-on:click="$dispatch('confirm', {
+                            title: @js(__('Delete this record?')),
+                            message: @js(__('The row and its certificate file are deleted.')),
+                            confirmText: @js(__('Delete')),
+                            onConfirm: () => $wire.delete(),
+                        })">{{ __('Delete') }}</flux:button>
+                    @endif
+                </form>
+
+                <x-slot:footer>
+                    <flux:button type="submit" form="{{ $modal }}" variant="primary">{{ __('Save') }}</flux:button>
+                </x-slot:footer>
+            </x-ui.modal>
+        </div>
     @endif
 </div>

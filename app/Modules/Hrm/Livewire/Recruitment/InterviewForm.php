@@ -17,7 +17,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * Schedule an interview round / change a planned one (modal "interview-form"). [REC-05]
+ * Schedule an interview round / change a planned one (modal "interview-form").
  *
  *     $dispatch('schedule-interview', { applicationId: 12 })   new round (from the pipeline)
  *     $dispatch('edit-interview', { id: 4 })                   change a planned round (from the Interviews card)

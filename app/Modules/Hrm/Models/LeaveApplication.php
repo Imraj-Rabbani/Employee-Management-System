@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * "I take Casual leave from 1 to 3 December" (legacy `leaves`). Approval type "leave". [LV-04]
+ * "I take Casual leave from 1 to 3 December" (legacy `leaves`). Approval type "leave".
  * Written ONLY by Actions\ApplyForLeave (new / changed after a send-back) and Actions\WithdrawLeave.
  *
  *   approved  → onApproved(): days taken from the balance (LeaveLedger, source = this), attendance processed again

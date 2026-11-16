@@ -37,7 +37,7 @@ class CoreServiceProvider extends ModuleServiceProvider
             return $this->app->make(Permissions::class)->check($user, $ability);
         });
 
-        // "Set your password" from the invitation email (5.7): NO login, so outside the module's "auth" +
+        // "Set your password" from the invitation email: NO login, so outside the module's "auth" +
         // "tenant" group. "signed" rejects a URL whose signature is wrong or expired.
         Route::middleware(['web', 'signed', 'throttle:30,1'])
             ->prefix('invitation')

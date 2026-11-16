@@ -8,7 +8,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * To the APPLICANT (on-demand, they have no login): the offer letter as a PDF attachment (6.7). [REC-06]
+ * To the APPLICANT (on-demand, they have no login): the offer letter as a PDF attachment.
  *
  * Queued, plain values only: the PDF is made BEFORE queuing (it needs the company database) and carried
  * as base64 text, so the queue worker only has to send it.

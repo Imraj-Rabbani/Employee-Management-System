@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
-/** Task 9.1: Money is exact (no floats), immutable, and round-trips through a DECIMAL column. */
+/** Money is exact (no floats), immutable, and round-trips through a DECIMAL column. */
 class MoneyTest extends TestCase
 {
     public function test_it_adds_without_float_errors(): void

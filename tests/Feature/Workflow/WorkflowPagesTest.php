@@ -29,8 +29,8 @@ use Tests\Fixtures\ApprovableNote;
 use Tests\TestCase;
 
 /**
- * Task 3.6: Workflow Setup (types + workflows with levels), My Approvals inbox,
- * <x-approval-timeline> and the notification bell. [WF-01, WF-06]
+ * Workflow Setup (types + workflows with levels), My Approvals inbox,
+ * <x-approval-timeline> and the notification bell.
  */
 class WorkflowPagesTest extends TestCase
 {
@@ -199,7 +199,7 @@ class WorkflowPagesTest extends TestCase
 
         // The last level approved, so the fixture's onApproved() renamed the note to "approved".
         Livewire::test(MyApprovalsTable::class)->assertDontSee('Note: approved');
-        Livewire::test(MyApprovalsTable::class)->set('filters.show', 'answered')->assertSee('Note: approved')->assertSee('Approved');
+        Livewire::test(MyApprovalsTable::class)->set('show', 'answered')->assertSee('Note: approved')->assertSee('Approved');
     }
 
     public function test_reject_without_a_reason_shows_the_error_in_the_modal(): void

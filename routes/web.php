@@ -21,7 +21,7 @@ Route::view('dashboard', 'dashboard')
     ->name('dashboard');
 
 Route::middleware(['auth'])->group(function () {
-    // Demo for task 1.2e: proves PDF generation works. Remove once real payslips exist.
+    // Demo for Proves PDF generation works. Remove once real payslips exist.
     Route::get('hello-pdf', function () {
         return Pdf::loadView('pdf.hello', [
             'name' => auth()->user()->name,

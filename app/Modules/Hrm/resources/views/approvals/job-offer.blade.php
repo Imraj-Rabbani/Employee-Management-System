@@ -13,17 +13,30 @@
     ];
 @endphp
 <div class="space-y-4">
-    <x-ui.details :items="[
-        __('Applicant') => $application->applicant->name,
-        __('Job') => $application->jobPosting->number().' · '.$application->jobPosting->title,
-        __('Org unit') => $application->jobPosting->manpowerRequest->orgUnit?->name,
-        __('Designation') => $document->designation?->name,
-        __('Grade') => $document->grade?->name,
-        __('Employment type') => $document->employmentType?->name,
-        __('Gross salary (monthly)') => number_format((float) $document->gross_salary),
-        __('Joining date') => format_date($document->joining_date),
-        __('Answer by') => $document->expires_on ? format_date($document->expires_on) : null,
-    ]" />
+    <dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+        @foreach ([
+                __('Applicant') => $application->applicant->name,
+                __('Job') => $application->jobPosting->number().' · '.$application->jobPosting->title,
+                __('Org unit') => $application->jobPosting->manpowerRequest->orgUnit?->name,
+                __('Designation') => $document->designation?->name,
+                __('Grade') => $document->grade?->name,
+                __('Employment type') => $document->employmentType?->name,
+                __('Gross salary (monthly)') => number_format((float) $document->gross_salary),
+                __('Joining date') => format_date($document->joining_date),
+                __('Answer by') => $document->expires_on ? format_date($document->expires_on) : null,
+        ] as $detailLabel => $detailValue)
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ $detailLabel }}</dt>
+                <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                    @if ($detailValue === null || $detailValue === '')
+                        <span class="text-zinc-400">—</span>
+                    @else
+                        {{ $detailValue }}
+                    @endif
+                </dd>
+            </div>
+        @endforeach
+    </dl>
 
     <div class="overflow-hidden rounded-xl ring-1 ring-zinc-500/15">
         <table class="w-full text-sm">

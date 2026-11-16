@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * One applicant applying to one job posting. [REC-03]
+ * One applicant applying to one job posting.
  * Created ONLY through Hrm\Actions\ApplyToPosting (it checks the posting takes applications and the
  * person has not applied to it already). Its stage changes ONLY through Hrm\Actions\MoveApplication,
  * which also writes the history (stageChanges). stage / rejection_reason_id / stage_changed_at are
@@ -27,7 +27,7 @@ use Illuminate\Support\Carbon;
  * @property ApplicationStage $stage
  * @property int|null $rejection_reason_id the current reason (rejected / withdrawn), copied from the last move
  * @property Carbon|null $stage_changed_at when it reached its current stage
- * @property int|null $hired_employee_id the employee made from it by the hire (6.8)
+ * @property int|null $hired_employee_id the employee made from it by the hire
  * @property Carbon $applied_on
  * @property int|null $created_by_user_id
  * @property Carbon $created_at
@@ -61,7 +61,7 @@ class Application extends TenantModel
     }
 
     /**
-     * The history, oldest first. [REC-04]
+     * The history, oldest first.
      *
      * @return HasMany<ApplicationStageChange, $this>
      */
@@ -71,7 +71,7 @@ class Application extends TenantModel
     }
 
     /**
-     * Interview rounds, round 1 first. [REC-05]
+     * Interview rounds, round 1 first.
      *
      * @return HasMany<Interview, $this>
      */
@@ -81,7 +81,7 @@ class Application extends TenantModel
     }
 
     /**
-     * Job offers, newest first (a new one only after the previous was declined / not approved). [REC-06]
+     * Job offers, newest first (a new one only after the previous was declined / not approved).
      *
      * @return HasMany<JobOffer, $this>
      */
@@ -91,7 +91,7 @@ class Application extends TenantModel
     }
 
     /**
-     * The employee this application became (6.8). withoutGlobalScope: HR may see the hiring history even
+     * The employee this application became. withoutGlobalScope: HR may see the hiring history even
      * when the new employee sits in a unit outside their access.
      *
      * @return BelongsTo<Employee, $this>

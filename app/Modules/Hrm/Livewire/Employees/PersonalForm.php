@@ -9,7 +9,7 @@ use App\Modules\Hrm\Enums\Religion;
 use App\Modules\Hrm\Models\Employee;
 
 /**
- * Profile → Personal → Edit: name, personal details, identity and contact. [EMP-01]
+ * Profile → Personal → Edit: name, personal details, identity and contact.
  */
 class PersonalForm extends EmployeeSectionForm
 {
@@ -20,7 +20,7 @@ class PersonalForm extends EmployeeSectionForm
 
     protected function fieldRules(): array
     {
-        return Employee::personalRules($this->employeeId);   // shared with profile update requests (5.8)
+        return Employee::personalRules($this->employeeId);   // shared with profile update requests
     }
 
     protected function labels(): array

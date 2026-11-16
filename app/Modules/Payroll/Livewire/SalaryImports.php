@@ -14,7 +14,7 @@ use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
-/** Payroll → Salary Setup → Import salaries: upload, follow the queued import, read the error report. [PC-03] */
+/** Payroll → Salary Setup → Import salaries: upload, follow the queued import, read the error report. */
 class SalaryImports extends Component
 {
     use WithFileUploads;

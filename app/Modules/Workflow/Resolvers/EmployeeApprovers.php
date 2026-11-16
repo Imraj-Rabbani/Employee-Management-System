@@ -10,7 +10,7 @@ use App\Modules\Workflow\Models\WorkflowStep;
 
 /**
  * ApproverType::Employee: the login of the one employee chosen on the step (approver_employee_id).
- * Nobody when that employee has no login (5.7) or is the requester.
+ * Nobody when that employee has no login or is the requester.
  *
  * withoutGlobalScope: the REQUESTER's visibility must not decide who approves (an employee in self
  * service can only "see" themselves).

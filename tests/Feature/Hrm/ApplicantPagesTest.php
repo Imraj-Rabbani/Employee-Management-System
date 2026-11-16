@@ -23,8 +23,8 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.4: HRM → Applicants (list, New / Edit with duplicate check and CV, profile with education,
- * work history and applications) and the posting page's Applicants card. [REC-03]
+ * HRM → Applicants (list, New / Edit with duplicate check and CV, profile with education,
+ * work history and applications) and the posting page's Applicants card.
  */
 class ApplicantPagesTest extends TestCase
 {

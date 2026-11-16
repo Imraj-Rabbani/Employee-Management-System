@@ -15,7 +15,7 @@ use Livewire\Component;
 /**
  * Base for an applicant's list-of-rows cards (education, work history): the rows plus an add / edit /
  * delete modal. The applicant version of EmployeeRecords, simpler: no files, no policy (the page route
- * needs hrm.recruitment.manage, re-checked by Livewire on every click). [REC-03]
+ * needs hrm.recruitment.manage, re-checked by Livewire on every click).
  *
  * A child class declares relation() ('educations' → modal "applicant-educations-form"), defaults(),
  * fieldRules(), view(); optional labels() and check($values).

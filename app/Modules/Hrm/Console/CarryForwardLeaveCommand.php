@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 /**
  * Leave year end for the current company (CarryForwardLeave): closes the previous leave year once it is
  * CLOSE_AFTER_DAYS days over, then expires carried days that ran out. Safe to run again. Scheduled every
- * night at 03:30, after hrm:accrue-leave (so the last month is earned before the year closes). [LV-05]
+ * night at 03:30, after hrm:accrue-leave (so the last month is earned before the year closes).
  *
  *     php artisan tenants:run hrm:carry-forward-leave
  *     php artisan tenants:run "hrm:carry-forward-leave --date=2027-01-20"

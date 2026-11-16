@@ -13,7 +13,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * One employee's attendance month as a calendar (7.8). [TA-08]
+ * One employee's attendance month as a calendar.
  * Processed days show their status, in / out, late, corrected and overtime; days not processed yet show the plan
  * (shift, weekend, holiday) so the employee also sees what is coming.
  *

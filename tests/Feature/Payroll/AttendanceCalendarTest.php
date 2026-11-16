@@ -23,7 +23,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 7.8: attendance calendars — my month (Self Service), my team (managers), and HR's Calendar tab. [TA-08]
+ * Attendance calendars — my month (Self Service), my team (managers), and HR's Calendar tab.
  *
  * Today = Thursday 10 December 2026. December 2026 starts on a Tuesday.
  */

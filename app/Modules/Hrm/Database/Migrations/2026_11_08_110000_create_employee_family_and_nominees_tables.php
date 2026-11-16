@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Family members and nominees of an employee. [EMP-02]
+ * Family members and nominees of an employee.
  *
  *   relation        EmployeeRelation enum (tinyint, legacy numbers), not a string as schema.mmd says.
  *   share_percent   decimal(5,2): 33.33 + 33.33 + 33.34 = 100 exactly (floats would drift).

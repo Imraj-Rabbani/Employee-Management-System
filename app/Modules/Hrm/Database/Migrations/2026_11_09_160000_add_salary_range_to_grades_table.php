@@ -5,9 +5,9 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * A pay band per grade: the monthly gross a person in this grade normally earns (6.7, decided 2026-11-09).
- * An offer (6.7) shows whether its proposed salary is inside the band. Not in legacy; both optional.
- * Salary PROFILES per grade (the head-by-head template) come separately in Phase 9.
+ * A pay band per grade: the monthly gross a person in this grade normally earns.
+ * An offer shows whether its proposed salary is inside the band. Not in legacy; both optional.
+ * Salary PROFILES per grade (the head-by-head template) are in the Payroll module.
  */
 return new class extends Migration
 {

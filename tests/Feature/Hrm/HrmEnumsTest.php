@@ -13,9 +13,9 @@ use Illuminate\Validation\Rule;
 use Tests\TestCase;
 
 /**
- * Task 4.4: HRM enums ported from legacy Hrm/Constants.
+ * HRM enums ported from legacy Hrm/Constants.
  *
- * The numbers MUST stay equal to legacy's: the SSS data migration (Phase 15) copies them as they are.
+ * The numbers MUST stay equal to legacy's: the SSS data migration copies them as they are.
  * If one of these tests fails, someone renumbered an enum: put the number back.
  */
 class HrmEnumsTest extends TestCase

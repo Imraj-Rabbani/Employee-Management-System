@@ -9,7 +9,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
- * One fiscal year of the current company (tenant DB). [FND-04]
+ * One fiscal year of the current company (tenant DB).
  *
  *     FiscalYear::active()                    the active year, or null
  *     FiscalYear::containing('2026-03-15')    the year that date falls in, or null

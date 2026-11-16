@@ -6,7 +6,7 @@ use App\Modules\Hrm\Models\InterviewPanelist;
 use Illuminate\Support\Facades\Route;
 
 // Prefix "/ess" and name "ess." come from HrmServiceProvider. No permission needed: everyone may see
-// their OWN record; pages show a message when the login is not linked to an employee (5.7).
+// their OWN record; pages show a message when the login is not linked to an employee.
 
 // My Profile = the normal profile page of the employee linked to this login.
 Route::get('profile', function () {
@@ -19,10 +19,10 @@ Route::get('profile', function () {
 
 Route::view('profile-requests', 'hrm::ess.profile-requests')->name('profile-requests');
 
-// My Leave Requests (8.4): my balances, apply, my applications. [LV-04, ESS-02]
+// My Leave Requests: my balances, apply, my applications.
 Route::view('leave', 'hrm::ess.leave')->name('leave');
 
-// My Interviews (6.6): the panels this employee sits on, with their score sheets.
+// My Interviews: the panels this employee sits on, with their score sheets.
 Route::view('interviews', 'hrm::ess.interviews')->name('interviews');
 
 // An interviewer may download the CV of an applicant THEY interview: the panel seat must be their own.

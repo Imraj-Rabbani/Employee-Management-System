@@ -14,7 +14,7 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * Profile → History → "Org unit history": the timeline, "Change org unit" and "Undo". [EMP-04]
+ * Profile → History → "Org unit history": the timeline, "Change org unit" and "Undo".
  * All changes go through the ChangeOrgUnit action.
  */
 class OrgHistory extends Component

@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 /**
  * @phpstan-import-type Hire from RecruitmentStats
  *
- * Recruitment report: time to hire (6.9). [REC-07]
+ * Recruitment report: time to hire.
  *
  *   Time to hire   days from the application (applied_on) to the hire
  *   Time to fill   days from the manpower request's approval to the hire

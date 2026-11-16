@@ -5,8 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT table `attendance_days` (legacy `attendance`): the RESULT of processing one employee's day. [TA-05]
- * Written only by attendance processing (7.4); payroll reads it (absent days, overtime).
+ * TENANT table `attendance_days` (legacy `attendance`): the RESULT of processing one employee's day.
+ * Written only by attendance processing; payroll reads it (absent days, overtime).
  *
  * All durations are whole MINUTES (no floats; payroll converts to hours). Overtime:
  *   ot_pre_minutes    worked before the shift start  (workdays)
@@ -39,7 +39,7 @@ return new class extends Migration
             $table->unsignedSmallInteger('ot_pre_minutes')->default(0);
             $table->unsignedSmallInteger('ot_post_minutes')->default(0);
             $table->unsignedSmallInteger('ot_minutes')->default(0);
-            $table->unsignedSmallInteger('ot_approved_minutes')->nullable();   // from overtime requests (7.7)
+            $table->unsignedSmallInteger('ot_approved_minutes')->nullable();   // from overtime requests
 
             $table->string('note', 255)->nullable();                     // e.g. "Single punch"
             $table->boolean('is_locked')->default(false);                // payroll closed this period: never reprocess

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * One degree / exam of an applicant. Same columns as EmployeeEducation, without a certificate file,
- * so 6.8 can copy them to the new employee as they are. [REC-03]
+ * so 6.8 can copy them to the new employee as they are.
  *
  * @property int $id
  * @property int $applicant_id

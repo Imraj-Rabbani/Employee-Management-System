@@ -6,7 +6,7 @@ use App\Core\Enums\HasOptions;
 
 /**
  * Blood group (legacy `BloodGroups`). The numbers are legacy's, not in a natural order: keep them.
- * Backed by the SAME integers as legacy, so migrated data (Phase 15) keeps its values.
+ * Backed by the SAME integers as legacy, so migrated data keeps its values.
  * Legacy 0 = "None" is not a case: store NULL instead.
  *
  *     BloodGroup::from(1)          BloodGroup::APositive

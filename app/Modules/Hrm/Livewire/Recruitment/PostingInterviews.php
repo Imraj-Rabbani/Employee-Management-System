@@ -13,7 +13,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * A job posting's interviews and ranking (below the pipeline). [REC-05]
+ * A job posting's interviews and ranking (below the pipeline).
  *
  *   Interviews  every round of this posting's applicants: when, where, the panel (✓ = scores sent; click a
  *               name to open / enter that sheet), the round's result, and Change / Complete / Cancel.

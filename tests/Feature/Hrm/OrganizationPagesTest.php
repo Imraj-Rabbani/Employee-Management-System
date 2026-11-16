@@ -28,8 +28,8 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 4.2: HRM → Organization screens (DataTable + modal form per table), Setup → Currencies,
- * and the workflow form's org unit / employment type scope. [ORG-01]
+ * HRM → Organization screens (DataTable + modal form per table), Setup → Currencies,
+ * and the workflow form's org unit / employment type scope.
  */
 class OrganizationPagesTest extends TestCase
 {
@@ -254,7 +254,7 @@ class OrganizationPagesTest extends TestCase
     {
         $unit = OrgUnit::factory()->create(['name' => 'Finance']);
         $type = EmploymentType::factory()->create(['name' => 'Contract']);
-        $approvalType = ApprovalType::forKey('leave');   // registered by the leave migration (8.4)
+        $approvalType = ApprovalType::forKey('leave');   // registered by the leave migration
         $role = Role::create(['name' => 'Managers']);
 
         Livewire::test(WorkflowForm::class)

@@ -10,7 +10,12 @@
                 @endif
             </div>
 
-            <x-form.file wire:model="photo" :label="__('Choose a photo')" accept="image/jpeg,image/png,image/webp" />
+            <flux:field>
+                <flux:label>{{ __('Choose a photo') }}</flux:label>
+                <flux:input type="file" wire:model="photo" accept="image/jpeg,image/png,image/webp" />
+                <flux:text wire:loading wire:target="photo" class="mt-2 text-sm">{{ __('Uploading…') }}</flux:text>
+                <flux:error name="photo" />
+            </flux:field>
 
             @if ($employee?->photo_path)
                 <flux:separator />

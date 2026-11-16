@@ -13,7 +13,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.1: HRM → Recruitment → Setup (interview factors, rejection reasons). [REC-04, REC-05]
+ * HRM → Recruitment → Setup (interview factors, rejection reasons).
  */
 class RecruitmentSetupPagesTest extends TestCase
 {

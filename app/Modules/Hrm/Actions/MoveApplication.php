@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use LogicException;
 
 /**
- * Moves an application to another stage and writes the history row. [REC-04]
+ * Moves an application to another stage and writes the history row.
  * The ONLY place (besides ApplyToPosting's first row) that changes applications.stage.
  *
  *     $move = app(MoveApplication::class);
@@ -21,12 +21,12 @@ use LogicException;
  * Rules:
  *   - hired / rejected / withdrawn are final: no more moves
  *   - forward only (applied → interview may skip shortlisted), never back
- *   - Offered and Hired are NOT chosen by hand: the offer (6.7) and the hire (6.8) set them through bySystem()
+ *   - Offered and Hired are NOT chosen by hand: the offer and the hire set them through bySystem()
  *   - rejected / withdrawn need an ACTIVE rejection reason; other stages clear the reason
  */
 class MoveApplication
 {
-    /** Stages HR can pick by hand. Offered / Hired come from 6.7 / 6.8. */
+    /** Stages HR can pick by hand. Offered / Hired come from making an offer / hiring. */
     public const MANUAL = [ApplicationStage::Shortlisted, ApplicationStage::Interview, ApplicationStage::Rejected, ApplicationStage::Withdrawn];
 
     /** @return list<ApplicationStage> where this application can go now (empty when it is closed) */

@@ -21,7 +21,7 @@ use Tests\Fixtures\ApprovableNote;
 use Tests\TestCase;
 
 /**
- * Task 3.4: WorkflowEngine::respond(): approve / reject / send back, next level, ApprovalCompleted. [WF-04, WF-05]
+ * WorkflowEngine::respond(): approve / reject / send back, next level, ApprovalCompleted.
  *
  * Set-up: a 2-level workflow. Level 1 = role "Managers" (Mina), level 2 = role "Finance" (Farid).
  */

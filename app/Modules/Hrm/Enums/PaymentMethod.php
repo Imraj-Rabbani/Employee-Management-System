@@ -5,8 +5,8 @@ namespace App\Modules\Hrm\Enums;
 use App\Core\Enums\HasOptions;
 
 /**
- * How an employee is paid (legacy `PaymentMethods`). Bank → needs a bank account (5.5), used by disbursement (12.1).
- * Backed by the SAME integers as legacy, so migrated data (Phase 15) keeps its values.
+ * How an employee is paid (legacy `PaymentMethods`). Bank → needs a bank account, used by disbursement.
+ * Backed by the SAME integers as legacy, so migrated data keeps its values.
  * Legacy 0 = "None" is not a case: store NULL instead.
  *
  *     PaymentMethod::from(1)          PaymentMethod::Cash

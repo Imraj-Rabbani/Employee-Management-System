@@ -18,7 +18,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 5.5 (part 2): Education and Work History tabs, with attachments. [EMP-03]
+ * Education and Work History tabs, with attachments.
  */
 class EducationAndWorkHistoryTest extends TestCase
 {

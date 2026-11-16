@@ -6,7 +6,7 @@ use App\Modules\Hrm\Models\JobOffer;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 /**
- * The offer letter as a PDF (6.7). [REC-06] Used by the download link AND the email, so both are the same.
+ * The offer letter as a PDF. Used by the download link AND the email, so both are the same.
  *
  *     app(OfferLetter::class)->content($offer)     the PDF bytes
  *     app(OfferLetter::class)->fileName($offer)    "Offer letter OFR-0003 Rahim Uddin.pdf"

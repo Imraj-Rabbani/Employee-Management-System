@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A holiday calendar, e.g. "Head office" or "Factory" (legacy `holidayprofiles`). [TA-02]
+ * A holiday calendar, e.g. "Head office" or "Factory" (legacy `holidayprofiles`).
  * Which holidays it contains: the pivot `holiday_holiday_profile` (legacy `holidayitems`).
  *
  * @property int $id
@@ -36,7 +36,7 @@ class HolidayProfile extends TenantModel
         return ['is_active' => 'boolean'];
     }
 
-    /** The holiday on $date in this calendar, or null. Used by attendance processing (7.4). */
+    /** The holiday on $date in this calendar, or null. Used by attendance processing. */
     public function holidayOn(CarbonInterface $date): ?Holiday
     {
         return $this->holidays()->onDate($date)->first();

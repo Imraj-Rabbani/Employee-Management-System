@@ -2,49 +2,120 @@
 
 namespace App\Modules\Payroll\Livewire\Attendance;
 
-use App\Core\Livewire\Table\Column;
-use App\Core\Livewire\Table\DataTable;
+use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use App\Modules\Payroll\Models\Shift;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\HtmlString;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-/** List of shifts. Click a row's name to edit it. [TA-01] */
-class ShiftTable extends DataTable
+/** List of shifts. Click a row's name to edit it. */
+class ShiftTable extends Component
 {
+    use WithPagination;
+
+    #[Url(as: 'q', except: '')]
+    public string $search = '';
+
+    #[Url(as: 'sort', except: '')]
+    public string $sortBy = '';
+
+    #[Url(as: 'dir', except: 'asc')]
+    public string $sortDir = 'asc';
+
+    #[Url(as: 'per_page', except: 10)]
+    public int $perPage = 10;
+
+    /** Columns the user may sort by. Anything else sent from the browser is ignored. */
+    private const SORTABLE = ['name', 'code', 'start_time', 'hours', 'grace_minutes', 'employees_count', 'is_default', 'is_active'];
+
     /** @var array<string, string> refresh the list when its form saved something */
     protected $listeners = ['shift-saved' => '$refresh'];
 
+    public function sort(string $field): void
+    {
+        if (! in_array($field, self::SORTABLE, true)) {
+            return;
+        }
+
+        // Clicking the same column again flips the direction.
+        $this->sortDir = $this->sortBy === $field && $this->sortDir === 'asc' ? 'desc' : 'asc';
+        $this->sortBy = $field;
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset('search');
+        $this->resetPage();
+    }
+
+    public function export(): BinaryFileResponse
+    {
+        $rows = $this->filteredQuery()->get()->map(fn (Shift $shift) => [
+            $shift->name,
+            $shift->code,
+            $shift->timesLabel(),
+            $shift->hours,
+            $shift->grace_minutes ? __(':n min', ['n' => $shift->grace_minutes]) : '—',
+            $shift->orgUnit->name ?? __('Whole company'),
+            $shift->employees_count,
+            $shift->getAttribute('is_default') ? __('Default') : '',
+            $shift->is_active ? __('Active') : __('Inactive'),
+        ])->all();
+
+        return Excel::download(
+            new ArrayExport([__('Name'), __('Code'), __('Time'), __('Hours'), __('Grace'), __('For'), __('Employees'), __('Default'), __('Active')], $rows),
+            'shift-table-'.now()->format('Y-m-d').'.xlsx',
+        );
+    }
+
+    /** Typing a search or picking a filter or page size starts again at page 1. */
+    public function updated(string $property): void
+    {
+        if (in_array($property, ['search', 'perPage'], true)) {
+            $this->resetPage();
+        }
+    }
+
     /** @return Builder<Shift> */
-    protected function query(): Builder
+    private function query(): Builder
     {
         // Employees counted company-wide (not only those this user may see): it says whether the shift is in use.
         return Shift::query()->with('orgUnit')
             ->withCount(['employees' => fn (Builder $q) => $q->withoutGlobalScope(VisibleToCurrentUser::class)]);
     }
 
-    protected function defaultSort(): array
+    /** @return Builder<Shift> */
+    private function filteredQuery(): Builder
     {
-        return ['name' => 'asc'];
+        $query = $this->query();
+
+        if (trim($this->search) !== '') {
+            // addcslashes: a search for "50%" means the text "50%", not "50 followed by anything".
+            $like = '%'.addcslashes(trim($this->search), '%_\\').'%';
+            $query->where(fn (Builder $q) => $q->where('name', 'like', $like)->orWhere('code', 'like', $like));
+        }
+
+        if (in_array($this->sortBy, self::SORTABLE, true)) {
+            $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('name', 'asc');
+        }
+
+        return $query;
     }
 
-    protected function columns(): array
+    public function render(): View
     {
-        return [
-            Column::make(__('Name'), 'name')->sortable()->searchable()->alwaysVisible()->opens('edit-shift'),
-            Column::make(__('Code'), 'code')->sortable()->searchable(),
-            Column::make(__('Time'), 'start_time')->sortable()->format(fn (Shift $s) => $s->timesLabel()),
-            Column::make(__('Hours'), 'hours')->sortable()->alignRight(),
-            Column::make(__('Grace'), 'grace_minutes')->sortable()->alignRight()
-                ->format(fn (Shift $s) => $s->grace_minutes ? __(':n min', ['n' => $s->grace_minutes]) : '—'),
-            Column::make(__('For'), 'org_unit_id')->format(fn (Shift $s) => $s->orgUnit->name ?? __('Whole company')),
-            Column::make(__('Employees'), 'employees_count')->sortable()->alignRight(),
-            Column::make(__('Default'), 'is_default')->sortable()->format(fn (Model $row) => $row->getAttribute('is_default')
-                ? new HtmlString(Blade::render('<x-ui.badge color="info">{{ __(\'Default\') }}</x-ui.badge>'))
-                : ''),
-            Column::active(),
-        ];
+        // A page size typed into the URL that is not offered falls back to 10.
+        $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
+
+        return view('payroll::livewire.attendance.shift-table', [
+            'rows' => $this->filteredQuery()->paginate($perPage),
+        ]);
     }
 }

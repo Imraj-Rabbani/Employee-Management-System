@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Notification;
 use LogicException;
 
 /**
- * Plans an interview round, changes a planned one, and tells the panel. [REC-05]
+ * Plans an interview round, changes a planned one, and tells the panel.
  * The ONLY place that creates interviews or changes their panel.
  *
  *     $action = app(ScheduleInterview::class);

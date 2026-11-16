@@ -2,51 +2,101 @@
 
 namespace App\Modules\Core\Livewire;
 
-use App\Core\Livewire\Table\Column;
-use App\Core\Livewire\Table\DataTable;
+use App\Core\Exports\ArrayExport;
 use App\Modules\Core\Models\Role;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\HtmlString;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Setup → Roles & Permissions. [FND-05]
+ * Setup → Roles & Permissions.
  * The page route needs "core.roles.manage"; Livewire re-checks it on every click.
+ * View: app/Modules/Core/resources/views/livewire/roles-table.blade.php
  */
-class RolesTable extends DataTable
+class RolesTable extends Component
 {
-    /** @return Builder<Role> */
-    protected function query(): Builder
+    use WithPagination;
+
+    #[Url(as: 'q', except: '')]
+    public string $search = '';
+
+    #[Url(as: 'sort', except: '')]
+    public string $sortBy = '';
+
+    #[Url(as: 'dir', except: 'asc')]
+    public string $sortDir = 'asc';
+
+    #[Url(as: 'per_page', except: 10)]
+    public int $perPage = 10;
+
+    private const SORTABLE = ['name', 'user_roles_count'];
+
+    public function sort(string $field): void
     {
-        return Role::query()->withCount(['permissions', 'userRoles']);
+        if (! in_array($field, self::SORTABLE, true)) {
+            return;
+        }
+
+        $this->sortDir = $this->sortBy === $field && $this->sortDir === 'asc' ? 'desc' : 'asc';
+        $this->sortBy = $field;
     }
 
-    protected function defaultSort(): array
+    public function export(): BinaryFileResponse
     {
-        return ['is_admin' => 'desc', 'name' => 'asc'];
+        $rows = $this->filteredQuery()->get()->map(fn (Role $role) => [
+            $role->name,
+            $role->description,
+            $role->is_admin ? __('Full access') : $role->getAttribute('permissions_count'),
+            $role->getAttribute('user_roles_count'),
+        ])->all();
+
+        return Excel::download(
+            new ArrayExport([__('Role'), __('Description'), __('Permissions'), __('Users')], $rows),
+            'roles-table-'.now()->format('Y-m-d').'.xlsx',
+        );
     }
 
-    protected function columns(): array
-    {
-        return [
-            Column::make(__('Role'), 'name')->sortable()->searchable()->alwaysVisible()
-                ->format(fn (Role $role) => new HtmlString(Blade::render(
-                    '<button type="button" x-on:click="$dispatch(\'edit-role\', { id: {{ $id }} })" class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $name }}</button>',
-                    ['id' => $role->id, 'name' => $role->name],
-                ))),
-            Column::make(__('Description'), 'description')->searchable(),
-            Column::make(__('Permissions'), 'permissions_count')
-                ->format(fn (Role $role) => $role->is_admin
-                    ? new HtmlString(Blade::render('<x-ui.badge color="success">{{ __(\'Full access\') }}</x-ui.badge>'))
-                    : (string) $role->getAttribute('permissions_count')),
-            Column::make(__('Users'), 'user_roles_count')->sortable(),
-        ];
-    }
-
+    /** The form saved a role: re-render the list. */
     #[On('role-saved')]
-    public function refreshList(): void
+    public function refreshList(): void {}
+
+    public function updated(string $property): void
     {
-        // Re-renders the list.
+        if (in_array($property, ['search', 'perPage'], true)) {
+            $this->resetPage();
+        }
+    }
+
+    /** @return Builder<Role> */
+    private function filteredQuery(): Builder
+    {
+        $query = Role::query()->withCount(['permissions', 'userRoles']);
+
+        if (trim($this->search) !== '') {
+            $like = '%'.addcslashes(trim($this->search), '%_\\').'%';
+            $query->where(fn (Builder $q) => $q->where('name', 'like', $like)->orWhere('description', 'like', $like));
+        }
+
+        if (in_array($this->sortBy, self::SORTABLE, true)) {
+            $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('is_admin', 'desc')->orderBy('name'); // Administrator first, then A-Z
+        }
+
+        return $query;
+    }
+
+    public function render(): View
+    {
+        $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
+
+        return view('core::livewire.roles-table', [
+            'rows' => $this->filteredQuery()->paginate($perPage),
+        ]);
     }
 }

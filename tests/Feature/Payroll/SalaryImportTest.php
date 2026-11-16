@@ -35,7 +35,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 9.6: salary import from Excel (queued, all or nothing, same rules as the Salary tab). [PC-03]
+ * Salary import from Excel (queued, all or nothing, same rules as the Salary tab).
  * Heads: Basic, House rent (50% of basic), PF (deduction). Profile G5: HR 50% of basic.
  * Employees E-001 (Finance), E-002 (Sales), both joined 2026-01-01.
  */

@@ -7,7 +7,7 @@ use App\Modules\Payroll\Enums\HeadType;
 
 /**
  * A salary: every head with its amount + totals. Made by SalaryProfileCalculator (a profile applied) or from an
- * employee's saved rows (EmployeeSalary::breakdown()). [PC-02, PC-03]
+ * employee's saved rows (EmployeeSalary::breakdown()).
  * gross = the earnings counted in gross (basic included); net = gross − deductions. Info heads and earnings
  * outside gross are listed, but in neither total.
  */

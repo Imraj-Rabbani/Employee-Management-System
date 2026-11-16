@@ -21,17 +21,17 @@ use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
 
 /**
- * Applies for leave (new, or changed after it was sent back) and sends it for approval. [LV-04]
+ * Applies for leave (new, or changed after it was sent back) and sends it for approval.
  * The ONE way leave applications are written: by HR (HRM → Leave → Applications) and by the employee
  * (Self Service → My Leave Requests).
  *
  *     $check = $action->evaluate($employee, $type, $values);           // also the live preview in the form
  *     if ($check->ok()) { $action->handle($employee, $type, $values, $check, attachment: $file); }
  *
- * evaluate() = LeaveRules (8.3) + what only the database knows:
+ * evaluate() = LeaveRules + what only the database knows:
  *   - times taken / overlap with my other active leave (from leave_applications)
  *   - all counted days in ONE leave year (apply separately for each year: each has its own balance)
- *   - no counted day in a closed payroll (attendance_days.is_locked), nor in a closed leave year (8.5)
+ *   - no counted day in a closed payroll (attendance_days.is_locked), nor in a closed leave year
  *   - a changed application must have been sent back
  *
  * $values: from_date, to_date ('Y-m-d'), is_half_day, reason, delegatee_id, contact_during_leave.

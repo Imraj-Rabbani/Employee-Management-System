@@ -5,9 +5,14 @@
 @endphp
 <x-layouts.auth>
     <div class="flex flex-col gap-6">
-        <x-auth-header :title="$typeName" :description="$subject" />
+        <div class="flex w-full flex-col gap-2 text-center">
+            <h1 class="text-xl font-medium dark:text-zinc-200">{{ $typeName }}</h1>
+            <p class="text-sm dark:text-zinc-400">{{ $subject }}</p>
+        </div>
 
-        <x-auth-session-status class="text-center" :status="session('status')" />
+        @if (session('status'))
+            <div class="text-center text-sm font-medium text-green-600">{{ session('status') }}</div>
+        @endif
 
         <dl class="grid grid-cols-3 gap-y-2 text-sm">
             <dt class="text-zinc-500">{{ __('Requested by') }}</dt>
@@ -30,8 +35,11 @@
             <form method="POST" action="{{ $actionUrl }}" class="flex flex-col gap-4">
                 @csrf
 
-                <x-form.textarea name="comment" :label="__('Comment')"
-                    :placeholder="__('Required to reject or send back')" />
+                <flux:field>
+                    <flux:label>{{ __('Comment') }}</flux:label>
+                    <flux:textarea rows="3" name="comment" :placeholder="__('Required to reject or send back')" />
+                    <flux:error name="comment" />
+                </flux:field>
 
                 @error('decision')
                     <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 
 /**
- * One document waiting at (or answered at) one level (legacy `approvals`). [WF-03]
+ * One document waiting at (or answered at) one level (legacy `approvals`).
  *
  *     $approval->approvable        the document: a LeaveApplication, Loan ... (polymorphic)
  *     Approval::pending()->get()   query scope: rows nobody has answered yet
@@ -30,7 +30,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $responded_at
  * @property string|null $comment
  * @property string|null $attachment_path
- * @property string|null $amount entered by the approver when the document asks for one (7.7), e.g. hours
+ * @property string|null $amount entered by the approver when the document asks for one, e.g. hours
  * @property Carbon|null $created_at when the approver was asked
  * @property Carbon|null $updated_at
  */

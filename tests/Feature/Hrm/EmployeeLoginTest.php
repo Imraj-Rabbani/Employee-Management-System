@@ -16,7 +16,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 5.7: link an employee to a login, invite by email. [EMP-07]
+ * Link an employee to a login, invite by email.
  */
 class EmployeeLoginTest extends TestCase
 {

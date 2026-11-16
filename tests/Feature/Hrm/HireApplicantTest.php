@@ -25,7 +25,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.8: hiring an accepted offer creates the employee and closes the opening. [REC-07]
+ * Hiring an accepted offer creates the employee and closes the opening.
  */
 class HireApplicantTest extends TestCase
 {

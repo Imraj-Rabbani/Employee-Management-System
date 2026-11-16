@@ -5,7 +5,7 @@ namespace App\Core\Enums;
 /**
  * For backed enums that have a label() method. Gives every such enum the same helpers:
  *
- *     Gender::options()           [1 => 'Male', 2 => 'Female']   for <x-form.select :options="...">
+ *     Gender::options()           [1 => 'Male', 2 => 'Female']   for a dropdown: @foreach (Gender::options() as $value => $label)
  *     Gender::labelFor(2)         'Female'  (null / unknown value → '')
  *     Gender::values()            [1, 2]    for validation: Rule::in(Gender::values()) or Rule::enum(Gender::class)
  *

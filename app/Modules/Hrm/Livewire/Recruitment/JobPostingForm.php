@@ -14,14 +14,14 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * New / Edit / Delete job posting (modal "job-posting-form"). [REC-02]
+ * New / Edit / Delete job posting (modal "job-posting-form").
  *
  *   - New: pick an APPROVED request (of a visible org unit) that still has openings to advertise.
  *     Picking it prefills the title (designation) and the openings.
  *   - The request cannot be changed afterwards: the posting belongs to it.
  *   - Openings may not exceed ManpowerRequest::openingsToAdvertise().
  *   - A Closed posting cannot be edited (reopen it first, 6.3c); only a Draft can be deleted.
- *   - New postings start as Draft; Open / Close are buttons on the posting's page (6.3c).
+ *   - New postings start as Draft; Open / Close are buttons on the posting's page.
  *
  * $dispatch('create-job-posting', { requestId: 5 }) or the URL postings?for=5 opens the form with that request chosen.
  */

@@ -4,11 +4,30 @@
         :subheading="$application?->applicant->name">
         <form wire:submit="save" id="interview-form" class="space-y-6">
             <div class="grid gap-4 sm:grid-cols-[2fr_1fr]">
-                <x-form.input wire:model="form.scheduled_at" type="datetime-local" :label="__('Date and time')" required />
-                <x-form.input wire:model="form.duration_minutes" type="number" min="5" step="5" :label="__('Minutes')" required />
+                <flux:field>
+                    <flux:label>{{ __('Date and time') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:input aria-required="true" wire:model="form.scheduled_at" type="datetime-local" />
+                    <flux:error name="form.scheduled_at" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Minutes') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:input aria-required="true" wire:model="form.duration_minutes" type="number" min="5" step="5" />
+                    <flux:error name="form.duration_minutes" />
+                </flux:field>
             </div>
-            <x-form.input wire:model="form.location" :label="__('Where')" :hint="__('A room, an address or a video-call link')" />
-            <x-form.textarea wire:model="form.notes" :label="__('Note for the panel')" rows="2" />
+            <flux:field>
+                <flux:label>{{ __('Where') }}</flux:label>
+                <flux:description>{{ __('A room, an address or a video-call link') }}</flux:description>
+                <flux:input wire:model="form.location" />
+                <flux:error name="form.location" />
+            </flux:field>
+
+            <flux:field>
+                <flux:label>{{ __('Note for the panel') }}</flux:label>
+                <flux:textarea wire:model="form.notes" rows="2" />
+                <flux:error name="form.notes" />
+            </flux:field>
 
             {{-- The panel: search → Add. Chosen people are listed with Remove. --}}
             <div class="space-y-2">
@@ -29,7 +48,10 @@
                     </div>
                 @endforeach
 
-                <x-form.input wire:model.live.debounce.300ms="search" :placeholder="__('Search an employee by name or code…')" icon="magnifying-glass" />
+                <flux:field>
+                    <flux:input wire:model.live.debounce.300ms="search" :placeholder="__('Search an employee by name or code…')" icon="magnifying-glass" />
+                    <flux:error name="search" />
+                </flux:field>
                 @if ($results->isNotEmpty())
                     <div class="divide-y divide-zinc-500/10 rounded-lg ring-1 ring-zinc-500/15">
                         @foreach ($results as $employee)

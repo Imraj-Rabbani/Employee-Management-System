@@ -7,7 +7,7 @@ use App\Modules\Hrm\Models\Designation;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete designation (modal "designation-form"). [ORG-01]
+ * New / Edit / Delete designation (modal "designation-form").
  * Everything except the fields comes from LookupForm.
  */
 class DesignationForm extends LookupForm

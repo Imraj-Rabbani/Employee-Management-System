@@ -25,11 +25,11 @@ class HrmServiceProvider extends ModuleServiceProvider
         // One per request or job ("scoped"), like Permissions: never carries one user's org units into the next job.
         $this->app->scoped(EmployeeVisibility::class);
 
-        // Days off for leave counting (8.3). bindIf: the Payroll module binds the real one (attendance setup),
+        // Days off for leave counting. bindIf: the Payroll module binds the real one (attendance setup),
         // whichever provider registers first.
         $this->app->bindIf(WorkCalendar::class, NoWorkCalendar::class);
 
-        // Salaries of comparable employees for job offers (9.4). bindIf: the Payroll module binds the real one.
+        // Salaries of comparable employees for job offers. bindIf: the Payroll module binds the real one.
         $this->app->bindIf(SalaryBenchmarks::class, NoSalaryBenchmarks::class);
 
         // Approved leave for attendance processing (Payroll asks, 8.4).
@@ -40,7 +40,7 @@ class HrmServiceProvider extends ModuleServiceProvider
     {
         parent::boot();
 
-        // Nightly leave jobs (8.5), scheduled in routes/console.php.
+        // Nightly leave jobs, scheduled in routes/console.php.
         if ($this->app->runningInConsole()) {
             $this->commands([AccrueLeaveCommand::class, CarryForwardLeaveCommand::class]);
         }

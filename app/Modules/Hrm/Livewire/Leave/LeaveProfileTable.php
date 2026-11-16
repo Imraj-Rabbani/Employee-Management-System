@@ -2,21 +2,87 @@
 
 namespace App\Modules\Hrm\Livewire\Leave;
 
-use App\Core\Livewire\Table\Column;
-use App\Core\Livewire\Table\DataTable;
+use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Models\LeaveProfile;
 use App\Modules\Hrm\Models\LeaveProfileItem;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-/** List of leave profiles with what they give: "CL 10 · SL 14". Click a name to edit it. [LV-02] */
-class LeaveProfileTable extends DataTable
+/** List of leave profiles with what they give: "CL 10 · SL 14". Click a name to edit it. */
+class LeaveProfileTable extends Component
 {
+    use WithPagination;
+
+    #[Url(as: 'q', except: '')]
+    public string $search = '';
+
+    #[Url(as: 'sort', except: '')]
+    public string $sortBy = '';
+
+    #[Url(as: 'dir', except: 'asc')]
+    public string $sortDir = 'asc';
+
+    #[Url(as: 'per_page', except: 10)]
+    public int $perPage = 10;
+
+    /** Columns the user may sort by. Anything else sent from the browser is ignored. */
+    private const SORTABLE = ['name', 'employees_count', 'is_active'];
+
     /** @var array<string, string> a renamed leave type code shows here too */
     protected $listeners = ['leave-profile-saved' => '$refresh', 'leave-type-saved' => '$refresh'];
 
+    public function sort(string $field): void
+    {
+        if (! in_array($field, self::SORTABLE, true)) {
+            return;
+        }
+
+        // Clicking the same column again flips the direction.
+        $this->sortDir = $this->sortBy === $field && $this->sortDir === 'asc' ? 'desc' : 'asc';
+        $this->sortBy = $field;
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset('search');
+        $this->resetPage();
+    }
+
+    public function export(): BinaryFileResponse
+    {
+        $rows = $this->filteredQuery()->get()->map(fn (LeaveProfile $leaveProfile) => [
+            $leaveProfile->name,
+            $leaveProfile->items
+                ->sortBy(fn (LeaveProfileItem $i) => [$i->leaveType->sequence, $i->leaveType->name])
+                ->map(fn (LeaveProfileItem $i) => $i->leaveType->code.' '.$i->days_per_year)
+                ->implode(' · ') ?: '—',
+            $leaveProfile->employees_count,
+            $leaveProfile->detail,
+            $leaveProfile->is_active ? __('Active') : __('Inactive'),
+        ])->all();
+
+        return Excel::download(
+            new ArrayExport([__('Name'), __('Days per year'), __('Employees'), __('Detail'), __('Active')], $rows),
+            'leave-profile-table-'.now()->format('Y-m-d').'.xlsx',
+        );
+    }
+
+    /** Typing a search or picking a filter or page size starts again at page 1. */
+    public function updated(string $property): void
+    {
+        if (in_array($property, ['search', 'perPage'], true)) {
+            $this->resetPage();
+        }
+    }
+
     /** @return Builder<LeaveProfile> */
-    protected function query(): Builder
+    private function query(): Builder
     {
         // Employees counted company-wide (not only those this user may see): it says whether the profile is in use.
         return LeaveProfile::query()
@@ -24,22 +90,33 @@ class LeaveProfileTable extends DataTable
             ->withCount(['employees' => fn (Builder $q) => $q->withoutGlobalScope(VisibleToCurrentUser::class)]);
     }
 
-    protected function defaultSort(): array
+    /** @return Builder<LeaveProfile> */
+    private function filteredQuery(): Builder
     {
-        return ['name' => 'asc'];
+        $query = $this->query();
+
+        if (trim($this->search) !== '') {
+            // addcslashes: a search for "50%" means the text "50%", not "50 followed by anything".
+            $like = '%'.addcslashes(trim($this->search), '%_\\').'%';
+            $query->where(fn (Builder $q) => $q->where('name', 'like', $like)->orWhere('detail', 'like', $like));
+        }
+
+        if (in_array($this->sortBy, self::SORTABLE, true)) {
+            $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('name', 'asc');
+        }
+
+        return $query;
     }
 
-    protected function columns(): array
+    public function render(): View
     {
-        return [
-            Column::make(__('Name'), 'name')->sortable()->searchable()->alwaysVisible()->opens('edit-leave-profile'),
-            Column::make(__('Days per year'), 'id')->format(fn (LeaveProfile $p) => $p->items
-                ->sortBy(fn (LeaveProfileItem $i) => [$i->leaveType->sequence, $i->leaveType->name])
-                ->map(fn (LeaveProfileItem $i) => $i->leaveType->code.' '.$i->days_per_year)
-                ->implode(' · ') ?: '—'),
-            Column::make(__('Employees'), 'employees_count')->sortable()->alignRight(),
-            Column::make(__('Detail'), 'detail')->searchable(),
-            Column::active(),
-        ];
+        // A page size typed into the URL that is not offered falls back to 10.
+        $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
+
+        return view('hrm::livewire.leave.leave-profile-table', [
+            'rows' => $this->filteredQuery()->paginate($perPage),
+        ]);
     }
 }

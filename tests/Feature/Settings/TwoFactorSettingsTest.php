@@ -10,7 +10,7 @@ use PragmaRX\Google2FA\Google2FA;
 use Tests\TestCase;
 
 /**
- * Task 2.7c: Settings → Two-factor authentication.
+ * Settings → Two-factor authentication.
  */
 class TwoFactorSettingsTest extends TestCase
 {

@@ -14,10 +14,10 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
 /**
- * Profile header → "Photo": upload, replace or remove the employee's photo (modal "employee-photo-form"). [EMP-01]
+ * Profile header → "Photo": upload, replace or remove the employee's photo (modal "employee-photo-form").
  *
  * WithFileUploads: the file goes to a temporary folder as soon as it is chosen (so we can preview it);
- * save() moves it to the company's own folder via TenantUploads (2.5). The old photo file is deleted.
+ * save() moves it to the company's own folder via TenantUploads. The old photo file is deleted.
  */
 class PhotoForm extends Component
 {

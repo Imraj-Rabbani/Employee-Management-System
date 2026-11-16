@@ -52,7 +52,6 @@ return [
             ],
         ],
 
-        // Phase 8 (Leave).
         'leave' => [
             'label' => 'Leave',
             'tabs' => [

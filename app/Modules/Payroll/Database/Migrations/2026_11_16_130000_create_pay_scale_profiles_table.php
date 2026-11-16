@@ -6,11 +6,11 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Pay scale profiles = how payroll treats a group of employees (legacy `payscaleprofiles`): arrears, the joining
- * threshold day and leave without pay. Read by the payroll run (Phase 10). [PC-04]
+ * threshold day and leave without pay. Read by the payroll run.
  * Employees without one use the default from the payroll settings.
  *
  * Not here: the legacy per-grade increment rules (`payscaleitems`: increment %, basis, max times, minimum stay):
- * they belong to increments (Phase 11).
+ * they belong to increments.
  */
 return new class extends Migration
 {
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // employees.pay_scale_profile_id was a plain id (Phase 5): add the foreign key now the table exists.
+        // employees.pay_scale_profile_id was a plain id: add the foreign key now the table exists.
         Schema::table('employees', function (Blueprint $table) {
             $table->foreign('pay_scale_profile_id')->references('id')->on('pay_scale_profiles')->restrictOnDelete();
         });

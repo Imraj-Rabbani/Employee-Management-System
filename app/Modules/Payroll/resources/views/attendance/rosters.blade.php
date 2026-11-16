@@ -1,5 +1,5 @@
 {{--
-    Payroll → Attendance → Rosters (7.2b). The list + the New roster modal. [TA-03]
+    Payroll → Attendance → Rosters. The list + the New roster modal.
 --}}
 <x-layouts.app :title="__('Attendance')">
     <div class="space-y-4">

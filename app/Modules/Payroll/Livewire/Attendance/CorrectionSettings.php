@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
 /**
- * Self Service correction limits (company settings, 7.6), on the Corrections tab for attendance setup users. [TA-06]
+ * Self Service correction limits (company settings, 7.6), on the Corrections tab for attendance setup users.
  * 0 = no limit. HR's own corrections are never limited.
  */
 class CorrectionSettings extends Component

@@ -16,7 +16,7 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
 /**
- * HRM → Employees → Import: upload an Excel file, follow the queued import, read the error report. [EMP-06]
+ * HRM → Employees → Import: upload an Excel file, follow the queued import, read the error report.
  */
 class EmployeeImports extends Component
 {

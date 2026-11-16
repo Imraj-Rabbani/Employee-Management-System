@@ -5,11 +5,11 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Salary profiles = salary structures, usually one per grade (legacy `salaryprofiles` + `salaryheadvalues`). [PC-02]
+ * Salary profiles = salary structures, usually one per grade (legacy `salaryprofiles` + `salaryheadvalues`).
  * An item says what one head is worth in the profile: a fixed amount, or a percent of basic / gross.
  * The basic head (salary_heads.is_basic) is never an item: it is the base everything else is worked out from.
  *
- * Not built: legacy cycle / arrear type / arrear head (arrears come with increments, Phase 12) and the
+ * Not built: legacy cycle / arrear type / arrear head (arrears come with increments) and the
  * per-item effective date (employee salaries are effective-dated instead, 9.4).
  */
 return new class extends Migration
@@ -38,7 +38,7 @@ return new class extends Migration
             $table->unique(['salary_profile_id', 'salary_head_id']);
         });
 
-        // employees.salary_profile_id was a plain id (Phase 5): now the table exists, add the foreign key.
+        // employees.salary_profile_id was a plain id: now the table exists, add the foreign key.
         // restrictOnDelete: a profile employees still use cannot be deleted ("make it inactive instead").
         Schema::table('employees', function (Blueprint $table) {
             $table->foreign('salary_profile_id')->references('id')->on('salary_profiles')->restrictOnDelete();

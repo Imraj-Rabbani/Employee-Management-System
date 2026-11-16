@@ -6,12 +6,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * The application pipeline's history (6.5). [REC-04]
+ * The application pipeline's history.
  *
  *   application_stage_changes  one row per move: from → to, who, when, note, and the reason for a
  *                              rejection / withdrawal. The first row of every application has
  *                              from_stage NULL → "applied" (written by ApplyToPosting).
- *   applications.rejection_reason_id  the CURRENT reason (copied from the last move), so reports (6.9)
+ *   applications.rejection_reason_id  the CURRENT reason (copied from the last move), so reports
  *                              can count "why do we lose candidates" without reading the history.
  *   applications.stage_changed_at     when it reached its current stage (time in stage, time-to-hire).
  *

@@ -27,9 +27,9 @@ class PayrollServiceProvider extends ModuleServiceProvider
         // Approved leave for attendance processing. bindIf: HRM binds the real one (ApprovedLeaveCalendar, 8.4),
         // whichever provider registers first.
         $this->app->bindIf(LeaveCalendar::class, NoLeaveCalendar::class);
-        // Days off for leave counting (8.3): the HRM leave rules ask, the attendance setup answers.
+        // Days off for leave counting: the HRM leave rules ask, the attendance setup answers.
         $this->app->bind(WorkCalendar::class, AttendanceWorkCalendar::class);
-        // What comparable employees earn, for HRM job offers (9.4).
+        // What comparable employees earn, for HRM job offers.
         $this->app->bind(SalaryBenchmarks::class, ComparableSalaries::class);
     }
 
@@ -47,7 +47,7 @@ class PayrollServiceProvider extends ModuleServiceProvider
             ->name('ess.')
             ->group($this->modulePath().'/routes/ess.php');
 
-        // Extension points a company can customise (Architecture §8). Plugins are added in Phases 11–12, e.g.
+        // Extension points a company can customise (Architecture §8). More plugins can be added later, e.g.
         // $plugins->add('tax', 'TaxBangladesh', 'Bangladesh', Plugins\TaxBangladesh\BangladeshTaxCalculator::class);
         $plugins = $this->app->make(PluginRegistry::class);
         $plugins->slot('tax', 'Tax calculator', module: 'payroll');

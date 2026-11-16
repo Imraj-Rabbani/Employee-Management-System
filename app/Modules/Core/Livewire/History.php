@@ -14,7 +14,7 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * "History" tab: who changed a record, when, and what (old → new). [FND-06]
+ * "History" tab: who changed a record, when, and what (old → new).
  *
  *     <livewire:core::history :subject="$role" can="core.roles.manage" :key="'history-'.$role->id" />
  *

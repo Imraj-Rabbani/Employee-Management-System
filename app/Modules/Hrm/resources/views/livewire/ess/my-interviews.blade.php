@@ -1,13 +1,27 @@
 @php use App\Modules\Hrm\Enums\InterviewStatus; @endphp
 <div>
     @if ($employee === null)
-        <x-ui.card>
-            <x-ui.empty icon="user" :heading="__('Your login is not linked to an employee record')" :description="__('Ask HR to link it.')" />
-        </x-ui.card>
+        <div class="glass overflow-hidden rounded-2xl">
+            <div class="p-6">
+                <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                    <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                        <flux:icon name="user" />
+                    </div>
+                    <flux:heading size="lg" class="mt-4">{{ __('Your login is not linked to an employee record') }}</flux:heading>
+                    <flux:text class="mt-1 max-w-sm">{{ __('Ask HR to link it.') }}</flux:text>
+                </div>
+            </div>
+        </div>
     @else
-        <x-ui.card :padding="false">
+        <div class="glass overflow-hidden rounded-2xl">
             @if ($seats->isEmpty())
-                <x-ui.empty icon="calendar-days" :heading="__('No interviews')" :description="__('When HR puts you on an interview panel, it appears here and you get an email.')" />
+                <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                    <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                        <flux:icon name="calendar-days" />
+                    </div>
+                    <flux:heading size="lg" class="mt-4">{{ __('No interviews') }}</flux:heading>
+                    <flux:text class="mt-1 max-w-sm">{{ __('When HR puts you on an interview panel, it appears here and you get an email.') }}</flux:text>
+                </div>
             @else
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
@@ -62,6 +76,6 @@
                     </table>
                 </div>
             @endif
-        </x-ui.card>
+        </div>
     @endif
 </div>

@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * One cell of a roster: what $employee is planned to do on $date. [TA-03]
+ * One cell of a roster: what $employee is planned to do on $date.
  *
  *   shift_id set           works that shift (start_time / end_time may change the hours for this day)
  *   is_off                 day off (shift_id is NULL)
@@ -44,7 +44,7 @@ class RosterItem extends TenantModel
 
     /**
      * The plan that counts for $employee on $date: the cell of the most recently APPROVED roster, or null
-     * (then the employee's own / default shift applies). Used by attendance processing (7.4).
+     * (then the employee's own / default shift applies). Used by attendance processing.
      */
     public static function planFor(Employee|int $employee, CarbonInterface $date): ?self
     {

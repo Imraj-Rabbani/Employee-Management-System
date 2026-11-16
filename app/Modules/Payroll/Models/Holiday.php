@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 
 /**
- * A public or festival holiday (legacy `holidays`). [TA-02]
+ * A public or festival holiday (legacy `holidays`).
  *
  * repeats_yearly: the same day and month every year from `date` on, e.g. 21 February (legacy: year = 0).
  * Holidays only count for employees whose holiday profile contains them.

@@ -1,5 +1,5 @@
 {{--
-    HRM → Employees → one employee's profile. [EMP-01]
+    HRM → Employees → one employee's profile.
     The route passes $employee, $tabs (key => label) and $tab (the open one).
     Each tab is a real link (?tab=job), so it can be bookmarked; its content lives in employees/tabs/{key}.blade.php.
 --}}
@@ -10,38 +10,40 @@
         </flux:link>
 
         {{-- Header: who this is at a glance. --}}
-        <x-ui.card>
-            <div class="flex flex-wrap items-center gap-5">
-                <div class="flex flex-col items-center gap-1">
-                    <flux:avatar size="xl" :name="$employee->name" :src="$employee->photo_url" />
-                    @can('update', $employee)
-                        <flux:button size="xs" variant="ghost" icon="camera" x-on:click="$dispatch('edit-employee-photo')">{{ __('Photo') }}</flux:button>
-                    @endcan
-                </div>
-
-                <div class="min-w-0 flex-1">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <flux:heading size="xl">{{ $employee->name }}</flux:heading>
-                        <x-ui.badge :color="$employee->status->color()">{{ $employee->status->label() }}</x-ui.badge>
+        <div class="glass overflow-hidden rounded-2xl">
+            <div class="p-6">
+                <div class="flex flex-wrap items-center gap-5">
+                    <div class="flex flex-col items-center gap-1">
+                        <flux:avatar size="xl" :name="$employee->name" :src="$employee->photo_url" />
+                        @can('update', $employee)
+                            <flux:button size="xs" variant="ghost" icon="camera" x-on:click="$dispatch('edit-employee-photo')">{{ __('Photo') }}</flux:button>
+                        @endcan
                     </div>
-                    @if ($employee->name_local)
-                        <flux:text>{{ $employee->name_local }}</flux:text>
-                    @endif
-                    <flux:text class="mt-1">
-                        {{ $employee->code }}
-                        · {{ $employee->designation->name ?? __('No designation') }}
-                        · {{ $employee->orgUnit?->path() ?? __('No org unit') }}
-                    </flux:text>
-                    @can('viewAny', App\Modules\Hrm\Models\Employee::class)
-                        <flux:link :href="route('hrm.org.chart', ['focus' => $employee->id])" wire:navigate class="mt-1 inline-flex items-center gap-1 text-sm">
-                            <flux:icon.share variant="micro" /> {{ __('Show in org chart') }}
-                        </flux:link>
-                    @endcan
-                </div>
 
-                <livewire:hrm::employees.login-box :$employee />
+                    <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <flux:heading size="xl">{{ $employee->name }}</flux:heading>
+                            <x-ui.badge :color="$employee->status->color()">{{ $employee->status->label() }}</x-ui.badge>
+                        </div>
+                        @if ($employee->name_local)
+                            <flux:text>{{ $employee->name_local }}</flux:text>
+                        @endif
+                        <flux:text class="mt-1">
+                            {{ $employee->code }}
+                            · {{ $employee->designation->name ?? __('No designation') }}
+                            · {{ $employee->orgUnit?->path() ?? __('No org unit') }}
+                        </flux:text>
+                        @can('viewAny', App\Modules\Hrm\Models\Employee::class)
+                            <flux:link :href="route('hrm.org.chart', ['focus' => $employee->id])" wire:navigate class="mt-1 inline-flex items-center gap-1 text-sm">
+                                <flux:icon.share variant="micro" /> {{ __('Show in org chart') }}
+                            </flux:link>
+                        @endcan
+                    </div>
+
+                    <livewire:hrm::employees.login-box :$employee />
+                </div>
             </div>
-        </x-ui.card>
+        </div>
 
         @can('update', $employee)
             <livewire:hrm::employees.photo-form :$employee />

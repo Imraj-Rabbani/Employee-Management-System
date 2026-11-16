@@ -28,9 +28,8 @@ use Tests\Fixtures\ApprovableNote;
 use Tests\TestCase;
 
 /**
- * Task 3.7: the whole workflow, end to end through the real screens, plus the gaps
+ * The whole workflow, end to end through the real screens, plus the gaps
  * the earlier tests did not cover (scope tie-breaks, late second answer, other companies).
- * [WF-01..06]
  *
  * Story: Rina (requester) submits. Level 1 = role "Managers" (Mina, Mahir), level 2 = role "Finance" (Farid).
  */

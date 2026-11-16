@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * A family member of an employee (father, spouse, child ...). [EMP-02]
+ * A family member of an employee (father, spouse, child ...).
  *
  * @property int $id
  * @property int $employee_id

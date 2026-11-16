@@ -24,7 +24,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.8: the Hire button and form on an accepted offer, and the links to the new employee. [REC-07]
+ * The Hire button and form on an accepted offer, and the links to the new employee.
  */
 class HirePagesTest extends TestCase
 {

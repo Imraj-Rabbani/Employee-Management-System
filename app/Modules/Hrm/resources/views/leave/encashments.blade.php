@@ -1,6 +1,6 @@
 {{--
-    HRM → Leave → Encashments (8.6). Unused leave paid out: approved days leave the balance at once,
-    the money comes with the next payroll run (Phase 10). [LV-06]
+    HRM → Leave → Encashments. Unused leave paid out: approved days leave the balance at once,
+    the money comes with the next payroll run.
 --}}
 <x-layouts.app :title="__('Leave')">
     <div class="space-y-4">

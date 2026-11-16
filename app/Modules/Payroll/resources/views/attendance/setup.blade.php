@@ -1,5 +1,5 @@
 {{--
-    Payroll → Attendance setup (7.1). One view for every section; the route passes $section (routes/web.php).
+    Payroll → Attendance setup. One view for every section; the route passes $section (routes/web.php).
     Each section = a DataTable + its modal form (App\Modules\Payroll\Livewire\Attendance). Same layout as HRM → Organization.
 --}}
 @php
@@ -22,7 +22,7 @@
             <flux:button variant="primary" icon="plus" x-on:click="$dispatch('{{ $createEvent }}')">{{ $createLabel }}</flux:button>
         </div>
 
-        {{-- Devices tab: also the Self Service web punch settings (7.3e). --}}
+        {{-- Devices tab: also the Self Service web punch settings. --}}
         @if ($section === 'devices')
             <livewire:payroll::attendance.punch-settings />
         @endif

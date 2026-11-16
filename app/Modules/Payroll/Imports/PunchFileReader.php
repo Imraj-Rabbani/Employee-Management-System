@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 /**
- * Reads an uploaded punch file (CSV or Excel, 7.3c) into punches for StorePunches. [TA-04]
+ * Reads an uploaded punch file (CSV or Excel, 7.3c) into punches for StorePunches.
  *
  * First row = column names. Either
  *     access_code | punched_at            e.g.  1001 | 2026-12-01 08:55

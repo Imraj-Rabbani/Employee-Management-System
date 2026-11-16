@@ -6,7 +6,7 @@ use App\Core\Livewire\LookupForm;
 use App\Modules\Payroll\Models\PayScaleProfile;
 use Illuminate\Validation\Rule;
 
-/** New / Edit / Delete pay scale profile (modal "pay-scale-profile-form"). [PC-04] */
+/** New / Edit / Delete pay scale profile (modal "pay-scale-profile-form"). */
 class PayScaleProfileForm extends LookupForm
 {
     protected function key(): string

@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Asks for overtime (new, or changed after it was sent back) and sends it for approval. [TA-07]
+ * Asks for overtime (new, or changed after it was sent back) and sends it for approval.
  * The ONE way overtime requests are written: by HR / managers (Overtime tab) and by the employee (Self Service).
  *
  *     $values = ['date' => '2026-12-03', 'hours' => '2.5', 'detail' => 'Month-end closing'];

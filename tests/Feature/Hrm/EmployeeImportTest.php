@@ -25,7 +25,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 5.6: Excel import of employees with a validation report, run as a queued job. [EMP-06]
+ * Excel import of employees with a validation report, run as a queued job.
  *
  * Tests run the queue "sync" (phpunit.xml), so the job runs inside start().
  * Units: Head Office › Finance (code FIN) and Head Office › Sales. Existing employee: E-001 Rahim (Finance).
@@ -133,7 +133,7 @@ class EmployeeImportTest extends TestCase
         $this->assertSame('Senior Officer', $nadia->designation?->name);
         $this->assertSame($kamal->id, $nadia->supervisor_id);
         $this->assertSame(Employee::where('code', 'E-001')->value('id'), $kamal->supervisor_id);
-        $this->assertSame(1, $nadia->orgAssignments()->count(), 'Org unit history starts on import (5.4).');
+        $this->assertSame(1, $nadia->orgAssignments()->count(), 'Org unit history starts on import.');
     }
 
     public function test_empty_rows_are_skipped(): void

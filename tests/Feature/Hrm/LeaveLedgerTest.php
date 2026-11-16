@@ -22,7 +22,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 8.2: the leave ledger, cached balances, carry forward / expiry, and Profile → Leave. [LV-03]
+ * The leave ledger, cached balances, carry forward / expiry, and Profile → Leave.
  */
 class LeaveLedgerTest extends TestCase
 {

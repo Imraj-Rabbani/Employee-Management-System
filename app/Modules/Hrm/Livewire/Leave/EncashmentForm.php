@@ -20,7 +20,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * "Encash leave" (modal "encashment-form"), new or changed after a send-back, and "Withdraw". [LV-06]
+ * "Encash leave" (modal "encashment-form"), new or changed after a send-back, and "Withdraw".
  *
  *   HR   (HRM → Leave → Encashments, $self = false)  employees they can see; hrm.leave.manage; may withdraw until paid
  *   ESS  (My Leave Requests,          $self = true)   own record only; may withdraw until approved

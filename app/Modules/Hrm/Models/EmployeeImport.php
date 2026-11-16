@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * An uploaded Excel file of new employees and what happened to it (5.6). [EMP-06]
+ * An uploaded Excel file of new employees and what happened to it.
  *
  * @property int $id
  * @property int $user_id

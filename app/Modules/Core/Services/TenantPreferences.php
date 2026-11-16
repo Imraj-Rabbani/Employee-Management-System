@@ -5,7 +5,7 @@ namespace App\Modules\Core\Services;
 use App\Modules\Core\Livewire\CompanySettings;
 
 /**
- * Applies the current company's timezone to the app (task 2.11).
+ * Applies the current company's timezone to the app.
  *
  * The app then works in the company's local time: now(), today(), dates saved in the database,
  * and dates shown on screen are all Dhaka time for a Dhaka company, Nairobi time for a Nairobi company.

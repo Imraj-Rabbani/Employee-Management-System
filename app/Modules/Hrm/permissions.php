@@ -2,7 +2,7 @@
 
 /*
 | Permissions of the HRM module. Group => [key => label]. Keys must start with "hrm.".
-| More are added as the HRM screens are built (Phases 4–8).
+| More are added as new HRM screens are built.
 */
 
 return [

@@ -2,27 +2,100 @@
 
 namespace App\Modules\Payroll\Livewire\Attendance;
 
-use App\Core\Livewire\Table\Column;
-use App\Core\Livewire\Table\DataTable;
-use App\Core\Livewire\Table\SelectFilter;
+use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Payroll\Enums\PunchSource;
 use App\Modules\Payroll\Models\PunchLog;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Payroll → Attendance → Punches: every punch, newest first. [TA-04]
+ * Payroll → Attendance → Punches: every punch, newest first.
  * Punches of employees the user can see; unmatched punches (no employee has that code) only for users
  * without an org-unit limit, since nobody can tell whose they are.
+ *
+ * View: app/Modules/Payroll/resources/views/livewire/attendance/punch-table.blade.php
  */
-class PunchTable extends DataTable
+class PunchTable extends Component
 {
+    use WithPagination;
+
+    #[Url(as: 'q', except: '')]
+    public string $search = '';
+
+    #[Url(as: 'sort', except: '')]
+    public string $sortBy = '';
+
+    #[Url(as: 'dir', except: 'asc')]
+    public string $sortDir = 'asc';
+
+    /** Filter "Source": '' = all */
+    #[Url(as: 'source', except: '')]
+    public string $source = '';
+
+    /** Filter "Employee": '' = all */
+    #[Url(as: 'matched', except: '')]
+    public string $matched = '';
+
+    #[Url(as: 'per_page', except: 10)]
+    public int $perPage = 10;
+
+    /** Columns the user may sort by. Anything else sent from the browser is ignored. */
+    private const SORTABLE = ['punched_at', 'access_code', 'source'];
+
     /** @var array<string, string> */
     protected $listeners = ['punches-saved' => '$refresh'];
 
+    public function sort(string $field): void
+    {
+        if (! in_array($field, self::SORTABLE, true)) {
+            return;
+        }
+
+        // Clicking the same column again flips the direction.
+        $this->sortDir = $this->sortBy === $field && $this->sortDir === 'asc' ? 'desc' : 'asc';
+        $this->sortBy = $field;
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset('search', 'source', 'matched');
+        $this->resetPage();
+    }
+
+    public function export(): BinaryFileResponse
+    {
+        $rows = $this->filteredQuery()->get()->map(fn (PunchLog $punchLog) => [
+            format_datetime($punchLog->punched_at),
+            $punchLog->employee ? $punchLog->employee->code.' · '.$punchLog->employee->name : __('Unmatched'),
+            $punchLog->access_code,
+            $punchLog->source->label(),
+            $punchLog->device->name ?? '—',
+            $punchLog->distance_m === null ? '—' : __(':m m', ['m' => number_format($punchLog->distance_m)]),
+        ])->all();
+
+        return Excel::download(
+            new ArrayExport([__('Time'), __('Employee'), __('Attendance ID'), __('Source'), __('Device'), __('Distance')], $rows),
+            'punch-table-'.now()->format('Y-m-d').'.xlsx',
+        );
+    }
+
+    /** Typing a search or picking a filter or page size starts again at page 1. */
+    public function updated(string $property): void
+    {
+        if (in_array($property, ['search', 'source', 'matched', 'perPage'], true)) {
+            $this->resetPage();
+        }
+    }
+
     /** @return Builder<PunchLog> */
-    protected function query(): Builder
+    private function query(): Builder
     {
         $seesAll = app(EmployeeVisibility::class)->orgUnitIdsFor(Auth::user()) === null;
 
@@ -32,31 +105,55 @@ class PunchTable extends DataTable
             ->where(fn (Builder $q) => $q->whereHas('employee')->when($seesAll, fn (Builder $q) => $q->orWhereNull('employee_id')));
     }
 
-    protected function defaultSort(): array
+    /** @return array<int|string, string> choices of the "Source" filter */
+    private function sourceOptions(): array
     {
-        return ['punched_at' => 'desc'];
+        return PunchSource::options();
     }
 
-    protected function filters(): array
+    /** @return array<int|string, string> choices of the "Employee" filter */
+    private function matchedOptions(): array
     {
-        return [
-            SelectFilter::make('source', __('Source'), $this->stringKeys(PunchSource::options())),
-            SelectFilter::make('matched', __('Employee'), ['yes' => __('Matched'), 'no' => __('Unmatched')])
-                ->query(fn (Builder $q, string $v) => $v === 'yes' ? $q->whereNotNull('employee_id') : $q->whereNull('employee_id')),
-        ];
+        return ['yes' => __('Matched'), 'no' => __('Unmatched')];
     }
 
-    protected function columns(): array
+    /** @return Builder<PunchLog> */
+    private function filteredQuery(): Builder
     {
-        return [
-            Column::make(__('Time'), 'punched_at')->sortable()->alwaysVisible()->format(fn (PunchLog $p) => format_datetime($p->punched_at)),
-            Column::make(__('Employee'), 'employee_id')->alwaysVisible()
-                ->format(fn (PunchLog $p) => $p->employee ? $p->employee->code.' · '.$p->employee->name : __('Unmatched')),
-            Column::make(__('Attendance ID'), 'access_code')->sortable()->searchable(),
-            Column::make(__('Source'), 'source')->sortable()->format(fn (PunchLog $p) => $p->source->label()),
-            Column::make(__('Device'), 'device_id')->format(fn (PunchLog $p) => $p->device->name ?? '—'),
-            Column::make(__('Distance'), 'distance_m')->alignRight()
-                ->format(fn (PunchLog $p) => $p->distance_m === null ? '—' : __(':m m', ['m' => number_format($p->distance_m)])),
-        ];
+        $query = $this->query();
+
+        if (trim($this->search) !== '') {
+            // addcslashes: a search for "50%" means the text "50%", not "50 followed by anything".
+            $like = '%'.addcslashes(trim($this->search), '%_\\').'%';
+            $query->where(fn (Builder $q) => $q->where('access_code', 'like', $like));
+        }
+
+        if ($this->source !== '' && array_key_exists($this->source, $this->sourceOptions())) {
+            $query->where('source', $this->source);
+        }
+
+        if ($this->matched !== '' && array_key_exists($this->matched, $this->matchedOptions())) {
+            $this->matched === 'yes' ? $query->whereNotNull('employee_id') : $query->whereNull('employee_id');
+        }
+
+        if (in_array($this->sortBy, self::SORTABLE, true)) {
+            $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('punched_at', 'desc');
+        }
+
+        return $query;
+    }
+
+    public function render(): View
+    {
+        // A page size typed into the URL that is not offered falls back to 10.
+        $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
+
+        return view('payroll::livewire.attendance.punch-table', [
+            'rows' => $this->filteredQuery()->paginate($perPage),
+            'sourceOptions' => $this->sourceOptions(),
+            'matchedOptions' => $this->matchedOptions(),
+        ]);
     }
 }

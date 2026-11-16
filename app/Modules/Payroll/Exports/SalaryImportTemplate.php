@@ -12,7 +12,7 @@ use Maatwebsite\Excel\Concerns\Export;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 /**
- * The Excel template for importing salaries (9.6). Two sheets:
+ * The Excel template for importing salaries. Two sheets:
  *   "Salaries"  one row per employee the user may see (still employed): code, name, current profile and gross;
  *               fill "Effective from" + Gross / Basic or the head columns on the rows to change
  *   "Lists"     the salary profiles and the heads

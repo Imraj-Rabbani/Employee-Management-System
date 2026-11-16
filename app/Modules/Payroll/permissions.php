@@ -2,7 +2,7 @@
 
 /*
 | Permissions of the Payroll module. Group => [key => label]. Keys must start with "payroll.".
-| More are added as the Payroll screens are built (Phases 9–12).
+| More are added as new Payroll screens are built.
 */
 
 return [

@@ -11,7 +11,7 @@ use Tests\Concerns\CreatesTenantDatabases;
 use Tests\TestCase;
 
 /**
- * Task 6.1: recruitment setup tables (interview factors, rejection reasons). [REC-04, REC-05]
+ * Recruitment setup tables (interview factors, rejection reasons).
  */
 class RecruitmentSetupModelsTest extends TestCase
 {

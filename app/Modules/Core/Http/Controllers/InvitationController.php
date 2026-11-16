@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 /**
- * The page behind the invitation email (5.7): the invited person sets their password. No login needed.
+ * The page behind the invitation email: the invited person sets their password. No login needed.
  *
  * Why this is safe:
  *   - the URL is SIGNED and expires ("signed" middleware): nobody can make one up or change the user id

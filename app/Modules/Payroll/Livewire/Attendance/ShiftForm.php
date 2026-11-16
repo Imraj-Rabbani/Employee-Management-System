@@ -8,7 +8,7 @@ use App\Modules\Payroll\Models\Shift;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete shift (modal "shift-form"). [TA-01]
+ * New / Edit / Delete shift (modal "shift-form").
  *
  * "Overnight" is not on the form: the model works it out from the times (ends before it starts).
  * Ticking "Default" takes the flag away from the old default shift (also done by the model).

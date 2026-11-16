@@ -27,8 +27,8 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * Profile → Salary: the pay scale profile (9.5), the current salary (every head + gross / deductions / net), the hold flags, and the history of
- * salaries (click one for its heads). [PC-03]
+ * Profile → Salary: the pay scale profile, the current salary (every head + gross / deductions / net), the hold flags, and the history of
+ * salaries (click one for its heads).
  *
  * Seeing it: EmployeePolicy::view + payroll.salary.view. Changing it: payroll.salary.manage.
  * "Change salary" modal: pick a profile + basic or gross → "Apply" fills every head (SalaryProfileCalculator);

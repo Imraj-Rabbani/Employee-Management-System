@@ -5,8 +5,8 @@ namespace App\Modules\Hrm\Enums;
 use App\Core\Enums\HasOptions;
 
 /**
- * Where an employee stands (employees.status, Phase 5). Not in legacy's Constants: legacy only has
- * employees.status 1 = active / 0 = not. Migration (Phase 15): 1 → Active, 0 → Separated.
+ * Where an employee stands (employees.status). Not in legacy's Constants: legacy only has
+ * employees.status 1 = active / 0 = not. Migration: 1 → Active, 0 → Separated.
  *
  *     EmployeeStatus::Active->color()    'success'   for <x-ui.badge>
  *     $employee->status->isEmployed()    true for Active and Suspended (still employed)
@@ -17,7 +17,7 @@ enum EmployeeStatus: int
 
     case Active = 1;
     case Suspended = 2;     // still employed, but not working / not paid normally (disciplinary)
-    case Separated = 3;     // left: resigned, retired, terminated ... (details in the separation, Phase 13)
+    case Separated = 3;     // left: resigned, retired, terminated ... (details in the separation record)
 
     public function label(): string
     {

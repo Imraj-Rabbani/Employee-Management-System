@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
 /**
- * A salary structure, usually per grade: what each head is worth next to the basic (legacy `salaryprofiles`). [PC-02]
+ * A salary structure, usually per grade: what each head is worth next to the basic (legacy `salaryprofiles`).
  * Each employee can have one (employees.salary_profile_id). Work out the heads with SalaryProfileCalculator.
  *
  *     $profile->syncItems([$houseRent->id => ['value_type' => 'percent_basic', 'value' => '50'], ...])

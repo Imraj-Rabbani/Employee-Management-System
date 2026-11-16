@@ -4,7 +4,7 @@ namespace App\Modules\Workflow\Enums;
 
 /**
  * Who approves one workflow step (workflow_steps.approver_type).
- * The engine turns this into real people in task 3.3.
+ * The workflow engine turns this into real people.
  */
 enum ApproverType: string
 {

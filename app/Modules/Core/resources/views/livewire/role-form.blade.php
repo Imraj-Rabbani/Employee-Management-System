@@ -1,11 +1,34 @@
 <div>
     <x-ui.modal name="role-form" size="lg" :heading="$roleId ? __('Edit role') : __('New role')">
-        <x-ui.tabs :tabs="$roleId ? ['details' => __('Details'), 'history' => __('History')] : ['details' => __('Details')]" wire:key="role-tabs-{{ $roleId ?? 'new' }}">
+        {{-- Tabs: Alpine keeps the open tab in "tab"; each pane below shows with x-show. History only when editing. --}}
+        <div x-data="{ tab: 'details' }" wire:key="role-tabs-{{ $roleId ?? 'new' }}">
+            <div class="mb-4 flex gap-1 border-b border-zinc-200 dark:border-white/10" role="tablist">
+                <button type="button" role="tab" x-on:click="tab = 'details'" x-bind:aria-selected="tab === 'details'"
+                    x-bind:class="tab === 'details' ? 'border-brand-800 text-brand-900 dark:border-white dark:text-white' : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'"
+                    class="-mb-px border-b-2 px-3 py-2 text-sm font-medium transition">{{ __('Details') }}</button>
+
+                @if ($roleId)
+                    <button type="button" role="tab" x-on:click="tab = 'history'" x-bind:aria-selected="tab === 'history'"
+                        x-bind:class="tab === 'history' ? 'border-brand-800 text-brand-900 dark:border-white dark:text-white' : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'"
+                        class="-mb-px border-b-2 px-3 py-2 text-sm font-medium transition">{{ __('History') }}</button>
+                @endif
+            </div>
+
             <div x-show="tab === 'details'">
                 <form wire:submit="save" id="role-form" class="space-y-6">
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <x-form.input wire:model="name" :label="__('Name')" :hint="__('e.g. HR Officer')" required />
-                        <x-form.input wire:model="description" :label="__('Description')" />
+                        <flux:field>
+                            <flux:label>{{ __('Name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                            <flux:description>{{ __('e.g. HR Officer') }}</flux:description>
+                            <flux:input aria-required="true" wire:model="name" />
+                            <flux:error name="name" />
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>{{ __('Description') }}</flux:label>
+                            <flux:input wire:model="description" />
+                            <flux:error name="description" />
+                        </flux:field>
                     </div>
 
                     @if ($isAdmin)
@@ -51,7 +74,7 @@
                     <livewire:core::history :subject="$role" can="core.roles.manage" :key="'history-role-'.$roleId" />
                 </div>
             @endif
-        </x-ui.tabs>
+        </div>
 
         <x-slot:footer>
             <flux:button type="submit" form="role-form" variant="primary">{{ __('Save') }}</flux:button>

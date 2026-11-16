@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * A person who applied for a job, entered by HR (the company's talent pool). [REC-03]
+ * A person who applied for a job, entered by HR (the company's talent pool).
  *
  *     Applicant::normalizePhone('+880 1711-000000')    '01711000000'
  *     Applicant::duplicatesOf($email, $phone)          people already entered with that email or phone

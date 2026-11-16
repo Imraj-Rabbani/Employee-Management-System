@@ -1,13 +1,24 @@
 <div>
-    <x-ui.card :heading="__('Documents')" :subheading="__('Red = past its expiry date, yellow = expiring within :days days.', ['days' => \App\Modules\Hrm\Models\EmployeeDocument::WARN_DAYS])" :padding="false">
-        @if ($canUpdate)
-            <x-slot:actions>
-                <flux:button size="sm" icon="plus" wire:click="add">{{ __('Add document') }}</flux:button>
-            </x-slot:actions>
-        @endif
+    <div class="glass overflow-hidden rounded-2xl">
+        <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+            <div>
+                <flux:heading size="lg">{{ __('Documents') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Red = past its expiry date, yellow = expiring within :days days.', ['days' => \App\Modules\Hrm\Models\EmployeeDocument::WARN_DAYS]) }}</flux:text>
+            </div>
+            @if ($canUpdate)
+                <div class="flex shrink-0 items-center gap-2">
+                    <flux:button size="sm" icon="plus" wire:click="add">{{ __('Add document') }}</flux:button>
+                </div>
+            @endif
+        </div>
 
         @if ($rows->isEmpty())
-            <x-ui.empty icon="document-text" :heading="__('No documents yet')" />
+            <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                    <flux:icon name="document-text" />
+                </div>
+                <flux:heading size="lg" class="mt-4">{{ __('No documents yet') }}</flux:heading>
+            </div>
         @else
             <table class="w-full text-sm">
                 <thead class="text-left text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
@@ -58,24 +69,90 @@
                 </tbody>
             </table>
         @endif
-    </x-ui.card>
+    </div>
 
     @if ($canUpdate)
-        <x-form.lookup-modal :$modal :$record :heading="$record ? __('Edit document') : __('Add document')"
-            :delete-message="__('The document and its file are deleted.')">
-            <div class="grid gap-4 sm:grid-cols-2">
-                <x-form.select wire:model.live="form.type" :label="__('Type')" :options="$types" :placeholder="__('Choose…')" required />
-                <x-form.input wire:model="form.number" :label="__('Number')" />
-            </div>
-            @if ((string) ($form['type'] ?? '') === (string) $other)
-                <x-form.input wire:model="form.title" :label="__('Name of the document')" required />
-            @endif
-            <div class="grid gap-4 sm:grid-cols-2">
-                <x-form.date wire:model="form.issue_date" :label="__('Issue date')" />
-                <x-form.date wire:model="form.expiry_date" :label="__('Expiry date')" :hint="__('Leave empty if it never expires.')" />
-            </div>
-            <x-form.attachment :$record :label="$record?->attachment_path ? __('Replace scan') : __('Scan / copy')"
-                :url="$record ? route('hrm.employees.attachment', [$employee, $section, $record->id]) : null" />
-        </x-form.lookup-modal>
+        <div>
+            <x-ui.modal :name="$modal" :heading="$record ? __('Edit document') : __('Add document')">
+                <form wire:submit="save" id="{{ $modal }}" class="space-y-6">
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <flux:field>
+                            <flux:label>{{ __('Type') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                            <flux:select aria-required="true" wire:model.live="form.type">
+                                <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
+                                @foreach ($types as $optionValue => $optionLabel)
+                                    <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:error name="form.type" />
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>{{ __('Number') }}</flux:label>
+                            <flux:input wire:model="form.number" />
+                            <flux:error name="form.number" />
+                        </flux:field>
+                    </div>
+                    @if ((string) ($form['type'] ?? '') === (string) $other)
+                        <flux:field>
+                            <flux:label>{{ __('Name of the document') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                            <flux:input aria-required="true" wire:model="form.title" />
+                            <flux:error name="form.title" />
+                        </flux:field>
+                    @endif
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <flux:field>
+                            <flux:label>{{ __('Issue date') }}</flux:label>
+                            <flux:input type="date" wire:model="form.issue_date" />
+                            <flux:error name="form.issue_date" />
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>{{ __('Expiry date') }}</flux:label>
+                            <flux:description>{{ __('Leave empty if it never expires.') }}</flux:description>
+                            <flux:input type="date" wire:model="form.expiry_date" />
+                            <flux:error name="form.expiry_date" />
+                        </flux:field>
+                    </div>
+                    {{-- Attachment: the current file (download + Remove), then the input to add or replace it. --}}
+                    <div class="space-y-2">
+                        @if ($record?->attachment_path)
+                            <div class="flex items-center gap-2 text-sm">
+                                <flux:icon.paper-clip variant="micro" class="text-zinc-500" />
+                                <a href="{{ route('hrm.employees.attachment', [$employee, $section, $record->id]) }}" class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $record->attachment_name ?? __('Attachment') }}</a>
+                                <flux:button size="xs" variant="ghost" class="!text-red-600" x-on:click="$dispatch('confirm', {
+                                    title: @js(__('Remove this file?')),
+                                    confirmText: @js(__('Remove')),
+                                    onConfirm: () => $wire.removeAttachment(),
+                                })">{{ __('Remove') }}</flux:button>
+                            </div>
+                        @endif
+
+                        <flux:field>
+                            <flux:label>{{ $record?->attachment_path ? __('Replace scan') : __('Scan / copy') }}</flux:label>
+                            <flux:description>{{ __('PDF, JPG, PNG or Word, max 5 MB.') }}</flux:description>
+                            <flux:input type="file" wire:model="upload" accept=".pdf,.jpg,.jpeg,.png,.docx" />
+                            <flux:text wire:loading wire:target="upload" class="mt-2 text-sm">{{ __('Uploading…') }}</flux:text>
+                            <flux:error name="upload" />
+                        </flux:field>
+                    </div>
+
+                    {{-- Delete: only when editing an existing record --}}
+                    @if ($record)
+                        <flux:separator />
+                        <flux:button size="sm" variant="ghost" icon="trash" class="!text-red-600" x-on:click="$dispatch('confirm', {
+                            title: @js(__('Delete this record?')),
+                            message: @js(__('The document and its file are deleted.')),
+                            confirmText: @js(__('Delete')),
+                            onConfirm: () => $wire.delete(),
+                        })">{{ __('Delete') }}</flux:button>
+                    @endif
+                </form>
+
+                <x-slot:footer>
+                    <flux:button type="submit" form="{{ $modal }}" variant="primary">{{ __('Save') }}</flux:button>
+                </x-slot:footer>
+            </x-ui.modal>
+        </div>
     @endif
 </div>

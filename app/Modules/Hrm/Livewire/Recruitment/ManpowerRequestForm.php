@@ -20,7 +20,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * New / Edit / Delete manpower request (modal "manpower-request-form"). [REC-01]
+ * New / Edit / Delete manpower request (modal "manpower-request-form").
  *
  * Rules beyond the fields:
  *   - the org unit must be one the user can see (same list as everywhere: EmployeeVisibility)

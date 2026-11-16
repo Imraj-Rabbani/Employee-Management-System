@@ -18,7 +18,7 @@
         },
     }"
 >
-    <x-ui.card :padding="false">
+    <div class="glass overflow-hidden rounded-2xl">
         <div class="flex flex-wrap items-center gap-2 border-b border-white/50 p-4 dark:border-white/10">
             <flux:text class="mr-auto text-sm">{{ trans_choice(':count unit|:count units', $total) }} · {{ __('Drag a unit onto another to move it.') }}</flux:text>
             <flux:button size="sm" variant="ghost" icon="chevron-down" x-on:click="collapsed = []">{{ __('Expand all') }}</flux:button>
@@ -27,7 +27,13 @@
 
         <div class="p-2">
             @if ($roots === [])
-                <x-ui.empty icon="building-office-2" :heading="__('No org units yet')" :description="__('Start with your company as the top unit.')" />
+                <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                    <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                        <flux:icon name="building-office-2" />
+                    </div>
+                    <flux:heading size="lg" class="mt-4">{{ __('No org units yet') }}</flux:heading>
+                    <flux:text class="mt-1 max-w-sm">{{ __('Start with your company as the top unit.') }}</flux:text>
+                </div>
             @else
                 {{-- Drop here to make a unit top-level. Only visible while dragging. --}}
                 <div x-show="dragging !== null" x-cloak
@@ -46,5 +52,5 @@
                 </ul>
             @endif
         </div>
-    </x-ui.card>
+    </div>
 </div>

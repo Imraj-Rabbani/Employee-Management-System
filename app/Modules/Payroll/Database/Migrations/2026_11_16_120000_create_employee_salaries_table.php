@@ -5,11 +5,11 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Employee salaries: an effective-dated amount per head (legacy `salaries`). [PC-03]
+ * Employee salaries: an effective-dated amount per head (legacy `salaries`).
  *
  * A salary is a SET of rows with the same effective_from (one per head). A change never overwrites: the open set
  * is closed the day before (effective_to) and a new set starts (Actions\SetEmployeeSalary). value_type / rate say
- * how a row was worked out ("50% of basic"); NULL = the basic or an amount typed by hand. The payroll run (Phase 10)
+ * how a row was worked out ("50% of basic"); NULL = the basic or an amount typed by hand. The payroll run
  * reads the rows valid in its period; `amount` is what counts.
  *
  * Hold flags are per EMPLOYEE (not per row as in schema.mmd): "hold the salary" / "hold the bank transfer" apply to

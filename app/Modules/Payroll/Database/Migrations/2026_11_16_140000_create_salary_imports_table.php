@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Uploaded Excel files of employee salaries and what happened to them (9.6). Same shape as employee_imports (5.6).
+ * Uploaded Excel files of employee salaries and what happened to them. Same shape as employee_imports.
  *   user_id   who uploaded it (central users.id, no FK): the job imports with that user's org-unit access
  *   errors    JSON list of {row, column, message}: the validation report
  */

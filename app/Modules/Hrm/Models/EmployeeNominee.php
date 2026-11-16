@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Someone who receives a share of the employee's benefits (provident fund, gratuity, insurance)
- * if the employee dies. All nominees of one employee must add up to 100%. [EMP-02]
+ * if the employee dies. All nominees of one employee must add up to 100%.
  *
  *     $nominee->guardian['name']     the guardian of a minor nominee (array thanks to the cast)
  *

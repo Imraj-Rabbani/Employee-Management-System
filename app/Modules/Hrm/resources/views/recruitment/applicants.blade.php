@@ -1,5 +1,5 @@
 {{--
-    HRM → Applicants (6.4): everyone HR has entered. [REC-03]
+    HRM → Applicants: everyone HR has entered.
 --}}
 <x-layouts.app :title="__('Recruitment')">
     <div class="space-y-4">

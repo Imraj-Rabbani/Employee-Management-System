@@ -9,7 +9,7 @@ use PragmaRX\Google2FA\Google2FA;
 use Tests\TestCase;
 
 /**
- * Task 2.7d: logging in when two-factor authentication is on.
+ * Logging in when two-factor authentication is on.
  */
 class TwoFactorLoginTest extends TestCase
 {

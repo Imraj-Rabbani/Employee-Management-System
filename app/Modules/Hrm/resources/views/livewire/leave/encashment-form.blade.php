@@ -5,14 +5,42 @@
         :subheading="__('Unused days of :year are paid out with the next payroll once approved.', ['year' => $year->label()])">
         <form wire:submit="save" id="encashment-form" class="space-y-4">
             @unless ($self)
-                <x-form.select wire:model.live="employeeId" :label="__('Employee')" :options="$employees" :placeholder="__('Choose…')" required
-                               :disabled="$encashmentId !== null" />
+                <flux:field>
+                    <flux:label>{{ __('Employee') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:select aria-required="true" wire:model.live="employeeId" :disabled="$encashmentId !== null">
+                        <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
+                        @foreach ($employees as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="employeeId" />
+                </flux:field>
             @endunless
-            <x-form.select wire:model.live="leaveTypeId" :label="__('Leave type')" :options="$types" required
-                :placeholder="$types === [] && $employeeId !== '' ? __('No encashable leave') : __('Choose…')" />
-            <x-form.input type="number" step="0.5" min="0.5" wire:model="days" class="w-36" :label="__('Days')" required
-                :hint="$balance === null ? null : __(':n days left', ['n' => $num($balance)]).($limit ? ' · '.__('at most :n at a time', ['n' => $num($limit)]) : '')" />
-            <x-form.textarea wire:model="reason" :label="__('Reason')" rows="2" />
+            <flux:field>
+                <flux:label>{{ __('Leave type') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                <flux:select aria-required="true" wire:model.live="leaveTypeId">
+                    <flux:select.option value="">{{ $types === [] && $employeeId !== '' ? __('No encashable leave') : __('Choose…') }}</flux:select.option>
+                    @foreach ($types as $optionValue => $optionLabel)
+                        <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:error name="leaveTypeId" />
+            </flux:field>
+
+            <flux:field>
+                <flux:label>{{ __('Days') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                @if ($balance !== null)
+                    <flux:description>{{ __(':n days left', ['n' => $num($balance)]).($limit ? ' · '.__('at most :n at a time', ['n' => $num($limit)]) : '') }}</flux:description>
+                @endif
+                <flux:input aria-required="true" type="number" step="0.5" min="0.5" wire:model="days" class="w-36" />
+                <flux:error name="days" />
+            </flux:field>
+
+            <flux:field>
+                <flux:label>{{ __('Reason') }}</flux:label>
+                <flux:textarea wire:model="reason" rows="2" />
+                <flux:error name="reason" />
+            </flux:field>
         </form>
 
         <x-slot:footer>

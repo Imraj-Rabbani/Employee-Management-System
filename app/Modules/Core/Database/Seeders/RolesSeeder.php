@@ -6,7 +6,7 @@ use App\Modules\Core\Models\Role;
 use Illuminate\Database\Seeder;
 
 /**
- * Every company starts with an Administrator role (passes every permission check, task 2.9c).
+ * Every company starts with an Administrator role (passes every permission check).
  * Safe to run twice.
  */
 class RolesSeeder extends Seeder

@@ -16,7 +16,7 @@ use LogicException;
 use Throwable;
 
 /**
- * Hire: turns an ACCEPTED offer into a new employee. [REC-07] The last step of recruitment.
+ * Hire: turns an ACCEPTED offer into a new employee. The last step of recruitment.
  *
  *     $hire = app(HireApplicant::class);
  *     $hire->defaults($offer)                         what the Hire form starts with
@@ -31,7 +31,7 @@ use Throwable;
  *   3. the position seat, if any, is filled
  *   4. the application → Hired (history row) and remembers the employee (hired_employee_id)
  *   5. the manpower request's hired_count + 1 (its openings go down)
- * Salary is NOT set here: employee salaries come in Phase 9 (the offer keeps the agreed gross).
+ * Salary is NOT set here: employee salaries are set in Payroll (the offer keeps the agreed gross).
  *
  * Rules: the offer is accepted, the application still at "Offered" and not hired before, the request
  * still has an opening, a unique employee code, and the position (if chosen) free.

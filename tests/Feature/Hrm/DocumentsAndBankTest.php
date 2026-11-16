@@ -17,7 +17,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 5.5 (part 3): Documents (expiry) and Bank (one primary account). [EMP-01, EMP-03]
+ * Documents (expiry) and Bank (one primary account).
  */
 class DocumentsAndBankTest extends TestCase
 {

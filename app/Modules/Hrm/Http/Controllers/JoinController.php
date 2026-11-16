@@ -17,7 +17,7 @@ use Illuminate\View\View;
  * The page behind an Employees → Invite user email: the invited person fills in their details
  * (name, Employee ID, ...) and a password. That creates their employee record, and logs them in.
  *
- * Safe for the same reasons as Core's InvitationController (5.7):
+ * Safe for the same reasons as Core's InvitationController:
  *   - the URL is SIGNED and expires ("signed" middleware): nobody can make one up or change the user id
  *   - it carries v = the user's invitationFingerprint(), which changes when the password changes,
  *     so the link works only ONCE, and a re-sent invitation kills the older link

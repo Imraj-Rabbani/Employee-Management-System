@@ -18,7 +18,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * New / Edit workflow with its levels (modal "workflow-form"). [WF-01, WF-04]
+ * New / Edit workflow with its levels (modal "workflow-form").
  *
  * Levels are an array in the form: the first row is level 1, the second level 2 ...
  * On save, level N keeps the database row of the old level N (so approval history keeps
@@ -119,7 +119,7 @@ class WorkflowForm extends Component
             'allowReject' => ['boolean'],
             'isActive' => ['boolean'],
             'steps' => ['required', 'array', 'min:1', 'max:10'],
-            // Only "role" works until employees exist (Phase 5).
+            // Only "role" works until employees exist.
             'steps.*.approver_type' => ['required', Rule::in([ApproverType::Role->value])],
             'steps.*.approver_role_id' => ['required', Rule::exists(Role::class, 'id')],
             'steps.*.attachment_required' => ['boolean'],

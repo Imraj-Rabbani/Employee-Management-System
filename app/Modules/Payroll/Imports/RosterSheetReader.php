@@ -11,7 +11,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 /**
- * Reads a roster sheet (the format of RosterExport) into grid cells for SaveRosterCells. (7.2e)
+ * Reads a roster sheet (the format of RosterExport) into grid cells for SaveRosterCells.
  *
  *   row 1        Code | Name | a date per column (2026-12-01, or a real Excel date)
  *   other rows   employee code | (name, ignored) | per date: shift code, OFF, CALL, or empty (= not planned)

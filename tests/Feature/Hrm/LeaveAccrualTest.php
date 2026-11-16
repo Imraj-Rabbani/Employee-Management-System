@@ -27,8 +27,8 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 8.5: the nightly leave jobs: AccrueEarnedLeave (hrm:accrue-leave) and CarryForwardLeave
- * (hrm:carry-forward-leave). The earning formulas themselves: tests/Unit/LeaveEarningTest.php. [LV-05]
+ * The nightly leave jobs: AccrueEarnedLeave (hrm:accrue-leave) and CarryForwardLeave
+ * (hrm:carry-forward-leave). The earning formulas themselves: tests/Unit/LeaveEarningTest.php.
  */
 class LeaveAccrualTest extends TestCase
 {

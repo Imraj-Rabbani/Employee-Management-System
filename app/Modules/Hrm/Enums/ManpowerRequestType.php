@@ -5,7 +5,7 @@ namespace App\Modules\Hrm\Enums;
 use App\Core\Enums\HasOptions;
 
 /**
- * Why a manager asks for people (manpower_requests.type, 6.2). [REC-01]
+ * Why a manager asks for people (manpower_requests.type, 6.2).
  *
  *     New           a new seat: the team grows
  *     Replacement   someone left (or is leaving): manpower_requests.replaces_employee_id says who

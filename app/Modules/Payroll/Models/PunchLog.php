@@ -17,8 +17,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
- * One punch (clock in or out) from any source (legacy `punchlog`). Raw data: never edited. [TA-04]
- * Whether a punch is "in" or "out" is not stored: attendance processing (7.4) takes the first and last
+ * One punch (clock in or out) from any source (legacy `punchlog`). Raw data: never edited.
+ * Whether a punch is "in" or "out" is not stored: attendance processing takes the first and last
  * punch of the working day.
  *
  * @property int $id
@@ -82,7 +82,7 @@ class PunchLog extends TenantModel
      * employees are skipped (ambiguous). Returns how many punches were linked.
      *
      * Every new punch passes through here (StorePunches stores them without employee, then links), so this is
-     * also where attendance is processed again (7.5): for each linked employee, the days of those punches plus
+     * also where attendance is processed again: for each linked employee, the days of those punches plus
      * the day before (an overnight shift's punch the next morning belongs to the day before), up to YESTERDAY.
      * Today is left to the nightly run: punches of a running day would only give "absent" or "single punch".
      * So a punch this morning re-processes yesterday: that is what gives a night shift its 06:00 "out", which

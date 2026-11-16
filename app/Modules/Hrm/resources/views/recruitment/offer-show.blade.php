@@ -1,5 +1,5 @@
 {{--
-    HRM → Job Postings → an offer (6.7). The route passes $offer (already checked through visibleTo). [REC-06]
+    HRM → Job Postings → an offer. The route passes $offer (already checked through visibleTo).
 --}}
 <x-layouts.app :title="$offer->number()">
     <div class="space-y-4">

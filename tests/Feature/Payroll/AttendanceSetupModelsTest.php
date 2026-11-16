@@ -17,7 +17,7 @@ use Tests\Concerns\CreatesTenantDatabases;
 use Tests\TestCase;
 
 /**
- * Task 7.1: shifts, weekend profiles, holidays, holiday calendars. [TA-01, TA-02]
+ * Shifts, weekend profiles, holidays, holiday calendars.
  */
 class AttendanceSetupModelsTest extends TestCase
 {

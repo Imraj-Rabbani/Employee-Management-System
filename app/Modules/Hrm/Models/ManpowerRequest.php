@@ -23,7 +23,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * "We need 2 Sales Officers in Chattogram by 1 January": a request for people, approved through a
- * workflow before HR may advertise it (6.3). [REC-01]
+ * workflow before HR may advertise it.
  *
  *     $request->submitForApproval($user)   into the "manpower_request" workflow (HasApprovals)
  *     $request->approvalStatus()           null = draft (not sent yet), Pending, Approved, Rejected, Review
@@ -243,7 +243,7 @@ class ManpowerRequest extends TenantModel implements Approvable, ShowsApprovalDe
     }
 
     /**
-     * Last level approved: HR may now open a job posting for it (6.3).
+     * Last level approved: HR may now open a job posting for it.
      * forceFill: approved_at is NOT in $fillable (a form must never set it), and update() would silently skip it.
      */
     public function onApproved(Approval $final): void

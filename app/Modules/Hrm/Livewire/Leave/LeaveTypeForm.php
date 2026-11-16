@@ -12,7 +12,7 @@ use App\Modules\Hrm\Models\LeaveType;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete leave type with all its rules (modal "leave-type-form"). [LV-01]
+ * New / Edit / Delete leave type with all its rules (modal "leave-type-form").
  *
  * Empty number = no limit (saved as NULL). A setting that belongs to a switch (carry-forward limit,
  * post-facto days, encash limit, days worked per earned day) is cleared when its switch is off, so an

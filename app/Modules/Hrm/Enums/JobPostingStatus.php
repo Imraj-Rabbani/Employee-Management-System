@@ -5,13 +5,13 @@ namespace App\Modules\Hrm\Enums;
 use App\Core\Enums\HasOptions;
 
 /**
- * Where a job posting is (job_postings.status, 6.3). [REC-02]
+ * Where a job posting is (job_postings.status, 6.3).
  *
  *     draft → open → closed      (closed can be reopened, e.g. too few good applicants)
  *
  *     Draft    HR is still writing it; no applications yet
- *     Open     applications can be entered (6.4), between open_date and close_date
- *     Closed   no new applications; the pipeline (6.5) still continues for the existing ones
+ *     Open     applications can be entered, between open_date and close_date
+ *     Closed   no new applications; the pipeline still continues for the existing ones
  */
 enum JobPostingStatus: string
 {

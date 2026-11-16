@@ -29,7 +29,7 @@ class EmployeePolicy
         return $user->can('hrm.employee.view');
     }
 
-    /** Your own record is always viewable (ESS); changing it goes through a profile update request (5.8). */
+    /** Your own record is always viewable (ESS); changing it goes through a profile update request. */
     public function view(User $user, Employee $employee): bool
     {
         if ($employee->user_id !== null && $employee->user_id === $user->id) {
@@ -54,7 +54,7 @@ class EmployeePolicy
         return $user->can('hrm.employee.delete') && $this->inScope($user, $employee);
     }
 
-    /** Invite / link / unlink the employee's login (5.7). */
+    /** Invite / link / unlink the employee's login. */
     public function manageLogin(User $user, Employee $employee): bool
     {
         return $user->can('hrm.employee.login') && $this->inScope($user, $employee);

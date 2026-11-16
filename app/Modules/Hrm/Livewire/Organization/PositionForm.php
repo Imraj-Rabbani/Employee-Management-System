@@ -10,7 +10,7 @@ use App\Modules\Hrm\Models\Position;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete position (modal "position-form"). [ORG-01]
+ * New / Edit / Delete position (modal "position-form").
  * "Reports to" may not create a loop (A → B → A).
  */
 class PositionForm extends LookupForm

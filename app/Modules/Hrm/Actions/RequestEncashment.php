@@ -14,7 +14,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Asks to encash leave (new, or changed after a send-back) and withdraws it. [LV-06]
+ * Asks to encash leave (new, or changed after a send-back) and withdraws it.
  * The ONE way leave_encashments are written: by HR (HRM → Leave → Encashments) and the employee (Self Service).
  *
  *     if ($problem = $action->problem($employee, $type, $values)) { show it } else { $action->handle($employee, $type, $values) }
@@ -45,7 +45,7 @@ class RequestEncashment
             return new LeaveProblem('not_encashable', 'leave_type_id', __(':type cannot be encashed by this employee.', ['type' => $type->name]));
         }
         if ($employee->separation_date !== null && $employee->separation_date->lt($today)) {
-            return new LeaveProblem('separated', 'leave_type_id', __(':name is no longer employed: final settlement pays unused leave (Phase 13).', ['name' => $employee->name]));
+            return new LeaveProblem('separated', 'leave_type_id', __(':name is no longer employed, so leave cannot be encashed.', ['name' => $employee->name]));
         }
         if ($days <= 0 || fmod($days * 2, 1.0) !== 0.0) {
             return new LeaveProblem('days', 'days', __('Days: more than 0, in half days (e.g. 2.5).'));

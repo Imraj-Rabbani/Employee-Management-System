@@ -16,4 +16,12 @@
         ->all();
 @endphp
 
-<x-ui.link-tabs :tabs="$tabs" :label="__($config['label'])" {{ $attributes }} />
+<nav {{ $attributes->class('flex gap-1 overflow-x-auto border-b border-zinc-200 [scrollbar-width:none] dark:border-white/10') }} aria-label="{{ __($config['label']) }}">
+    @foreach ($tabs as $tab)
+        <a href="{{ $tab['href'] }}" wire:navigate @class([
+            '-mb-px shrink-0 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition',
+            'border-brand-800 text-brand-900 dark:border-white dark:text-white' => $tab['current'],
+            'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200' => ! $tab['current'],
+        ]) @if ($tab['current']) aria-current="page" @endif>{{ $tab['label'] }}</a>
+    @endforeach
+</nav>

@@ -1,18 +1,53 @@
 {{-- Payroll settings (PayrollSettingsForm): head mapping for the payroll run, default pay scale profile. --}}
 <form wire:submit="save" class="space-y-4">
-    <x-ui.card :heading="__('Heads for payroll jobs')" :subheading="__('Which salary head the payroll run uses for each job. Leave empty when the company does not use it.')">
-        <div class="grid gap-x-6 gap-y-4 sm:grid-cols-2">
-            @foreach ($roles as $role)
-                <x-form.select wire:model="heads.{{ $role->value }}" :label="$role->label()" :options="$options[$role->value]"
-                    :placeholder="__('Not used')" :hint="$role->hint().' '.__('Type: :type.', ['type' => $role->headType()->label()])" />
-            @endforeach
+    <div class="glass overflow-hidden rounded-2xl">
+        <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+            <div>
+                <flux:heading size="lg">{{ __('Heads for payroll jobs') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Which salary head the payroll run uses for each job. Leave empty when the company does not use it.') }}</flux:text>
+            </div>
         </div>
-    </x-ui.card>
 
-    <x-ui.card :heading="__('Pay scale')">
-        <x-form.select wire:model="defaultPayScale" :label="__('Default pay scale profile')" :options="$payScales" :placeholder="__('None')"
-            :hint="__('For employees without their own (set on the employee\'s Salary tab).')" />
-    </x-ui.card>
+        <div class="p-6">
+            <div class="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+                @foreach ($roles as $role)
+                    <flux:field>
+                        <flux:label>{{ $role->label() }}</flux:label>
+                        <flux:description>{{ $role->hint().' '.__('Type: :type.', ['type' => $role->headType()->label()]) }}</flux:description>
+                        <flux:select wire:model="heads.{{ $role->value }}">
+                            <flux:select.option value="">{{ __('Not used') }}</flux:select.option>
+                            @foreach ($options[$role->value] as $optionValue => $optionLabel)
+                                <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="heads.{{ $role->value }}" />
+                    </flux:field>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    <div class="glass overflow-hidden rounded-2xl">
+        <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+            <div>
+                <flux:heading size="lg">{{ __('Pay scale') }}</flux:heading>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <flux:field>
+                <flux:label>{{ __('Default pay scale profile') }}</flux:label>
+                <flux:description>{{ __('For employees without their own (set on the employee\'s Salary tab).') }}</flux:description>
+                <flux:select wire:model="defaultPayScale">
+                    <flux:select.option value="">{{ __('None') }}</flux:select.option>
+                    @foreach ($payScales as $optionValue => $optionLabel)
+                        <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:error name="defaultPayScale" />
+            </flux:field>
+        </div>
+    </div>
 
     <div class="flex justify-end">
         <flux:button type="submit" variant="primary">{{ __('Save settings') }}</flux:button>

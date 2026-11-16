@@ -13,7 +13,7 @@ use Illuminate\Console\Command;
  *     php artisan tenants:run payroll:sync-devices              every company (the scheduler does this every 5 minutes)
  *     php artisan tenants:run payroll:sync-devices --tenant=demo
  *
- * A device that fails is reported and skipped; the others still sync. [TA-04]
+ * A device that fails is reported and skipped; the others still sync.
  */
 class SyncDevicePunches extends Command
 {

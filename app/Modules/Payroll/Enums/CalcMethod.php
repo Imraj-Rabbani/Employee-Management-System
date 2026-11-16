@@ -4,7 +4,7 @@ namespace App\Modules\Payroll\Enums;
 
 use App\Core\Enums\HasOptions;
 
-/** How a head's amount is worked out. [PC-01] */
+/** How a head's amount is worked out. */
 enum CalcMethod: string
 {
     use HasOptions;
@@ -12,7 +12,7 @@ enum CalcMethod: string
     case Fixed = 'fixed';                    // the same amount for everyone (uses "amount")
     case PercentOfBasic = 'percent_basic';   // rate % of basic
     case PercentOfGross = 'percent_gross';   // rate % of gross
-    case Formula = 'formula';                // an expression, evaluated by the payroll run (Phase 10)
+    case Formula = 'formula';                // an expression, evaluated by the payroll run
     case Attendance = 'attendance';          // "amount" per payable day
 
     public function label(): string

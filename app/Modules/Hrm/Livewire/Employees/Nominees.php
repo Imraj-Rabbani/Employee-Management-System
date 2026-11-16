@@ -8,7 +8,7 @@ use App\Modules\Hrm\Models\EmployeeNominee;
 use Illuminate\Validation\Rule;
 
 /**
- * Profile → Family & Nominees → "Nominees" card. [EMP-02]
+ * Profile → Family & Nominees → "Nominees" card.
  *
  * Shares: a save may not bring the total ABOVE 100%. Below 100% is allowed while nominees are being
  * added one by one; the card then shows a warning until the total is exactly 100%.

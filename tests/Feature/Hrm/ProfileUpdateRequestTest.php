@@ -24,7 +24,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 5.8: profile update requests through the workflow, plus the employee-based approver types. [EMP-08]
+ * Profile update requests through the workflow, plus the employee-based approver types.
  *
  * Head Office (head: Boss) › Finance (head: none). Rahim (Finance) reports to Salma. Everyone has a login
  * without any role (pure self service).

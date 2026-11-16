@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * Working hours an employee is expected to keep, e.g. "General" 09:00–18:00 (legacy `shifts`). [TA-01]
+ * Working hours an employee is expected to keep, e.g. "General" 09:00–18:00 (legacy `shifts`).
  *
  * Two rules are kept by the model itself, so no screen can get them wrong:
  *   - is_overnight is worked out from the times: ends at or before it starts → ends the next day

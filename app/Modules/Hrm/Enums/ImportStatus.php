@@ -2,7 +2,7 @@
 
 namespace App\Modules\Hrm\Enums;
 
-/** Where an Excel import is (5.6). Pending → Processing → Done or Failed. */
+/** Where an Excel import is. Pending → Processing → Done or Failed. */
 enum ImportStatus: string
 {
     case Pending = 'pending';        // uploaded, waiting for the queue worker

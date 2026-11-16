@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Salary heads = the pay components (Basic, House rent, PF, Tax ...), legacy `salaryheads`. [PC-01]
+ * Salary heads = the pay components (Basic, House rent, PF, Tax ...), legacy `salaryheads`.
  * Money is DECIMAL(15,2), rates DECIMAL(9,4), percentages DECIMAL(5,2) (Architecture §9.3).
  * Which column is used depends on calc_method: amount (fixed / per day), rate (% of basic / gross), formula.
  */

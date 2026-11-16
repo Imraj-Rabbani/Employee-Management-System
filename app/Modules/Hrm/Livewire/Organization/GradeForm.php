@@ -7,7 +7,7 @@ use App\Modules\Hrm\Models\Grade;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete grade (modal "grade-form"). [ORG-01]
+ * New / Edit / Delete grade (modal "grade-form").
  * Everything except the fields comes from LookupForm.
  */
 class GradeForm extends LookupForm

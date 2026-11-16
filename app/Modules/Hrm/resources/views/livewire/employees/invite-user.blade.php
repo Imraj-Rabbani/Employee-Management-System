@@ -1,7 +1,14 @@
 <div>
     {{-- Invitations sent from here that nobody has accepted yet. Hidden when there are none. --}}
     @if ($pending->isNotEmpty())
-        <x-ui.card :heading="__('Pending invitations')" :subheading="__('Invited, but not registered yet. They become employees when they complete the form in the email.')" :padding="false">
+        <div class="glass overflow-hidden rounded-2xl">
+            <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+                <div>
+                    <flux:heading size="lg">{{ __('Pending invitations') }}</flux:heading>
+                    <flux:text class="mt-1">{{ __('Invited, but not registered yet. They become employees when they complete the form in the email.') }}</flux:text>
+                </div>
+            </div>
+
             <ul class="divide-y divide-zinc-200/60 dark:divide-white/10">
                 @foreach ($pending as $invited)
                     <li class="flex flex-wrap items-center justify-between gap-3 px-6 py-3 text-sm" wire:key="invite-{{ $invited->id }}">
@@ -24,24 +31,37 @@
                     </li>
                 @endforeach
             </ul>
-        </x-ui.card>
+        </div>
     @endif
 
     <x-ui.modal name="invite-user-form" :heading="__('Invite user')"
         :subheading="__('They get an email with a link to fill in their details and choose a password (valid :days days).', ['days' => \App\Modules\Core\Notifications\UserInvited::DAYS_VALID])">
         <form wire:submit="invite" id="invite-user-form" class="space-y-5">
-            <x-form.input wire:model="email" type="email" :label="__('Email')" required />
+            <flux:field>
+                <flux:label>{{ __('Email') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                <flux:input aria-required="true" wire:model="email" type="email" />
+                <flux:error name="email" />
+            </flux:field>
 
             @if ($roles)
-                <x-form.select wire:model.live="roleId" :label="__('Role')" :options="$roles" :placeholder="__('None: self service only')"
-                    :hint="__('Decides which screens they can use. Check it below before sending.')" />
+                <flux:field>
+                    <flux:label>{{ __('Role') }}</flux:label>
+                    <flux:description>{{ __('Decides which screens they can use. Check it below before sending.') }}</flux:description>
+                    <flux:select wire:model.live="roleId">
+                        <flux:select.option value="">{{ __('None: self service only') }}</flux:select.option>
+                        @foreach ($roles as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="roleId" />
+                </flux:field>
 
                 {{-- What the chosen role allows, so the inviter can check before sending. --}}
                 <div class="rounded-xl bg-zinc-500/5 px-4 py-3 text-sm">
                     <div class="flex items-center justify-between gap-2">
                         <div class="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('This role allows') }}</div>
                         @if ($canManageRoles)
-                            <x-text-link class="text-xs" :href="route('core.roles')" target="_blank">{{ __('Edit roles') }}</x-text-link>
+                            <a href="{{ route('core.roles') }}" target="_blank" wire:navigate class="underline text-sm decoration-neutral-400 underline-offset-2 duration-300 ease-out hover:decoration-neutral-700 text-neutral-900 dark:text-neutral-200 dark:hover:decoration-neutral-100 text-xs">{{ __('Edit roles') }}</a>
                         @endif
                     </div>
 

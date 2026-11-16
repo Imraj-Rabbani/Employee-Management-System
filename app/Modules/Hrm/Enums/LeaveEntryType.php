@@ -5,13 +5,13 @@ namespace App\Modules\Hrm\Enums;
 use App\Core\Enums\HasOptions;
 
 /**
- * Why a leave balance changed: one row of leave_ledger. [LV-03]
+ * Why a leave balance changed: one row of leave_ledger.
  *
  *     Opening         + the balance an employee starts with (e.g. from the old system)
- *     Earned          + entitlement / accrual (8.5)
- *     Taken           − approved leave (8.4); + when it is withdrawn (a reversal)
- *     Encashed        − paid out (8.6)
- *     CarriedForward  − in the year the days leave, + in the next year (8.5)
+ *     Earned          + entitlement / accrual
+ *     Taken           − approved leave; + when it is withdrawn (a reversal)
+ *     Encashed        − paid out
+ *     CarriedForward  − in the year the days leave, + in the next year
  *     Expired         − lapsed at year end, or carried days that ran out
  *     Adjustment      ± a correction by HR, always with a note
  */

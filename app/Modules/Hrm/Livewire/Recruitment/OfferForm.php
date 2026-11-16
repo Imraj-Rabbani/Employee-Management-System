@@ -17,7 +17,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * Make / change a job offer (modal "offer-form"). [REC-06]
+ * Make / change a job offer (modal "offer-form").
  *
  *     $dispatch('create-offer', { applicationId: 12 })   new (from the pipeline); prefilled from the manpower request
  *     $dispatch('edit-offer', { id: 3 })                 a draft or an offer sent back for changes

@@ -25,7 +25,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.9: recruitment reports. [REC-01..07]
+ * Recruitment reports.
  */
 class RecruitmentReportsTest extends TestCase
 {
@@ -91,12 +91,12 @@ class RecruitmentReportsTest extends TestCase
 
         Livewire::test(OpenPositionsReport::class)
             ->assertSee('Overdue')
-            ->set('filters.timing', 'overdue')
+            ->set('timing', 'overdue')
             ->assertSee('Late Role')->assertDontSee('Soon Role')
-            ->set('filters.timing', '')
-            ->set('filters.advertised', 'no')
+            ->set('timing', '')
+            ->set('advertised', 'no')
             ->assertSee('Late Role')->assertDontSee('Soon Role')
-            ->set('filters.advertised', 'all')
+            ->set('advertised', 'all')
             ->assertSee('Soon Role')->assertDontSee('Late Role');
 
         $this->assertNotNull($late);

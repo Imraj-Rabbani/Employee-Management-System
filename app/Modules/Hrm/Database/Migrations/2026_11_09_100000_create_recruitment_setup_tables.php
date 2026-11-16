@@ -5,11 +5,11 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT lookup tables for recruitment (6.1). [REC-04, REC-05]
+ * TENANT lookup tables for recruitment.
  *
  *   interview_factors   legacy `interviewfactors` (type 0): what interviewers score, e.g. "Communication".
- *                       Each interviewer gives a score per factor in 6.6; `weight` decides how much it counts.
- *   rejection_reasons   new: picked when an application is rejected or withdrawn (6.5).
+ *                       Each interviewer gives a score per factor; `weight` decides how much it counts.
+ *   rejection_reasons   new: picked when an application is rejected or withdrawn.
  */
 return new class extends Migration
 {

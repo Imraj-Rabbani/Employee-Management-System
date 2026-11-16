@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * How payroll treats a group of employees (legacy `payscaleprofiles`). [PC-04]
+ * How payroll treats a group of employees (legacy `payscaleprofiles`).
  * The profile of an employee: PayrollSettings::payScaleFor($employee) (their own, else the company default).
  *
  * @property int $id

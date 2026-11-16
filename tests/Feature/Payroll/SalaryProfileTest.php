@@ -22,7 +22,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 9.3: salary profiles (per grade) with head values, and "apply profile": basic / gross → head amounts. [PC-02]
+ * Salary profiles (per grade) with head values, and "apply profile": basic / gross → head amounts.
  */
 class SalaryProfileTest extends TestCase
 {

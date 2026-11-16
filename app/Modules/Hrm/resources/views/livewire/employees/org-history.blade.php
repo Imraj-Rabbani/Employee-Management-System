@@ -1,13 +1,25 @@
 <div>
-    <x-ui.card :heading="__('Org unit history')" :subheading="__('Where :name worked, and when. Newest first.', ['name' => $employee->name])" :padding="false">
-        @if ($canUpdate)
-            <x-slot:actions>
-                <flux:button size="sm" icon="arrows-right-left" wire:click="open">{{ __('Change org unit') }}</flux:button>
-            </x-slot:actions>
-        @endif
+    <div class="glass overflow-hidden rounded-2xl">
+        <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+            <div>
+                <flux:heading size="lg">{{ __('Org unit history') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Where :name worked, and when. Newest first.', ['name' => $employee->name]) }}</flux:text>
+            </div>
+            @if ($canUpdate)
+                <div class="flex shrink-0 items-center gap-2">
+                    <flux:button size="sm" icon="arrows-right-left" wire:click="open">{{ __('Change org unit') }}</flux:button>
+                </div>
+            @endif
+        </div>
 
         @if ($rows->isEmpty())
-            <x-ui.empty icon="building-office" :heading="__('No org unit yet')" :description="__('Use “Change org unit” to place this employee.')" />
+            <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                    <flux:icon name="building-office" />
+                </div>
+                <flux:heading size="lg" class="mt-4">{{ __('No org unit yet') }}</flux:heading>
+                <flux:text class="mt-1 max-w-sm">{{ __('Use “Change org unit” to place this employee.') }}</flux:text>
+            </div>
         @else
             <table class="w-full text-sm">
                 <thead class="text-left text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
@@ -47,15 +59,36 @@
                 </tbody>
             </table>
         @endif
-    </x-ui.card>
+    </div>
 
     @if ($canUpdate)
         <x-ui.modal name="employee-org-change" :heading="__('Change org unit')"
             :subheading="__('The current row ends the day before the new one starts.')">
             <form wire:submit="save" id="employee-org-change" class="space-y-5">
-                <x-form.select wire:model="form.org_unit_id" :label="__('New org unit')" :options="$units" :placeholder="__('Choose…')" required />
-                <x-form.date wire:model="form.effective_from" :label="__('From')" required :hint="__('Today or earlier. Future moves come with transfers (Phase 13).')" />
-                <x-form.input wire:model="form.reason" :label="__('Reason')" :hint="__('e.g. Transfer, Restructuring')" />
+                <flux:field>
+                    <flux:label>{{ __('New org unit') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:select aria-required="true" wire:model="form.org_unit_id">
+                        <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
+                        @foreach ($units as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="form.org_unit_id" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('From') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:description>{{ __('Today or earlier. Moves with a future date are not supported yet.') }}</flux:description>
+                    <flux:input type="date" aria-required="true" wire:model="form.effective_from" />
+                    <flux:error name="form.effective_from" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Reason') }}</flux:label>
+                    <flux:description>{{ __('e.g. Transfer, Restructuring') }}</flux:description>
+                    <flux:input wire:model="form.reason" />
+                    <flux:error name="form.reason" />
+                </flux:field>
             </form>
 
             <x-slot:footer>

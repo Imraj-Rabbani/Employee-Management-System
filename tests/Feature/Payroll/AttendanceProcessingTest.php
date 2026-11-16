@@ -27,7 +27,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 7.4c: from the database to attendance_days (inputs, saving, job, command, schedule). [TA-05]
+ * From the database to attendance_days (inputs, saving, job, command, schedule).
  * The rules themselves are unit tested in tests/Unit/AttendanceProcessorTest.
  *
  * December 2026: Tue 1, Wed 2, Thu 3, Fri 4, Sat 5. Today = 10 December.

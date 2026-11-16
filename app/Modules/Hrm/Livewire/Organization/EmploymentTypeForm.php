@@ -7,7 +7,7 @@ use App\Modules\Hrm\Models\EmploymentType;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete employment type (modal "employment-type-form"). [ORG-01]
+ * New / Edit / Delete employment type (modal "employment-type-form").
  * Everything except the fields comes from LookupForm.
  */
 class EmploymentTypeForm extends LookupForm

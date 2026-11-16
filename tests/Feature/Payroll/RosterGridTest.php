@@ -36,7 +36,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 7.2c–e: roster grid (save, fill), send for approval, plan a change, Excel export / import. [TA-03]
+ * Roster grid (save, fill), send for approval, plan a change, Excel export / import.
  *
  * Roster: Factory (and its sub-unit Line 1), 1–7 December 2026 (Tue … Mon; 4 Dec = Friday, 5 Dec = Saturday).
  */

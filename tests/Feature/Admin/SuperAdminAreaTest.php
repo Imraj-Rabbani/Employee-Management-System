@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Task 2.6a: only super admins can open the /admin area.
+ * Only super admins can open the /admin area.
  */
 class SuperAdminAreaTest extends TestCase
 {

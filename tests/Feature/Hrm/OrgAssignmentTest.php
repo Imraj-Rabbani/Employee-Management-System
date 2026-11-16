@@ -16,7 +16,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 5.4: effective-dated org unit history (HasEffectiveDates, ChangeOrgUnit, History tab). [EMP-04]
+ * Effective-dated org unit history (HasEffectiveDates, ChangeOrgUnit, History tab).
  *
  * Rahim joined Finance on 2024-01-01. Units: Head Office › Finance, Head Office › Sales.
  */

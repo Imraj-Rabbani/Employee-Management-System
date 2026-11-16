@@ -5,25 +5,77 @@
         <form wire:submit="save" id="job-posting-form" class="space-y-6">
             <fieldset @disabled(! $editable) class="space-y-6">
                 @if ($posting)
-                    <x-ui.details :items="[
-                        __('Manpower request') => $posting->manpowerRequest->number(),
-                        __('For') => $posting->manpowerRequest->headcount.' × '.($posting->manpowerRequest->designation->name ?? '?').' ('.($posting->manpowerRequest->orgUnit->name ?? '?').')',
-                        __('Status') => $posting->status->label(),
-                    ]" />
+                    <dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+                        @foreach ([
+                                __('Manpower request') => $posting->manpowerRequest->number(),
+                                __('For') => $posting->manpowerRequest->headcount.' × '.($posting->manpowerRequest->designation->name ?? '?').' ('.($posting->manpowerRequest->orgUnit->name ?? '?').')',
+                                __('Status') => $posting->status->label(),
+                        ] as $detailLabel => $detailValue)
+                            <div>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ $detailLabel }}</dt>
+                                <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                    @if ($detailValue === null || $detailValue === '')
+                                        <span class="text-zinc-400">—</span>
+                                    @else
+                                        {{ $detailValue }}
+                                    @endif
+                                </dd>
+                            </div>
+                        @endforeach
+                    </dl>
                 @else
-                    <x-form.select wire:model.live="form.manpower_request_id" :label="__('Manpower request')" :options="$requests"
-                        :placeholder="$requests ? __('Choose…') : __('No approved request with openings left')" required
-                        :hint="__('Approved requests that still have openings to advertise')" />
+                    <flux:field>
+                        <flux:label>{{ __('Manpower request') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                        <flux:description>{{ __('Approved requests that still have openings to advertise') }}</flux:description>
+                        <flux:select aria-required="true" wire:model.live="form.manpower_request_id">
+                            <flux:select.option value="">{{ $requests ? __('Choose…') : __('No approved request with openings left') }}</flux:select.option>
+                            @foreach ($requests as $optionValue => $optionLabel)
+                                <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="form.manpower_request_id" />
+                    </flux:field>
                 @endif
 
-                <x-form.input wire:model="form.title" :label="__('Title')" required :hint="__('As applicants will see it')" />
+                <flux:field>
+                    <flux:label>{{ __('Title') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:description>{{ __('As applicants will see it') }}</flux:description>
+                    <flux:input aria-required="true" wire:model="form.title" />
+                    <flux:error name="form.title" />
+                </flux:field>
                 <div class="grid gap-4 sm:grid-cols-3">
-                    <x-form.input wire:model="form.openings" type="number" min="1" :label="__('Openings')" required />
-                    <x-form.date wire:model="form.open_date" :label="__('Opens')" required />
-                    <x-form.date wire:model="form.close_date" :label="__('Closes')" :hint="__('Empty = until closed by hand')" />
+                    <flux:field>
+                        <flux:label>{{ __('Openings') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                        <flux:input aria-required="true" wire:model="form.openings" type="number" min="1" />
+                        <flux:error name="form.openings" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Opens') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                        <flux:input type="date" aria-required="true" wire:model="form.open_date" />
+                        <flux:error name="form.open_date" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Closes') }}</flux:label>
+                        <flux:description>{{ __('Empty = until closed by hand') }}</flux:description>
+                        <flux:input type="date" wire:model="form.close_date" />
+                        <flux:error name="form.close_date" />
+                    </flux:field>
                 </div>
-                <x-form.textarea wire:model="form.description" :label="__('Description')" rows="5" :hint="__('What the person will do')" />
-                <x-form.textarea wire:model="form.requirements" :label="__('Requirements')" rows="5" :hint="__('Education, experience, skills')" />
+                <flux:field>
+                    <flux:label>{{ __('Description') }}</flux:label>
+                    <flux:description>{{ __('What the person will do') }}</flux:description>
+                    <flux:textarea wire:model="form.description" rows="5" />
+                    <flux:error name="form.description" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Requirements') }}</flux:label>
+                    <flux:description>{{ __('Education, experience, skills') }}</flux:description>
+                    <flux:textarea wire:model="form.requirements" rows="5" />
+                    <flux:error name="form.requirements" />
+                </flux:field>
             </fieldset>
 
             @if ($posting?->status === \App\Modules\Hrm\Enums\JobPostingStatus::Draft)

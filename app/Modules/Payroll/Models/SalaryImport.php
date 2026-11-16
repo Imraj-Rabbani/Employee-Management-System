@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * An uploaded Excel file of employee salaries and what happened to it (9.6). Like Hrm\Models\EmployeeImport.
+ * An uploaded Excel file of employee salaries and what happened to it. Like Hrm\Models\EmployeeImport.
  *
  * @property int $id
  * @property int $user_id

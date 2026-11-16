@@ -12,7 +12,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
 /**
- * The data behind the attendance calendars (7.8). [TA-08]
+ * The data behind the attendance calendars.
  *
  *   employeeMonth()  one employee, a month as weeks (Mon–Sun): the processed day if there is one, else what is
  *                    PLANNED (shift, weekend, holiday) — so upcoming days and holidays show too

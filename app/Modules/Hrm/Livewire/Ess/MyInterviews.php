@@ -11,7 +11,7 @@ use Livewire\Component;
 
 /**
  * Self Service → My Interviews: the interviews this employee is on the panel of, newest first, with
- * the applicant's CV and their own score sheet (InterviewScoreSheet). [REC-05]
+ * the applicant's CV and their own score sheet (InterviewScoreSheet).
  * No permission needed: only the user's OWN panel seats are listed (via their linked employee record).
  */
 class MyInterviews extends Component

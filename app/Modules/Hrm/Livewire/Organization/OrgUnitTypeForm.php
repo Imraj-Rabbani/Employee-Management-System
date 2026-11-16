@@ -7,7 +7,7 @@ use App\Modules\Hrm\Models\OrgUnitType;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete unit level (modal "org-unit-type-form"). [ORG-01]
+ * New / Edit / Delete unit level (modal "org-unit-type-form").
  * Everything except the fields comes from LookupForm.
  */
 class OrgUnitTypeForm extends LookupForm

@@ -9,7 +9,7 @@ use Throwable;
 
 /**
  * A date cell from an uploaded sheet: a real Excel date (a number like 45321) or text (2024-01-31, 31/01/2024,
- * 31-01-2024, 31.01.2024). Same rules as the employee import (5.6).
+ * 31-01-2024, 31.01.2024). Same rules as the employee import.
  *
  *     SpreadsheetDate::parse($cell)   '2024-01-31', null for an empty cell, InvalidArgumentException otherwise
  */

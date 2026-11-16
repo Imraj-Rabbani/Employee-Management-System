@@ -5,11 +5,11 @@ namespace App\Modules\Hrm\Enums;
 use App\Core\Enums\HasOptions;
 
 /**
- * How an employee gets the days of a leave type in their profile (legacy `leavetypes.earnType`). [LV-01, LV-05]
+ * How an employee gets the days of a leave type in their profile (legacy `leavetypes.earnType`).
  * Same numbers as legacy so migrated data keeps its meaning. Legacy 3 ("earn each after threshold") and
  * 4 ("full month only") were not used: not ported.
  *
- * The days themselves come from the profile (leave_profile_items.days_per_year). Credited by 8.2 / 8.5.
+ * The days themselves come from the profile (leave_profile_items.days_per_year). Credited by the leave accrual (LeaveLedger).
  */
 enum LeaveEarnType: int
 {

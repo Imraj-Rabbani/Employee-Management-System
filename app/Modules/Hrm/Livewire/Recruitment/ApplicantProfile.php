@@ -16,7 +16,7 @@ use Livewire\Component;
 
 /**
  * One applicant's page: header (contact, CV, Edit), personal details, and their applications with
- * "Apply to posting". Education and work history are separate cards (ApplicantEducations / ...WorkHistories). [REC-03]
+ * "Apply to posting". Education and work history are separate cards (ApplicantEducations / ...WorkHistories).
  *
  * Applications are listed only for postings the user can see (Application::visibleTo); one to a posting
  * outside the user's org units is counted ("+1 in other org units") but not shown.

@@ -5,8 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Approvers and requesters as LOGINS (central users.id), decided 2026-11-06 for task 3.3.
- * Employees only arrive in Phase 5; the *_employee_id columns stay for then.
+ * Approvers and requesters as LOGINS (central users.id), decided 2026-11-06.
+ * The *_employee_id columns stay for employee-based approvers.
  * The inbox ("My Approvals") looks at approver_user_id.
  */
 return new class extends Migration

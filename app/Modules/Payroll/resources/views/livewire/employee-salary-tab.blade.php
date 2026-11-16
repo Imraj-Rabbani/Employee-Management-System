@@ -12,7 +12,7 @@
 @endphp
 
 <div class="space-y-4">
-    {{-- Hold banner: the payroll run (Phase 10) reads these flags. --}}
+    {{-- Hold banner: the payroll run reads these flags. --}}
     @if ($employee->salary_on_hold || $employee->bank_transfer_on_hold)
         <div class="flex items-start justify-between gap-4 rounded-2xl bg-amber-500/10 px-5 py-3 text-sm ring-1 ring-amber-500/30" data-test="hold">
             <div>
@@ -28,7 +28,7 @@
         </div>
     @endif
 
-    {{-- Pay scale profile (9.5): how payroll treats the employee; none = the company default. --}}
+    {{-- Pay scale profile: how payroll treats the employee; none = the company default. --}}
     <div class="glass flex items-center justify-between gap-4 rounded-2xl px-6 py-3 text-sm" data-test="pay-scale">
         <div>
             <span class="text-zinc-500">{{ __('Pay scale profile') }}:</span>
@@ -46,19 +46,25 @@
         @endif
     </div>
 
-    <x-ui.card :heading="__('Current salary')" :subheading="$current
-            ? __('Since :date', ['date' => format_date($current->from)]).($current->profile ? ' · '.__('Profile: :name', ['name' => $current->profile]) : '')
-            : null" :padding="false">
-        <x-slot:actions>
-            @if ($canManage)
-                <div class="flex items-center gap-2">
-                    @unless ($employee->salary_on_hold || $employee->bank_transfer_on_hold)
-                        <flux:button size="sm" variant="ghost" icon="pause" wire:click="openHold">{{ __('Hold') }}</flux:button>
-                    @endunless
-                    <flux:button size="sm" icon="banknotes" wire:click="openSalary">{{ $history->isEmpty() ? __('Set salary') : __('Change salary') }}</flux:button>
-                </div>
-            @endif
-        </x-slot:actions>
+    <div class="glass overflow-hidden rounded-2xl">
+        <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+            <div>
+                <flux:heading size="lg">{{ __('Current salary') }}</flux:heading>
+                @if ($current)
+                    <flux:text class="mt-1">{{ __('Since :date', ['date' => format_date($current->from)]).($current->profile ? ' · '.__('Profile: :name', ['name' => $current->profile]) : '') }}</flux:text>
+                @endif
+            </div>
+            <div class="flex shrink-0 items-center gap-2">
+                @if ($canManage)
+                    <div class="flex items-center gap-2">
+                        @unless ($employee->salary_on_hold || $employee->bank_transfer_on_hold)
+                            <flux:button size="sm" variant="ghost" icon="pause" wire:click="openHold">{{ __('Hold') }}</flux:button>
+                        @endunless
+                        <flux:button size="sm" icon="banknotes" wire:click="openSalary">{{ $history->isEmpty() ? __('Set salary') : __('Change salary') }}</flux:button>
+                    </div>
+                @endif
+            </div>
+        </div>
 
         @if ($upcoming)
             <div class="border-b border-white/50 px-6 py-3 text-sm dark:border-white/10">
@@ -68,8 +74,13 @@
         @endif
 
         @if ($current === null)
-            <x-ui.empty icon="banknotes" :heading="__('No salary yet')"
-                :description="$upcoming ? __('The first salary starts later (see above).') : __('Set a salary from a salary profile, or head by head.')" />
+            <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                    <flux:icon name="banknotes" />
+                </div>
+                <flux:heading size="lg" class="mt-4">{{ __('No salary yet') }}</flux:heading>
+                <flux:text class="mt-1 max-w-sm">{{ $upcoming ? __('The first salary starts later (see above).') : __('Set a salary from a salary profile, or head by head.') }}</flux:text>
+            </div>
         @else
             <table class="w-full text-sm" data-test="current">
                 <tbody>
@@ -88,10 +99,17 @@
                 </tfoot>
             </table>
         @endif
-    </x-ui.card>
+    </div>
 
     @if ($history->isNotEmpty())
-        <x-ui.card :heading="__('Salary history')" :subheading="__('Click a row for its heads.')" :padding="false">
+        <div class="glass overflow-hidden rounded-2xl">
+            <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+                <div>
+                    <flux:heading size="lg">{{ __('Salary history') }}</flux:heading>
+                    <flux:text class="mt-1">{{ __('Click a row for its heads.') }}</flux:text>
+                </div>
+            </div>
+
             <table class="w-full text-sm" data-test="history">
                 <thead class="text-left text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                     <tr class="border-b border-white/50 dark:border-white/10">
@@ -137,21 +155,48 @@
                     @endforeach
                 </tbody>
             </table>
-        </x-ui.card>
+        </div>
     @endif
 
     @if ($canManage)
         <x-ui.modal name="employee-salary" size="lg" :heading="__('Salary of :name', ['name' => $employee->name])">
             <form wire:submit="saveSalary" id="employee-salary" class="space-y-5">
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <x-form.date wire:model="form.effective_from" :label="__('Effective from')" required
-                        :hint="__('The current salary ends the day before. Same day as the current one = a correction.')" />
-                    <x-form.select wire:model="form.salary_profile_id" :label="__('Salary profile')" :options="$profiles" :placeholder="__('None')" />
+                    <flux:field>
+                        <flux:label>{{ __('Effective from') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                        <flux:description>{{ __('The current salary ends the day before. Same day as the current one = a correction.') }}</flux:description>
+                        <flux:input type="date" aria-required="true" wire:model="form.effective_from" />
+                        <flux:error name="form.effective_from" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Salary profile') }}</flux:label>
+                        <flux:select wire:model="form.salary_profile_id">
+                            <flux:select.option value="">{{ __('None') }}</flux:select.option>
+                            @foreach ($profiles as $optionValue => $optionLabel)
+                                <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="form.salary_profile_id" />
+                    </flux:field>
                 </div>
 
                 <div class="grid items-end gap-3 sm:grid-cols-3">
-                    <x-form.select wire:model="form.basis" :label="__('Start from')" :options="$bases" />
-                    <x-form.input wire:model="form.amount" type="number" min="0" step="0.01" :label="__('Amount')" />
+                    <flux:field>
+                        <flux:label>{{ __('Start from') }}</flux:label>
+                        <flux:select wire:model="form.basis">
+                            @foreach ($bases as $optionValue => $optionLabel)
+                                <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="form.basis" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Amount') }}</flux:label>
+                        <flux:input wire:model="form.amount" type="number" min="0" step="0.01" />
+                        <flux:error name="form.amount" />
+                    </flux:field>
                     <flux:button wire:click="applyProfile" icon="calculator">{{ __('Apply profile') }}</flux:button>
                 </div>
 
@@ -195,8 +240,16 @@
 
         <x-ui.modal name="pay-scale" :heading="__('Pay scale profile')">
             <form wire:submit="savePayScale" id="pay-scale" class="space-y-5">
-                <x-form.select wire:model="payScaleId" :label="__('Pay scale profile')" :options="$payScales"
-                    :placeholder="$defaultPayScale ? __('Company default (:name)', ['name' => $defaultPayScale->name]) : __('None')" />
+                <flux:field>
+                    <flux:label>{{ __('Pay scale profile') }}</flux:label>
+                    <flux:select wire:model="payScaleId">
+                        <flux:select.option value="">{{ $defaultPayScale ? __('Company default (:name)', ['name' => $defaultPayScale->name]) : __('None') }}</flux:select.option>
+                        @foreach ($payScales as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="payScaleId" />
+                </flux:field>
             </form>
 
             <x-slot:footer>
@@ -206,10 +259,15 @@
 
         <x-ui.modal name="salary-hold" :heading="__('Salary hold')">
             <form wire:submit="saveHold" id="salary-hold" class="space-y-5">
-                <x-form.toggle wire:model.live="hold.salary_on_hold" :label="__('Hold the salary')" :hint="__('Payroll leaves it unpaid until switched off.')" />
-                <x-form.toggle wire:model.live="hold.bank_transfer_on_hold" :label="__('Hold the bank transfer')" :hint="__('The salary is worked out, but not sent to the bank.')" />
+                <flux:switch wire:model.live="hold.salary_on_hold" :label="__('Hold the salary')" :description="__('Payroll leaves it unpaid until switched off.')" />
+
+                <flux:switch wire:model.live="hold.bank_transfer_on_hold" :label="__('Hold the bank transfer')" :description="__('The salary is worked out, but not sent to the bank.')" />
                 @if ($hold['salary_on_hold'] || $hold['bank_transfer_on_hold'])
-                    <x-form.input wire:model="hold.salary_hold_reason" :label="__('Reason')" required />
+                    <flux:field>
+                        <flux:label>{{ __('Reason') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                        <flux:input aria-required="true" wire:model="hold.salary_hold_reason" />
+                        <flux:error name="hold.salary_hold_reason" />
+                    </flux:field>
                 @endif
             </form>
 

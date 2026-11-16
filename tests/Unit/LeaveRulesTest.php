@@ -14,8 +14,8 @@ use Carbon\CarbonImmutable;
 use Tests\TestCase;
 
 /**
- * Task 8.3: one test (or more) per leave rule. No database: the leave type is built in memory and the
- * request by hand. "Today" is Thursday 12 Nov 2026. [LV-01]
+ * One test (or more) per leave rule. No database: the leave type is built in memory and the
+ * request by hand. "Today" is Thursday 12 Nov 2026.
  *
  *     November 2026:  Sun 15  Mon 16  Tue 17  Wed 18  Thu 19  Fri 20  Sat 21  Sun 22
  */

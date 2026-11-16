@@ -11,7 +11,7 @@ use Tests\Concerns\CreatesTenantDatabases;
 use Tests\TestCase;
 
 /**
- * Task 2.8c: fiscal years, one active. [FND-04]
+ * Fiscal years, one active.
  */
 class FiscalYearTest extends TestCase
 {

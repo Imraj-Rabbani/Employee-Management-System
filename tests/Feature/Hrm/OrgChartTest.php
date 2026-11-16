@@ -14,7 +14,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 5.9: org chart from supervisors and positions. [ORG-02]
+ * Org chart from supervisors and positions.
  *
  *   Ceo (Head Office)
  *   ├── Fatima (Finance)

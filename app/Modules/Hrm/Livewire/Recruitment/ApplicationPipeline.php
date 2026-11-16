@@ -18,7 +18,7 @@ use Livewire\Component;
 
 /**
  * A job posting's pipeline: its applications grouped by stage, and "Move" to change one's stage
- * (with a note, and a reason when rejecting / withdrawing). [REC-04]
+ * (with a note, and a reason when rejecting / withdrawing).
  *
  * The rules are all in MoveApplication: the "Move to" list is its targetsFor(), and save asks its problem().
  * Permission: the posting page needs hrm.recruitment.manage (re-checked on every click); the posting is

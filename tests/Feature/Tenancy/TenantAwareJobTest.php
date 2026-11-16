@@ -16,7 +16,7 @@ use Tests\Fixtures\WriteNoteJob;
 use Tests\TestCase;
 
 /**
- * Task 2.4 "Done when": a queued job writes to the database of the company
+ * A queued job writes to the database of the company
  * that dispatched it, even though the worker itself has no tenant active.
  */
 class TenantAwareJobTest extends TestCase

@@ -1,5 +1,5 @@
 {{--
-    HRM → Recruitment → Manpower requests (6.2). The list + the New / Edit modal. [REC-01]
+    HRM → Recruitment → Manpower requests. The list + the New / Edit modal.
 --}}
 <x-layouts.app :title="__('Recruitment')">
     <div class="space-y-4">

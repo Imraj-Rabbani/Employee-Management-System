@@ -9,7 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
 /**
- * Runs an employee Excel import in the background (5.6). [EMP-06]
+ * Runs an employee Excel import in the background.
  *
  * QUEUED: dispatch() only writes the job into the `jobs` table and the upload page answers at once.
  * A separate process, the queue WORKER (`php artisan queue:work`, started by `composer dev`), picks it

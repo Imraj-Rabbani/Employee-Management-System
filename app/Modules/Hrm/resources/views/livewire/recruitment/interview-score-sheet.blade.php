@@ -16,7 +16,13 @@
                 @endunless
 
                 @if ($factors->isEmpty())
-                    <x-ui.empty icon="clipboard-document-list" :heading="__('No interview factors')" :description="__('Add them in Recruitment → Setup → Interview factors.')" />
+                    <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                        <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                            <flux:icon name="clipboard-document-list" />
+                        </div>
+                        <flux:heading size="lg" class="mt-4">{{ __('No interview factors') }}</flux:heading>
+                        <flux:text class="mt-1 max-w-sm">{{ __('Add them in Recruitment → Setup → Interview factors.') }}</flux:text>
+                    </div>
                 @endif
 
                 {{-- One row per factor: 1 … max as buttons (a radio group), and an optional note. --}}
@@ -47,7 +53,10 @@
                         </div>
                         @error('scores.'.$factor->id) <flux:text class="text-sm !text-red-600">{{ $message }}</flux:text> @enderror
                         @if ($editable)
-                            <x-form.input wire:model="notes.{{ $factor->id }}" :placeholder="__('Note (optional)')" />
+                            <flux:field>
+                                <flux:input wire:model="notes.{{ $factor->id }}" :placeholder="__('Note (optional)')" />
+                                <flux:error name="notes.{{ $factor->id }}" />
+                            </flux:field>
                         @elseif ($notes[$factor->id] ?? '')
                             <flux:text class="text-sm">{{ $notes[$factor->id] }}</flux:text>
                         @endif
@@ -56,8 +65,22 @@
                 @error('scores') <flux:text class="text-sm !text-red-600">{{ $message }}</flux:text> @enderror
 
                 <fieldset @disabled(! $editable) class="space-y-4">
-                    <x-form.select wire:model="recommendation" :label="__('Recommendation')" :options="$recommendations" :placeholder="__('Choose…')" required />
-                    <x-form.textarea wire:model="comment" :label="__('Comment')" rows="3" />
+                    <flux:field>
+                        <flux:label>{{ __('Recommendation') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                        <flux:select aria-required="true" wire:model="recommendation">
+                            <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
+                            @foreach ($recommendations as $optionValue => $optionLabel)
+                                <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="recommendation" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Comment') }}</flux:label>
+                        <flux:textarea wire:model="comment" rows="3" />
+                        <flux:error name="comment" />
+                    </flux:field>
                 </fieldset>
             </form>
         @endif

@@ -14,7 +14,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 9.2: salary heads (type, calculation, tax, cycle ...) with CRUD and a rule preview. [PC-01]
+ * Salary heads (type, calculation, tax, cycle ...) with CRUD and a rule preview.
  */
 class SalaryHeadTest extends TestCase
 {

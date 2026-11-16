@@ -3,7 +3,7 @@
 namespace App\Modules\Workflow\Contracts;
 
 /**
- * OPTIONAL extra for an Approvable: every approver enters a number when approving (7.7), stored on their
+ * OPTIONAL extra for an Approvable: every approver enters a number when approving, stored on their
  * approval row (approvals.amount). E.g. overtime: level 1 "recommends 3 hours", the last level "approves 2.5".
  * The document reads the numbers back from its approvals, typically in onApproved().
  *

@@ -19,7 +19,6 @@ use Throwable;
  *   4. creates the company's first login (admin user) in the central users table,
  *      and gives it the company's Administrator role (seeded in step 3)
  *
- *
  * Optional:
  *   - active: false creates the company switched off (its users cannot log in yet)
  *   - then: a function(Tenant $tenant, User $admin) run INSIDE the new company (its database is the

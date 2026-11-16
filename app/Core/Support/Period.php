@@ -6,7 +6,7 @@ use Carbon\CarbonImmutable;
 use InvalidArgumentException;
 
 /**
- * A payroll period: year + month + cycle → first day, last day, number of days. [PR-01]
+ * A payroll period: year + month + cycle → first day, last day, number of days.
  * Monthly = whole month; first half = 1st–15th; second half = 16th–end of month.
  *
  *     $p = Period::of(2026, 2);                      Feb 2026

@@ -7,7 +7,7 @@ use App\Modules\Core\Models\Currency;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete currency (modal "currency-form"). [ORG-01]
+ * New / Edit / Delete currency (modal "currency-form").
  * Everything except the fields comes from LookupForm.
  */
 class CurrencyForm extends LookupForm

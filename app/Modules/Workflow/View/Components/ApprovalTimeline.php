@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 use Illuminate\View\Component;
 
 /**
- * The approval history of one document, oldest first. [WF-06]
+ * The approval history of one document, oldest first.
  *
  *     <x-approval-timeline :document="$leave" />
  *

@@ -10,7 +10,7 @@ use App\Modules\Workflow\Models\WorkflowStep;
 
 /**
  * ApproverType::Role: every login of this company that has the step's role.
- * Each one gets their own approval row; the first answer counts (task 3.4).
+ * Each one gets their own approval row; the first answer counts.
  */
 class RoleApprovers implements ResolvesApprovers
 {

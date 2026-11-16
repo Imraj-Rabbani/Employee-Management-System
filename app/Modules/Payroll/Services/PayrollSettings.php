@@ -8,7 +8,7 @@ use App\Modules\Payroll\Models\PayScaleProfile;
 use App\Modules\Payroll\Models\SalaryHead;
 
 /**
- * The company's payroll settings, kept in the settings table (Payroll → Salary Setup → Settings). [PC-04, PC-05]
+ * The company's payroll settings, kept in the settings table (Payroll → Salary Setup → Settings).
  *
  *     $settings->head(HeadRole::Overtime)       the SalaryHead mapped to overtime, or null
  *     $settings->payScaleFor($employee)          their pay scale profile, else the company default, else null

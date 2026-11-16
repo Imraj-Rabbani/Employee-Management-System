@@ -2,22 +2,63 @@
     <x-ui.modal name="workflow-form" size="lg" :heading="$workflowId ? __('Edit workflow') : __('New workflow')">
         <form wire:submit="save" id="workflow-form" class="space-y-6">
             <div class="grid gap-4 sm:grid-cols-2">
-                <x-form.select wire:model="approvalTypeId" :label="__('Type')" :options="$types" :placeholder="__('Choose…')" required />
-                <x-form.input wire:model="name" :label="__('Name')" required :hint="__('e.g. Leave, head office')" />
+                <flux:field>
+                    <flux:label>{{ __('Type') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:select aria-required="true" wire:model="approvalTypeId">
+                        <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
+                        @foreach ($types as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="approvalTypeId" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:description>{{ __('e.g. Leave, head office') }}</flux:description>
+                    <flux:input aria-required="true" wire:model="name" />
+                    <flux:error name="name" />
+                </flux:field>
             </div>
 
             <div class="grid gap-4 sm:grid-cols-3">
-                <x-form.select wire:model="scopeOrgUnitId" :label="__('Only for org unit')" :options="$orgUnits" :placeholder="__('Any unit')" />
-                <x-form.select wire:model="scopeEmploymentTypeId" :label="__('Only for employment type')" :options="$employmentTypes" :placeholder="__('Any type')" />
-                <x-form.input wire:model="minAmount" type="number" step="0.01" min="0" :label="__('Only from this amount')" />
+                <flux:field>
+                    <flux:label>{{ __('Only for org unit') }}</flux:label>
+                    <flux:select wire:model="scopeOrgUnitId">
+                        <flux:select.option value="">{{ __('Any unit') }}</flux:select.option>
+                        @foreach ($orgUnits as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="scopeOrgUnitId" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Only for employment type') }}</flux:label>
+                    <flux:select wire:model="scopeEmploymentTypeId">
+                        <flux:select.option value="">{{ __('Any type') }}</flux:select.option>
+                        @foreach ($employmentTypes as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="scopeEmploymentTypeId" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Only from this amount') }}</flux:label>
+                    <flux:input wire:model="minAmount" type="number" step="0.01" min="0" />
+                    <flux:error name="minAmount" />
+                </flux:field>
             </div>
             <flux:text class="text-xs">{{ __('Leave empty to apply to everything. When several workflows match, the one with the most filled fields wins.') }}</flux:text>
 
             <div class="grid gap-4 sm:grid-cols-2">
-                <x-form.toggle wire:model="sendEmail" :label="__('Send emails')" />
-                <x-form.toggle wire:model="isActive" :label="__('Active')" />
-                <x-form.toggle wire:model="allowReview" :label="__('Approvers may send back')" />
-                <x-form.toggle wire:model="allowReject" :label="__('Approvers may reject')" />
+                <flux:switch wire:model="sendEmail" :label="__('Send emails')" />
+
+                <flux:switch wire:model="isActive" :label="__('Active')" />
+                <flux:switch wire:model="allowReview" :label="__('Approvers may send back')" />
+
+                <flux:switch wire:model="allowReject" :label="__('Approvers may reject')" />
             </div>
 
             <flux:separator />
@@ -33,16 +74,29 @@
                     <div class="grid items-end gap-3 rounded-lg border border-zinc-200 p-3 sm:grid-cols-[3rem_1fr_1fr_auto] dark:border-white/10" wire:key="step-{{ $i }}">
                         <div class="text-sm font-medium text-zinc-500">{{ __('L:level', ['level' => $i + 1]) }}</div>
 
-                        <x-form.select wire:model.live="steps.{{ $i }}.approver_type" :label="__('Approver')">
-                            @foreach ($approverTypes as $type)
-                                {{-- Employee-based approvers need employee records (Phase 5). --}}
-                                <flux:select.option :value="$type->value" :disabled="$type->value !== 'role'">
-                                    {{ $type->label() }}@if ($type->value !== 'role') ({{ __('soon') }})@endif
-                                </flux:select.option>
-                            @endforeach
-                        </x-form.select>
+                        <flux:field>
+                            <flux:label>{{ __('Approver') }}</flux:label>
+                            <flux:select wire:model.live="steps.{{ $i }}.approver_type">
+                                @foreach ($approverTypes as $type)
+                                    {{-- Employee-based approvers need employee records. --}}
+                                    <flux:select.option :value="$type->value" :disabled="$type->value !== 'role'">
+                                        {{ $type->label() }}@if ($type->value !== 'role') ({{ __('soon') }})@endif
+                                    </flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:error name="steps.{{ $i }}.approver_type" />
+                        </flux:field>
 
-                        <x-form.select wire:model="steps.{{ $i }}.approver_role_id" :label="__('Role')" :options="$roles" :placeholder="__('Choose…')" />
+                        <flux:field>
+                            <flux:label>{{ __('Role') }}</flux:label>
+                            <flux:select wire:model="steps.{{ $i }}.approver_role_id">
+                                <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
+                                @foreach ($roles as $optionValue => $optionLabel)
+                                    <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:error name="steps.{{ $i }}.approver_role_id" />
+                        </flux:field>
 
                         <div class="flex items-center gap-1">
                             <flux:tooltip :content="__('Attachment required to approve')">

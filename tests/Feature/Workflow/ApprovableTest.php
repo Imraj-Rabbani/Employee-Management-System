@@ -18,7 +18,7 @@ use Tests\Fixtures\ApprovableNote;
 use Tests\TestCase;
 
 /**
- * Task 3.2: workflow models, the Approvable interface, the HasApprovals trait and the status enum.
+ * Workflow models, the Approvable interface, the HasApprovals trait and the status enum.
  */
 class ApprovableTest extends TestCase
 {

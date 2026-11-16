@@ -9,7 +9,7 @@ use Laravel\Fortify\Actions\GenerateNewRecoveryCodes;
 use Livewire\Volt\Component;
 
 /*
- * Settings → Two-factor authentication (task 2.7c).
+ * Settings → Two-factor authentication.
  *
  * The page has three states:
  *   off       → "Enable" button
@@ -121,7 +121,11 @@ new class extends Component {
 
                 <form wire:submit="confirm" class="space-y-4">
                     <flux:text>{{ __('2. Type the 6-digit code your app shows.') }}</flux:text>
-                    <x-form.input wire:model="code" :label="__('Code')" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="max-w-40" autofocus />
+                    <flux:field>
+                        <flux:label>{{ __('Code') }}</flux:label>
+                        <flux:input wire:model="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="max-w-40" autofocus />
+                        <flux:error name="code" />
+                    </flux:field>
 
                     <div class="flex gap-2">
                         <flux:button type="submit" variant="primary">{{ __('Confirm and turn on') }}</flux:button>
@@ -135,16 +139,25 @@ new class extends Component {
                     <flux:text>{{ __('You will be asked for a code from your app when you log in.') }}</flux:text>
                 </div>
 
-                <x-ui.card :heading="__('Recovery codes')" :subheading="__('If you lose your phone, each code lets you log in once. Keep them somewhere safe, like a password manager.')">
-                    @if ($recoveryCodes)
-                        <div class="grid grid-cols-2 gap-2 rounded-lg bg-zinc-100 p-4 font-mono text-sm dark:bg-white/10" data-test="recovery-codes">
-                            @foreach ($recoveryCodes as $recoveryCode)
-                                <div>{{ $recoveryCode }}</div>
-                            @endforeach
+                <div class="glass overflow-hidden rounded-2xl">
+                    <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+                        <div>
+                            <flux:heading size="lg">{{ __('Recovery codes') }}</flux:heading>
+                            <flux:text class="mt-1">{{ __('If you lose your phone, each code lets you log in once. Keep them somewhere safe, like a password manager.') }}</flux:text>
                         </div>
-                    @endif
+                    </div>
 
-                    <x-slot:footer>
+                    <div class="p-6">
+                        @if ($recoveryCodes)
+                            <div class="grid grid-cols-2 gap-2 rounded-lg bg-zinc-100 p-4 font-mono text-sm dark:bg-white/10" data-test="recovery-codes">
+                                @foreach ($recoveryCodes as $recoveryCode)
+                                    <div>{{ $recoveryCode }}</div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="border-t border-white/50 px-6 py-4 text-sm text-zinc-600 dark:border-white/10 dark:text-zinc-300">
                         <div class="flex flex-wrap gap-2">
                             @unless ($recoveryCodes)
                                 <flux:button size="sm" icon="eye" wire:click="$set('showRecoveryCodes', true)">{{ __('Show recovery codes') }}</flux:button>
@@ -156,8 +169,8 @@ new class extends Component {
                                 onConfirm: () => $wire.regenerateRecoveryCodes(),
                             })">{{ __('New recovery codes') }}</flux:button>
                         </div>
-                    </x-slot:footer>
-                </x-ui.card>
+                    </div>
+                </div>
 
                 <flux:button variant="danger" x-on:click="$dispatch('confirm', {
                     title: @js(__('Turn off two-factor authentication?')),

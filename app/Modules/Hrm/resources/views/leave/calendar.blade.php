@@ -1,4 +1,4 @@
-{{-- HRM → Leave → Calendar (8.7): who is on leave in a month. [LV-04] --}}
+{{-- HRM → Leave → Calendar: who is on leave in a month. --}}
 <x-layouts.app :title="__('Leave')">
     <div class="space-y-4">
         <x-ui.section-tabs section="hrm.leave" />

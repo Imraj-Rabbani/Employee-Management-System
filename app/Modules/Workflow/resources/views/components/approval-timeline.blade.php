@@ -42,6 +42,12 @@
             </div>
         </div>
     @empty
-        <x-ui.empty icon="clock" :heading="__('Not submitted yet')" :description="__('The approval history will appear here.')" />
+        <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+            <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                <flux:icon name="clock" />
+            </div>
+            <flux:heading size="lg" class="mt-4">{{ __('Not submitted yet') }}</flux:heading>
+            <flux:text class="mt-1 max-w-sm">{{ __('The approval history will appear here.') }}</flux:text>
+        </div>
     @endforelse
 </div>

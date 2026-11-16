@@ -21,7 +21,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.3: HRM → Job Postings (list + New from an approved request / Edit / Delete). [REC-02]
+ * HRM → Job Postings (list + New from an approved request / Edit / Delete).
  */
 class JobPostingPagesTest extends TestCase
 {

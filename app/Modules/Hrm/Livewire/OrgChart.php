@@ -14,7 +14,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * HRM → Org Chart: who reports to whom (people) or the position tree (positions). [ORG-02]
+ * HRM → Org Chart: who reports to whom (people) or the position tree (positions).
  *
  * - ONE query per render; the tree is built in PHP (like the org unit tree, 4.3).
  * - Only OPENED branches are drawn ($open), so a company with thousands of people stays fast.

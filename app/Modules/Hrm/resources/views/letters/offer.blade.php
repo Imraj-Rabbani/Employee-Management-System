@@ -1,5 +1,5 @@
 {{--
-    Offer letter (6.7), rendered to PDF by Hrm\Services\OfferLetter. $offer, $applicant, $company.
+    Offer letter, rendered to PDF by Hrm\Services\OfferLetter. $offer, $applicant, $company.
     Plain HTML + inline CSS: dompdf does not run Tailwind. DejaVu Sans prints Bangla names and "৳".
 --}}
 <!DOCTYPE html>

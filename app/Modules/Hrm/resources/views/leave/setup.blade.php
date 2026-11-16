@@ -1,5 +1,5 @@
 {{--
-    HRM → Leave setup (8.1). One view for every section; the route passes $section (routes/web.php).
+    HRM → Leave setup. One view for every section; the route passes $section (routes/web.php).
     Each section = a DataTable + its modal form (App\Modules\Hrm\Livewire\Leave). Same layout as Payroll → Attendance.
 --}}
 @php
@@ -19,7 +19,7 @@
             <flux:button variant="primary" icon="plus" x-on:click="$dispatch('{{ $createEvent }}')">{{ $createLabel }}</flux:button>
         </div>
 
-        {{-- Leave types tab: also the leave year setting (8.2). --}}
+        {{-- Leave types tab: also the leave year setting. --}}
         @if ($section === 'types')
             <livewire:hrm::leave.leave-settings />
         @endif

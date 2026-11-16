@@ -7,7 +7,7 @@ use App\Modules\Payroll\Models\PunchLog;
 use Illuminate\Support\Carbon;
 
 /**
- * Saves a list of punches from a device or a CSV upload. [TA-04]
+ * Saves a list of punches from a device or a CSV upload.
  *
  *   - skips punches that are already stored (same code + time; for a device also the same device)
  *   - links them to employees by access code (PunchLog::linkEmployees)

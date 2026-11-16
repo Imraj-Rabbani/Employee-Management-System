@@ -7,8 +7,8 @@ use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 /**
- * Setup → Company Settings. The current company's general settings, saved with the Settings service. [FND-03]
- * (Applying the timezone to the app happens in task 2.11. Who may open this page: task 2.9.)
+ * Setup → Company Settings. The current company's general settings, saved with the Settings service.
+ * The timezone is applied by the ApplyTenantSettings middleware; who may open this page: the route's can: rule.
  */
 class CompanySettings extends Component
 {

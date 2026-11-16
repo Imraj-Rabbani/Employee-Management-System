@@ -1,4 +1,4 @@
-{{-- HRM → Leave → Balances (8.7): the balance report of a leave year. [LV-03] --}}
+{{-- HRM → Leave → Balances: the balance report of a leave year. --}}
 <x-layouts.app :title="__('Leave')">
     <div class="space-y-4">
         <x-ui.section-tabs section="hrm.leave" />

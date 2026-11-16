@@ -16,7 +16,7 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
 /**
- * "Upload punches" (CSV / Excel, 7.3c) and "Match unmatched punches" on the Punches tab. [TA-04]
+ * "Upload punches" (CSV / Excel, 7.3c) and "Match unmatched punches" on the Punches tab.
  * The whole file is checked first; one problem = nothing saved. Punches already stored are skipped.
  */
 class PunchUpload extends Component

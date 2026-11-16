@@ -21,7 +21,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 8.1: HRM → Leave → Leave types / Leave profiles, and the leave profile on the employee's Job tab. [LV-01, LV-02]
+ * HRM → Leave → Leave types / Leave profiles, and the leave profile on the employee's Job tab.
  */
 class LeaveSetupTest extends TestCase
 {
@@ -43,7 +43,7 @@ class LeaveSetupTest extends TestCase
         $casual = LeaveType::factory()->create(['code' => 'CL', 'name' => 'Casual leave']);
         LeaveProfile::factory()->create(['name' => 'Staff'])->syncEntitlements([$casual->id => 10]);
 
-        $this->get('/hrm/leave')->assertRedirect(route('hrm.leave.applications'));   // first tab (8.4)
+        $this->get('/hrm/leave')->assertRedirect(route('hrm.leave.applications'));   // first tab
         $this->get('/hrm/leave/types')->assertOk()->assertSee('Casual leave')->assertSee(route('hrm.leave.profiles'));
         $this->get('/hrm/leave/profiles')->assertOk()->assertSee('Staff')->assertSee('CL 10');
 

@@ -6,7 +6,7 @@ use App\Modules\Hrm\Data\LeaveYear;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Task 8.2: which leave year a date is in. The start month is passed in, so no database or settings needed. [LV-03]
+ * Which leave year a date is in. The start month is passed in, so no database or settings needed.
  */
 class LeaveYearTest extends TestCase
 {

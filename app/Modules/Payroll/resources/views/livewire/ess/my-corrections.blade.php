@@ -1,13 +1,24 @@
 {{-- My corrections (Self Service → My Attendance, 7.6). Nothing at all without a linked employee record. --}}
 <div>
     @if ($employee)
-        <x-ui.card :heading="__('My corrections')" :subheading="__('Forgot to punch, or a wrong time? Ask for a correction: it counts once approved.')" :padding="false">
-            <x-slot:actions>
-                <flux:button size="sm" variant="primary" icon="plus" x-on:click="$dispatch('create-correction')">{{ __('Request a correction') }}</flux:button>
-            </x-slot:actions>
+        <div class="glass overflow-hidden rounded-2xl">
+            <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+                <div>
+                    <flux:heading size="lg">{{ __('My corrections') }}</flux:heading>
+                    <flux:text class="mt-1">{{ __('Forgot to punch, or a wrong time? Ask for a correction: it counts once approved.') }}</flux:text>
+                </div>
+                <div class="flex shrink-0 items-center gap-2">
+                    <flux:button size="sm" variant="primary" icon="plus" x-on:click="$dispatch('create-correction')">{{ __('Request a correction') }}</flux:button>
+                </div>
+            </div>
 
             @if ($corrections->isEmpty())
-                <x-ui.empty icon="clock" :heading="__('No corrections yet')" />
+                <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                    <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                        <flux:icon name="clock" />
+                    </div>
+                    <flux:heading size="lg" class="mt-4">{{ __('No corrections yet') }}</flux:heading>
+                </div>
             @else
                 <ul class="divide-y divide-white/50 dark:divide-white/10">
                     @foreach ($corrections as $correction)
@@ -32,7 +43,7 @@
                     @endforeach
                 </ul>
             @endif
-        </x-ui.card>
+        </div>
 
         <livewire:payroll::attendance.correction-form :self="true" />
     @endif

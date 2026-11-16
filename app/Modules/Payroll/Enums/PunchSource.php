@@ -13,9 +13,9 @@ enum PunchSource: int
     use HasOptions;
 
     case Manual = 0;   // typed in by HR (e.g. from an approved correction, 7.6)
-    case Csv = 1;      // uploaded file (7.3c)
-    case Device = 2;   // ZKTeco access-control device (7.3d)
-    case Web = 3;      // Self Service, browser (7.3e)
+    case Csv = 1;      // uploaded file
+    case Device = 2;   // ZKTeco access-control device
+    case Web = 3;      // Self Service, browser
     case Mobile = 4;   // Self Service, mobile app
 
     public function label(): string

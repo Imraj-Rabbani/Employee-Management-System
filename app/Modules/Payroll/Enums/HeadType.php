@@ -4,7 +4,7 @@ namespace App\Modules\Payroll\Enums;
 
 use App\Core\Enums\HasOptions;
 
-/** What a salary head does to the payslip. [PC-01] */
+/** What a salary head does to the payslip. */
 enum HeadType: string
 {
     use HasOptions;

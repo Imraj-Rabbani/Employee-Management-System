@@ -1,6 +1,6 @@
 {{--
-    Payroll → Attendance → Overtime (7.7). Overtime requests of the employees the user can see; ask for them.
-    Approvers answer in their Approvals inbox and may change the hours. [TA-07]
+    Payroll → Attendance → Overtime. Overtime requests of the employees the user can see; ask for them.
+    Approvers answer in their Approvals inbox and may change the hours.
 --}}
 <x-layouts.app :title="__('Attendance')">
     <div class="space-y-4">

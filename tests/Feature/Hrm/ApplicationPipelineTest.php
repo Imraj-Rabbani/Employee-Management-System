@@ -19,7 +19,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.5: the pipeline on a job posting's page (tabs per stage, Move with note / reason). [REC-04]
+ * The pipeline on a job posting's page (tabs per stage, Move with note / reason).
  */
 class ApplicationPipelineTest extends TestCase
 {
@@ -102,7 +102,7 @@ class ApplicationPipelineTest extends TestCase
             ->set('to', 'shortlisted')   // backwards
             ->call('move')
             ->assertHasErrors(['to'])
-            ->set('to', 'hired')         // only by the hire (6.8)
+            ->set('to', 'hired')         // only by the hire
             ->call('move')
             ->assertHasErrors(['to']);
 

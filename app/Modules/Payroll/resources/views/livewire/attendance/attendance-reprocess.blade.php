@@ -10,12 +10,40 @@
             </flux:text>
 
             <div class="grid gap-4 sm:grid-cols-2">
-                <x-form.date wire:model="from" :label="__('From')" required max="{{ $today }}" />
-                <x-form.date wire:model="to" :label="__('To')" required max="{{ $today }}" />
+                <flux:field>
+                    <flux:label>{{ __('From') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:input type="date" aria-required="true" wire:model="from" max="{{ $today }}" />
+                    <flux:error name="from" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('To') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:input type="date" aria-required="true" wire:model="to" max="{{ $today }}" />
+                    <flux:error name="to" />
+                </flux:field>
             </div>
-            <x-form.select wire:model="orgUnitId" :label="__('Org unit')" :options="$units" :placeholder="__('All')"
-                           :hint="__('Also the units below it.')" />
-            <x-form.select wire:model="employeeId" :label="__('Employee')" :options="$employees" :placeholder="__('All')" />
+            <flux:field>
+                <flux:label>{{ __('Org unit') }}</flux:label>
+                <flux:description>{{ __('Also the units below it.') }}</flux:description>
+                <flux:select wire:model="orgUnitId">
+                    <flux:select.option value="">{{ __('All') }}</flux:select.option>
+                    @foreach ($units as $optionValue => $optionLabel)
+                        <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:error name="orgUnitId" />
+            </flux:field>
+
+            <flux:field>
+                <flux:label>{{ __('Employee') }}</flux:label>
+                <flux:select wire:model="employeeId">
+                    <flux:select.option value="">{{ __('All') }}</flux:select.option>
+                    @foreach ($employees as $optionValue => $optionLabel)
+                        <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:error name="employeeId" />
+            </flux:field>
         </form>
 
         <x-slot:footer>

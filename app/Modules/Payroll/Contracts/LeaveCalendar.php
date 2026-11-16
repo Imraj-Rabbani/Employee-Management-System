@@ -6,7 +6,7 @@ use App\Modules\Hrm\Models\Employee;
 use Carbon\CarbonImmutable;
 
 /**
- * Which days an employee is on APPROVED leave. Attendance processing asks this; the Leave module (Phase 8)
+ * Which days an employee is on APPROVED leave. Attendance processing asks this; the Leave module
  * answers it. Until then NoLeaveCalendar says "never on leave".
  */
 interface LeaveCalendar

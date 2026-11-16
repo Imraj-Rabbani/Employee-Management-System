@@ -30,7 +30,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 8.6: leave encashment → approval → days leave the balance → ready for payroll; withdrawal. [LV-06]
+ * Leave encashment → approval → days leave the balance → ready for payroll; withdrawal.
  * Today = 10 December 2026; Karim has 12 days of Earned leave (encashable, at most 10 at a time).
  */
 class LeaveEncashmentTest extends TestCase
@@ -107,7 +107,7 @@ class LeaveEncashmentTest extends TestCase
         $this->assertSame(['Approved · waiting for payroll', 'success'], $encashment->statusBadge());
         Livewire::test(EncashmentTable::class)->assertSee($encashment->number());
 
-        // Once payroll paid it (Phase 10), it is no longer ready and cannot be withdrawn.
+        // Once payroll paid it, it is no longer ready and cannot be withdrawn.
         $encashment->forceFill(['payroll_run_id' => 1, 'paid_at' => now(), 'amount' => 4500])->save();
         $this->assertSame([], LeaveEncashment::query()->readyForPayroll()->pluck('id')->all());
         Livewire::test(EncashmentForm::class)->call('withdraw', $encashment->id)->assertDispatched('toast', variant: 'error');

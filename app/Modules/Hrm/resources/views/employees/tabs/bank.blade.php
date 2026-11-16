@@ -1,2 +1,2 @@
-{{-- Profile → Bank. [EMP-01] --}}
+{{-- Profile → Bank. --}}
 <livewire:hrm::employees.bank-accounts :$employee />

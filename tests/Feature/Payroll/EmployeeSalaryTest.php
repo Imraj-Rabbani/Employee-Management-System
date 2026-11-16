@@ -25,8 +25,8 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 9.4: effective-dated employee salaries, the profile's Salary tab, hold flags, and comparable salaries on a
- * job offer. [PC-03]
+ * Effective-dated employee salaries, the profile's Salary tab, hold flags, and comparable salaries on a
+ * job offer.
  */
 class EmployeeSalaryTest extends TestCase
 {

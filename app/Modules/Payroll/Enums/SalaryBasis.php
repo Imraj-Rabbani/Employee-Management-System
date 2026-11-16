@@ -4,7 +4,7 @@ namespace App\Modules\Payroll\Enums;
 
 use App\Core\Enums\HasOptions;
 
-/** Which amount is given when a salary profile is applied: the basic, or the gross it must add up to. [PC-02] */
+/** Which amount is given when a salary profile is applied: the basic, or the gross it must add up to. */
 enum SalaryBasis: string
 {
     use HasOptions;

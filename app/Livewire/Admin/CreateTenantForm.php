@@ -15,7 +15,7 @@ use RuntimeException;
 
 /**
  * The "New company" form (modal "create-tenant") in Platform admin.
- * Validates the input, then hands the work to the CreateTenant action (task 2.6b).
+ * Validates the input, then hands the work to the CreateTenant action.
  */
 class CreateTenantForm extends Component
 {

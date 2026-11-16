@@ -1,4 +1,4 @@
-{{-- HRM → Employees. The list is a DataTable (Livewire\Employees\EmployeeTable). [EMP-05] --}}
+{{-- HRM → Employees. The list is a DataTable (Livewire\Employees\EmployeeTable). --}}
 <x-layouts.app :title="__('Employees')">
     <div class="space-y-4">
         <div class="flex items-center justify-between gap-4">

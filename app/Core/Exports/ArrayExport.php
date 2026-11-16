@@ -7,28 +7,32 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
 /**
- * Excel export of rows worked out in PHP (reports that are not one database query, e.g. the recruitment
- * funnel). For a plain list use a DataTable: it exports itself (TableExport).
+ * Turns plain rows into an Excel file. Used by the "Export" button of list pages:
  *
- *     Excel::download(new ArrayExport(['Posting', 'Applied'], [['JOB-0001', 12], ...]), 'funnel.xlsx');
+ *     return Excel::download(new ArrayExport(['Name', 'Email'], $rows), 'users.xlsx');
+ *
+ * $rows is a list of lists, one inner list per Excel row, in the same order as the headings.
  */
 class ArrayExport implements FromArray, ShouldAutoSize, WithHeadings
 {
     /**
      * @param  list<string>  $headings
-     * @param  list<list<string|int|float|null>>  $rows
+     * @param  array<int, array<int, mixed>>  $rows
      */
-    public function __construct(private array $headings, private array $rows) {}
-
-    /** @return list<list<string|int|float|null>> */
-    public function array(): array
-    {
-        return $this->rows;
-    }
+    public function __construct(
+        private array $headings,
+        private array $rows,
+    ) {}
 
     /** @return list<string> */
     public function headings(): array
     {
         return $this->headings;
+    }
+
+    /** @return array<int, array<int, mixed>> */
+    public function array(): array
+    {
+        return $this->rows;
     }
 }

@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 /**
- * Self Service → My Attendance → My overtime (7.7): my last requests with asked / approved hours and status,
- * "Ask for overtime", and "Change and send again" for one that was sent back. [TA-07, ESS-02]
+ * Self Service → My Attendance → My overtime: my last requests with asked / approved hours and status,
+ * "Ask for overtime", and "Change and send again" for one that was sent back.
  * The form is OvertimeForm with self = true (own employee record only).
  */
 class MyOvertime extends Component

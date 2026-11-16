@@ -4,7 +4,7 @@ namespace App\Modules\Payroll\Enums;
 
 use App\Core\Enums\HasOptions;
 
-/** What a head is worth in a salary profile. [PC-02] */
+/** What a head is worth in a salary profile. */
 enum ProfileValueType: string
 {
     use HasOptions;

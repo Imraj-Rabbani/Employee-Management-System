@@ -27,7 +27,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.6: scheduling interview rounds, the panel, and telling the panel. [REC-05]
+ * Scheduling interview rounds, the panel, and telling the panel.
  */
 class ScheduleInterviewTest extends TestCase
 {

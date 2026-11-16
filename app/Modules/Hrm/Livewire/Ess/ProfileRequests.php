@@ -19,9 +19,9 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 /**
- * Self Service → My Profile Update Requests: my requests and "Request a change". [EMP-08]
+ * Self Service → My Profile Update Requests: my requests and "Request a change".
  *
- * Works only on the employee linked to the logged-in user (5.7); nobody can send a request for someone else.
+ * Works only on the employee linked to the logged-in user; nobody can send a request for someone else.
  * One open request at a time, so the "old" values stored with a request stay true until it is decided.
  */
 class ProfileRequests extends Component

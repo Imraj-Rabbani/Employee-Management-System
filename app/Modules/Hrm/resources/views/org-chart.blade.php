@@ -1,4 +1,4 @@
-{{-- HRM → Organization → Org chart. [ORG-02] --}}
+{{-- HRM → Organization → Org chart. --}}
 <x-layouts.app :title="__('Organization')">
     <div class="space-y-4">
         <x-ui.section-tabs section="hrm.organization" />

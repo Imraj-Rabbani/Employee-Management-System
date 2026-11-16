@@ -2,30 +2,49 @@
 @php $num = fn ($v) => \App\Modules\Hrm\Models\LeaveApplication::daysLabel($v); @endphp
 <div class="space-y-4">
     @if ($employee)
-        <x-ui.card :heading="__('My leave balance')" :subheading="__('Leave year :year', ['year' => $year->label()])">
-            <x-slot:actions>
-                <flux:button size="sm" variant="primary" icon="plus" x-on:click="$dispatch('create-leave')">{{ __('Apply for leave') }}</flux:button>
-            </x-slot:actions>
-
-            @if ($types->isEmpty())
-                <flux:text>{{ __('You have no leave profile yet: please ask HR.') }}</flux:text>
-            @else
-                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    @foreach ($types as $type)
-                        @php $balance = $balances->get($type->id); @endphp
-                        <div class="rounded-lg bg-white/40 px-4 py-3 ring-1 ring-inset ring-white/60 dark:bg-white/5 dark:ring-white/10" wire:key="my-balance-{{ $type->id }}">
-                            <div class="text-sm text-zinc-500">{{ $type->name }}</div>
-                            <div class="text-2xl font-semibold tabular-nums">{{ $type->requires_balance ? $num($balance->balance ?? 0) : '—' }}</div>
-                            <div class="text-xs text-zinc-500">{{ __(':n taken', ['n' => $num($balance->taken ?? 0)]) }}</div>
-                        </div>
-                    @endforeach
+        <div class="glass overflow-hidden rounded-2xl">
+            <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+                <div>
+                    <flux:heading size="lg">{{ __('My leave balance') }}</flux:heading>
+                    <flux:text class="mt-1">{{ __('Leave year :year', ['year' => $year->label()]) }}</flux:text>
                 </div>
-            @endif
-        </x-ui.card>
+                <div class="flex shrink-0 items-center gap-2">
+                    <flux:button size="sm" variant="primary" icon="plus" x-on:click="$dispatch('create-leave')">{{ __('Apply for leave') }}</flux:button>
+                </div>
+            </div>
 
-        <x-ui.card :heading="__('My leave requests')" :padding="false">
+            <div class="p-6">
+                @if ($types->isEmpty())
+                    <flux:text>{{ __('You have no leave profile yet: please ask HR.') }}</flux:text>
+                @else
+                    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        @foreach ($types as $type)
+                            @php $balance = $balances->get($type->id); @endphp
+                            <div class="rounded-lg bg-white/40 px-4 py-3 ring-1 ring-inset ring-white/60 dark:bg-white/5 dark:ring-white/10" wire:key="my-balance-{{ $type->id }}">
+                                <div class="text-sm text-zinc-500">{{ $type->name }}</div>
+                                <div class="text-2xl font-semibold tabular-nums">{{ $type->requires_balance ? $num($balance->balance ?? 0) : '—' }}</div>
+                                <div class="text-xs text-zinc-500">{{ __(':n taken', ['n' => $num($balance->taken ?? 0)]) }}</div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <div class="glass overflow-hidden rounded-2xl">
+            <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+                <div>
+                    <flux:heading size="lg">{{ __('My leave requests') }}</flux:heading>
+                </div>
+            </div>
+
             @if ($applications->isEmpty())
-                <x-ui.empty icon="calendar-days" :heading="__('No leave requests yet')" />
+                <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                    <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                        <flux:icon name="calendar-days" />
+                    </div>
+                    <flux:heading size="lg" class="mt-4">{{ __('No leave requests yet') }}</flux:heading>
+                </div>
             @else
                 <ul class="divide-y divide-white/50 dark:divide-white/10">
                     @foreach ($applications as $application)
@@ -43,17 +62,29 @@
                     @endforeach
                 </ul>
             @endif
-        </x-ui.card>
+        </div>
 
         @if ($canEncash || $encashments->isNotEmpty())
-            <x-ui.card :heading="__('My leave encashments')" :subheading="__('Unused days paid out with the next payroll once approved.')" :padding="false">
-                @if ($canEncash)
-                    <x-slot:actions>
-                        <flux:button size="sm" icon="banknotes" x-on:click="$dispatch('create-encashment')">{{ __('Encash leave') }}</flux:button>
-                    </x-slot:actions>
-                @endif
+            <div class="glass overflow-hidden rounded-2xl">
+                <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+                    <div>
+                        <flux:heading size="lg">{{ __('My leave encashments') }}</flux:heading>
+                        <flux:text class="mt-1">{{ __('Unused days paid out with the next payroll once approved.') }}</flux:text>
+                    </div>
+                    @if ($canEncash)
+                        <div class="flex shrink-0 items-center gap-2">
+                            <flux:button size="sm" icon="banknotes" x-on:click="$dispatch('create-encashment')">{{ __('Encash leave') }}</flux:button>
+                        </div>
+                    @endif
+                </div>
+
                 @if ($encashments->isEmpty())
-                    <x-ui.empty icon="banknotes" :heading="__('No encashments yet')" />
+                    <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                        <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                            <flux:icon name="banknotes" />
+                        </div>
+                        <flux:heading size="lg" class="mt-4">{{ __('No encashments yet') }}</flux:heading>
+                    </div>
                 @else
                     <ul class="divide-y divide-white/50 dark:divide-white/10">
                         @foreach ($encashments as $encashment)
@@ -79,16 +110,23 @@
                         @endforeach
                     </ul>
                 @endif
-            </x-ui.card>
+            </div>
         @endif
 
         <livewire:hrm::leave.leave-application-form :self="true" />
         <livewire:hrm::leave.encashment-form :self="true" />
         <livewire:hrm::leave.leave-application-details :self="true" />
     @else
-        <x-ui.card>
-            <x-ui.empty icon="user" :heading="__('Your login is not linked to an employee record')"
-                :description="__('Ask HR to link it (Employees → profile → Login).')" />
-        </x-ui.card>
+        <div class="glass overflow-hidden rounded-2xl">
+            <div class="p-6">
+                <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                    <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                        <flux:icon name="user" />
+                    </div>
+                    <flux:heading size="lg" class="mt-4">{{ __('Your login is not linked to an employee record') }}</flux:heading>
+                    <flux:text class="mt-1 max-w-sm">{{ __('Ask HR to link it (Employees → profile → Login).') }}</flux:text>
+                </div>
+            </div>
+        </div>
     @endif
 </div>

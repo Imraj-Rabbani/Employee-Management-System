@@ -1,6 +1,6 @@
 {{--
-    Payroll → Attendance → Corrections (7.6). Every correction of the employees the user can see; HR can ask one
-    for anyone of them. Approvers answer in their Approvals inbox. [TA-06]
+    Payroll → Attendance → Corrections. Every correction of the employees the user can see; HR can ask one
+    for anyone of them. Approvers answer in their Approvals inbox.
 --}}
 <x-layouts.app :title="__('Attendance')">
     <div class="space-y-4">

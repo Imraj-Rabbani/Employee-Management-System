@@ -9,7 +9,7 @@ use Carbon\CarbonImmutable;
 
 /**
  * Answers attendance processing (Payroll\Contracts\LeaveCalendar, 7.4): the counted days of the employee's
- * APPROVED, not withdrawn leave applications (8.4). Half days count as leave days too. [LV-04, TA-05]
+ * APPROVED, not withdrawn leave applications. Half days count as leave days too.
  */
 class ApprovedLeaveCalendar implements LeaveCalendar
 {

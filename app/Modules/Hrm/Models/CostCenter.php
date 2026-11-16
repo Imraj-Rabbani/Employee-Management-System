@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
- * Where salary cost is booked (legacy `costcenters`). account_code feeds the accounting export (12.4).
+ * Where salary cost is booked (legacy `costcenters`). account_code feeds the accounting export.
  *
  * @property int $id
  * @property string $code

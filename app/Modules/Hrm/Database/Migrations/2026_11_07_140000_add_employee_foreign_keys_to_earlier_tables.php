@@ -5,8 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Columns made in Phases 3–4 before `employees` existed get their real foreign keys now
- * (see the "No FK yet: employees arrive in Phase 5" comments in those migrations).
+ * Columns made before `employees` existed get their real foreign keys now
+ * (their columns were plain ids because the employees table did not exist yet).
  *
  *   org_units.head_employee_id, positions.employee_id   null on delete: the unit / seat simply
  *                                                       becomes headless / vacant.

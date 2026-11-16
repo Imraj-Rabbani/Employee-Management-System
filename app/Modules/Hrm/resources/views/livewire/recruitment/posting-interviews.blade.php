@@ -1,9 +1,21 @@
 @php use App\Modules\Hrm\Enums\InterviewStatus; @endphp
 <div class="grid gap-4 lg:grid-cols-3">
     {{-- Interviews --}}
-    <x-ui.card class="lg:col-span-2" :heading="__('Interviews')" :subheading="__('Plan a round with the calendar button in the pipeline.')" :padding="false">
+    <div class="glass overflow-hidden rounded-2xl lg:col-span-2">
+        <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+            <div>
+                <flux:heading size="lg">{{ __('Interviews') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Plan a round with the calendar button in the pipeline.') }}</flux:text>
+            </div>
+        </div>
+
         @if ($interviews->isEmpty())
-            <x-ui.empty icon="calendar-days" :heading="__('No interviews yet')" />
+            <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                    <flux:icon name="calendar-days" />
+                </div>
+                <flux:heading size="lg" class="mt-4">{{ __('No interviews yet') }}</flux:heading>
+            </div>
         @else
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
@@ -70,12 +82,25 @@
                 </table>
             </div>
         @endif
-    </x-ui.card>
+    </div>
 
     {{-- Ranking --}}
-    <x-ui.card :heading="__('Ranking')" :subheading="__('Average of completed rounds')" :padding="false">
+    <div class="glass overflow-hidden rounded-2xl">
+        <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+            <div>
+                <flux:heading size="lg">{{ __('Ranking') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Average of completed rounds') }}</flux:text>
+            </div>
+        </div>
+
         @if ($ranking->isEmpty())
-            <x-ui.empty icon="trophy" :heading="__('No results yet')" :description="__('Applicants appear here once a round is completed.')" />
+            <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                    <flux:icon name="trophy" />
+                </div>
+                <flux:heading size="lg" class="mt-4">{{ __('No results yet') }}</flux:heading>
+                <flux:text class="mt-1 max-w-sm">{{ __('Applicants appear here once a round is completed.') }}</flux:text>
+            </div>
         @else
             <ol class="divide-y divide-white/50 dark:divide-white/10">
                 @foreach ($ranking as $row)
@@ -90,5 +115,5 @@
                 @endforeach
             </ol>
         @endif
-    </x-ui.card>
+    </div>
 </div>

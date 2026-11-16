@@ -1,25 +1,49 @@
 <div class="space-y-4" @if ($busy) wire:poll.2s @endif>
-    <x-ui.card :heading="__('Import employees from Excel')"
-        :subheading="__('All or nothing: if any row has a problem, nothing is imported and you get the list of problems. Fix the file and upload it again.')">
-        <div class="grid gap-6 md:grid-cols-2">
-            <div class="space-y-2">
-                <flux:heading>1. {{ __('Download the template') }}</flux:heading>
-                <flux:text>{{ __('Fill in one employee per row and delete the example row. The “Lists” sheet shows the org units, designations, grades and types you can use. Columns with * are required.') }}</flux:text>
-                <flux:button icon="arrow-down-tray" :href="route('hrm.employees.import.template')">{{ __('Download template') }}</flux:button>
+    <div class="glass overflow-hidden rounded-2xl">
+        <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+            <div>
+                <flux:heading size="lg">{{ __('Import employees from Excel') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('All or nothing: if any row has a problem, nothing is imported and you get the list of problems. Fix the file and upload it again.') }}</flux:text>
             </div>
-
-            <form wire:submit="start" class="space-y-3">
-                <flux:heading>2. {{ __('Upload the filled-in file') }}</flux:heading>
-                <x-form.file wire:model="file" :label="__('Excel file')" accept=".xlsx,.xls,.csv"
-                    :hint="__('At most :rows rows, 10 MB.', ['rows' => number_format(\App\Modules\Hrm\Imports\EmployeeImporter::MAX_ROWS)])" />
-                <flux:button type="submit" variant="primary" icon="arrow-up-tray">{{ __('Start import') }}</flux:button>
-            </form>
         </div>
-    </x-ui.card>
 
-    <x-ui.card :heading="__('Recent imports')" :padding="false">
+        <div class="p-6">
+            <div class="grid gap-6 md:grid-cols-2">
+                <div class="space-y-2">
+                    <flux:heading>1. {{ __('Download the template') }}</flux:heading>
+                    <flux:text>{{ __('Fill in one employee per row and delete the example row. The “Lists” sheet shows the org units, designations, grades and types you can use. Columns with * are required.') }}</flux:text>
+                    <flux:button icon="arrow-down-tray" :href="route('hrm.employees.import.template')">{{ __('Download template') }}</flux:button>
+                </div>
+
+                <form wire:submit="start" class="space-y-3">
+                    <flux:heading>2. {{ __('Upload the filled-in file') }}</flux:heading>
+                    <flux:field>
+                        <flux:label>{{ __('Excel file') }}</flux:label>
+                        <flux:description>{{ __('At most :rows rows, 10 MB.', ['rows' => number_format(\App\Modules\Hrm\Imports\EmployeeImporter::MAX_ROWS)]) }}</flux:description>
+                        <flux:input type="file" wire:model="file" accept=".xlsx,.xls,.csv" />
+                        <flux:text wire:loading wire:target="file" class="mt-2 text-sm">{{ __('Uploading…') }}</flux:text>
+                        <flux:error name="file" />
+                    </flux:field>
+                    <flux:button type="submit" variant="primary" icon="arrow-up-tray">{{ __('Start import') }}</flux:button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass overflow-hidden rounded-2xl">
+        <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+            <div>
+                <flux:heading size="lg">{{ __('Recent imports') }}</flux:heading>
+            </div>
+        </div>
+
         @if ($imports->isEmpty())
-            <x-ui.empty icon="arrow-up-tray" :heading="__('No imports yet')" />
+            <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                    <flux:icon name="arrow-up-tray" />
+                </div>
+                <flux:heading size="lg" class="mt-4">{{ __('No imports yet') }}</flux:heading>
+            </div>
         @else
             <ul class="divide-y divide-white/50 dark:divide-white/10">
                 @foreach ($imports as $import)
@@ -74,5 +98,5 @@
                 @endforeach
             </ul>
         @endif
-    </x-ui.card>
+    </div>
 </div>

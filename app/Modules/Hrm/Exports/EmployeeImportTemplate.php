@@ -11,7 +11,7 @@ use Maatwebsite\Excel\Concerns\Export;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 /**
- * The Excel template for importing employees (5.6). Two sheets:
+ * The Excel template for importing employees. Two sheets:
  *   "Employees"  the columns of EmployeeImporter::COLUMNS, one example row (delete it before importing)
  *   "Lists"      what may be typed in the lookup columns: org units, designations, grades, types
  * Only the first sheet is imported.

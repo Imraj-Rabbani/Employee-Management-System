@@ -16,7 +16,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.5: moving applications through the pipeline, with history. [REC-04]
+ * Moving applications through the pipeline, with history.
  */
 class MoveApplicationTest extends TestCase
 {

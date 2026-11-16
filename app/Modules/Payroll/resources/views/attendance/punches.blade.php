@@ -1,5 +1,5 @@
 {{--
-    Payroll → Attendance → Punches (7.3c). Every punch from devices, files and web punch; upload a file. [TA-04]
+    Payroll → Attendance → Punches. Every punch from devices, files and web punch; upload a file.
 --}}
 <x-layouts.app :title="__('Attendance')">
     <div class="space-y-4">

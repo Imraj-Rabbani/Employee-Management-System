@@ -47,7 +47,7 @@ class ApprovalNeeded extends Notification implements ShouldQueue
     }
 
     /**
-     * Saved as JSON in the notifications table (the in-app bell, task 3.6).
+     * Saved as JSON in the notifications table (the in-app bell).
      *
      * @return array<string, mixed>
      */

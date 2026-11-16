@@ -62,7 +62,7 @@ class TenantUploads
 
     /**
      * Copy a stored file into another folder under a new random name (keeps the extension), e.g. an
-     * applicant's CV into the new employee's documents (6.8). Returns the new path. Both files then live
+     * applicant's CV into the new employee's documents. Returns the new path. Both files then live
      * on their own: deleting one does not touch the other.
      */
     public function copy(string $path, string $folder): string

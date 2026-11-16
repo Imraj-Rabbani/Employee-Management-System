@@ -26,11 +26,15 @@
         <flux:button size="sm" variant="ghost" icon="arrows-pointing-in" wire:click="collapseAll" class="ms-auto">{{ __('Collapse all') }}</flux:button>
     </div>
 
-    <x-ui.card :padding="false">
+    <div class="glass overflow-hidden rounded-2xl">
         @if ($roots === [])
-            <x-ui.empty :icon="$view === 'people' ? 'users' : 'briefcase'"
-                :heading="$view === 'people' ? __('No employees to show') : __('No positions to show')"
-                :description="$view === 'people' ? __('Set supervisors on the Job tab to build the chart.') : __('Add positions under Organization → Positions.')" />
+            <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                    <flux:icon :name="$view === 'people' ? 'users' : 'briefcase'" />
+                </div>
+                <flux:heading size="lg" class="mt-4">{{ $view === 'people' ? __('No employees to show') : __('No positions to show') }}</flux:heading>
+                <flux:text class="mt-1 max-w-sm">{{ $view === 'people' ? __('Set supervisors on the Job tab to build the chart.') : __('Add positions under Organization → Positions.') }}</flux:text>
+            </div>
         @else
             {{-- Wide charts scroll sideways inside the card, never the whole page. --}}
             <div class="overflow-x-auto p-6">
@@ -43,7 +47,7 @@
                 </div>
             </div>
         @endif
-    </x-ui.card>
+    </div>
 
     {{-- Connector lines between the cards: plain CSS on nested lists (no library). --}}
     @once

@@ -7,7 +7,7 @@ use App\Core\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * One period in an employee's org unit history. [EMP-04]
+ * One period in an employee's org unit history.
  * Do not create or change these directly: use ChangeOrgUnit, which also keeps employees.org_unit_id in step.
  *
  * @property int $id

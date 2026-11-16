@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use LogicException;
 
 /**
- * Moves an employee to another org unit from a date, keeping the history. [EMP-04]
+ * Moves an employee to another org unit from a date, keeping the history.
  * The ONLY place that changes employee_org_assignments and employees.org_unit_id.
  *
  *     $action = app(ChangeOrgUnit::class);
@@ -24,7 +24,7 @@ use LogicException;
  *   2. adds the new open row                          (Sales:   2026-03-01 → …)
  *   3. copies the unit to employees.org_unit_id
  *
- * Rules: the date may not be in the future (that needs a daily job: Phase 13 transfers), not before
+ * Rules: the date may not be in the future (that needs a daily job: future transfers), not before
  * joining, and must be after the newest row's start (history is only added to at the end).
  */
 class ChangeOrgUnit

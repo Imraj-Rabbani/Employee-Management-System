@@ -22,7 +22,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.5: an application's history timeline (modal on the posting and applicant pages). [REC-04]
+ * An application's history timeline (modal on the posting and applicant pages).
  */
 class ApplicationHistoryTest extends TestCase
 {

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 
 /**
- * One change of a leave balance (table `leave_ledger`). [LV-03]
+ * One change of a leave balance (table `leave_ledger`).
  * Written ONLY by App\Modules\Hrm\Services\LeaveLedger, never edited or deleted.
  *
  * @property int $id

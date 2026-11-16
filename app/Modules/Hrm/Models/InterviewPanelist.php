@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * One employee on one interview's panel, with their score sheet. [REC-05]
+ * One employee on one interview's panel, with their score sheet.
  *
  * @property int $id
  * @property int $interview_id

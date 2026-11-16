@@ -11,13 +11,13 @@ use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
 /**
- * Company leave settings, on the Leave types tab. [LV-03, LV-05]
+ * Company leave settings, on the Leave types tab.
  *
- *   startMonth      leave.year_start_month (8.2): locked once any leave balance exists (it would move every
+ *   startMonth      leave.year_start_month: locked once any leave balance exists (it would move every
  *                   ledger row into another year)
- *   earnFrom        leave.earn_from (8.5): the go-live date; the nightly accrual credits nothing that started
+ *   earnFrom        leave.earn_from: the go-live date; the nightly accrual credits nothing that started
  *                   before it (the opening balances cover that). Empty = no limit.
- *   closeAfterDays  leave.close_after_days (8.5): the previous leave year is carried forward this many days
+ *   closeAfterDays  leave.close_after_days: the previous leave year is carried forward this many days
  *                   after it ended, so late approvals still land in it
  */
 class LeaveSettings extends Component

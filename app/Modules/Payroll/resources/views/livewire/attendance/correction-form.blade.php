@@ -4,10 +4,22 @@
         :subheading="__('The times replace the punches of that day once the correction is approved. Leave a time empty to keep the punch.')">
         <form wire:submit="save" id="correction-form" class="space-y-4">
             @unless ($self)
-                <x-form.select wire:model.live="employeeId" :label="__('Employee')" :options="$employees" :placeholder="__('Choose…')" required
-                               :disabled="$correctionId !== null" />
+                <flux:field>
+                    <flux:label>{{ __('Employee') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:select aria-required="true" wire:model.live="employeeId" :disabled="$correctionId !== null">
+                        <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
+                        @foreach ($employees as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="employeeId" />
+                </flux:field>
             @endunless
-            <x-form.date wire:model.live="date" :label="__('Day')" required max="{{ $today }}" :disabled="$correctionId !== null" />
+            <flux:field>
+                <flux:label>{{ __('Day') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                <flux:input type="date" aria-required="true" wire:model.live="date" max="{{ $today }}" :disabled="$correctionId !== null" />
+                <flux:error name="date" />
+            </flux:field>
 
             @if ($day)
                 <flux:text class="text-sm">
@@ -20,10 +32,24 @@
             @endif
 
             <div class="grid gap-4 sm:grid-cols-2">
-                <x-form.input wire:model="in" type="time" :label="__('In')" />
-                <x-form.input wire:model="out" type="time" :label="__('Out')" :hint="__('Earlier than In = the next morning.')" />
+                <flux:field>
+                    <flux:label>{{ __('In') }}</flux:label>
+                    <flux:input wire:model="in" type="time" />
+                    <flux:error name="in" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Out') }}</flux:label>
+                    <flux:description>{{ __('Earlier than In = the next morning.') }}</flux:description>
+                    <flux:input wire:model="out" type="time" />
+                    <flux:error name="out" />
+                </flux:field>
             </div>
-            <x-form.textarea wire:model="reason" :label="__('Reason')" required />
+            <flux:field>
+                <flux:label>{{ __('Reason') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                <flux:textarea aria-required="true" rows="3" wire:model="reason" />
+                <flux:error name="reason" />
+            </flux:field>
         </form>
 
         <x-slot:footer>

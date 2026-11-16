@@ -1,5 +1,5 @@
 {{--
-    HRM → Recruitment Reports (6.9). One view, one URL per report; the route passes $report.
+    HRM → Recruitment Reports. One view, one URL per report; the route passes $report.
     Each report is a Livewire component in App\Modules\Hrm\Livewire\Recruitment\Reports.
 --}}
 @php
@@ -16,7 +16,16 @@
     <div class="space-y-4">
         <x-ui.section-tabs section="hrm.recruitment" />
 
-        <x-ui.link-tabs size="sm" :label="__('Recruitment reports')" :tabs="collect($reports)->map(fn ($x, $key) => ['label' => $x[0], 'href' => route('hrm.recruitment.reports.'.$key), 'current' => $key === $report])->all()" />
+        {{-- Second row of tabs: each one is its own page. --}}
+        <nav class="flex gap-1 overflow-x-auto border-b border-zinc-200 [scrollbar-width:none] dark:border-white/10" aria-label="{{ __('Recruitment reports') }}">
+            @foreach ($reports as $key => $tab)
+                <a href="{{ route('hrm.recruitment.reports.'.$key) }}" wire:navigate @class([
+                    '-mb-px shrink-0 whitespace-nowrap border-b-2 px-2.5 py-1.5 text-xs font-medium transition',
+                    'border-brand-800 text-brand-900 dark:border-white dark:text-white' => $key === $report,
+                    'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200' => $key !== $report,
+                ]) @if ($key === $report) aria-current="page" @endif>{{ $tab[0] }}</a>
+            @endforeach
+        </nav>
 
         <flux:subheading>{{ $intro }}</flux:subheading>
 

@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Task 2.7b: "confirm your password" screen (Fortify), used before sensitive actions.
+ * "confirm your password" screen (Fortify), used before sensitive actions.
  */
 class PasswordConfirmationTest extends TestCase
 {

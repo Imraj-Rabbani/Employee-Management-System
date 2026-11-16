@@ -8,13 +8,13 @@ use App\Modules\Workflow\Models\Approval;
 use Illuminate\Foundation\Events\Dispatchable;
 
 /**
- * A document's workflow is finished: approved at the last level, or rejected. [WF-05]
+ * A document's workflow is finished: approved at the last level, or rejected.
  * An event is a message "this happened"; listeners decide what to do about it.
  * The engine does not need to know who listens.
  *
  *     ApprovalCompleted::dispatch($document, $finalApproval);
  *
- * Listeners: RunDocumentHandler (calls onApproved / onRejected). Task 3.5 adds notifications.
+ * Listeners: RunDocumentHandler (calls onApproved / onRejected) and the notifications.
  */
 class ApprovalCompleted
 {

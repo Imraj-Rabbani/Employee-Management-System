@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Task 2.7a: "/" sends everyone to the right start page; there is no public registration.
+ * "/" sends everyone to the right start page; there is no public registration.
  */
 class StartPageTest extends TestCase
 {

@@ -11,8 +11,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
- * The numbers behind the recruitment reports (6.9), worked out from the stage HISTORY, not only from
- * where applications are now. [REC-04, REC-07]
+ * The numbers behind the recruitment reports, worked out from the stage HISTORY, not only from
+ * where applications are now.
  *
  *   funnel()   per posting: how many applications EVER reached each step. Someone rejected after the
  *              interview still counts as "reached interview". Skipped stages count as reached

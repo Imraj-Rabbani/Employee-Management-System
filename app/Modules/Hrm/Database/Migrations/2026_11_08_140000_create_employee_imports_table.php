@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * One row per uploaded Excel file of employees (5.6). [EMP-06]
+ * One row per uploaded Excel file of employees.
  *
  *   user_id      who uploaded it (central users.id, no FK: other database). The job imports with that
  *                user's org-unit access.

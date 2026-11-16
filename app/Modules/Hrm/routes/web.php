@@ -19,13 +19,13 @@ use Maatwebsite\Excel\Facades\Excel;
 // can:... = the permission needed (permissions.php). Livewire re-checks it on every click (persistent middleware).
 Route::view('ping', 'hrm::ping')->name('ping');
 
-// HRM → Employees. "viewAny" is answered by EmployeePolicy (needs hrm.employee.view). [EMP-05]
+// HRM → Employees. "viewAny" is answered by EmployeePolicy (needs hrm.employee.view).
 Route::view('employees', 'hrm::employees.index')
     ->middleware('can:viewAny,'.Employee::class)
     ->name('employees.index');
 
-// Excel import of new employees (5.6). Must come BEFORE employees/{employee}, or "import" would be taken
-// for an employee id. "create" = EmployeePolicy::create. [EMP-06]
+// Excel import of new employees. Must come BEFORE employees/{employee}, or "import" would be taken
+// for an employee id. "create" = EmployeePolicy::create.
 Route::middleware('can:create,'.Employee::class)->group(function () {
     Route::view('employees/import', 'hrm::employees.import')->name('employees.import');
     Route::get('employees/import/template', fn (EmployeeVisibility $visibility) => Excel::download(
@@ -36,7 +36,7 @@ Route::middleware('can:create,'.Employee::class)->group(function () {
 
 // One employee's profile. {employee} = ROUTE MODEL BINDING: Laravel loads Employee::find($id) for us
 // (through the VisibleToCurrentUser scope, so someone you may not see gives 404). "view" = EmployeePolicy::view.
-// ?tab=job picks the tab, so every tab has its own bookmarkable URL. [EMP-01]
+// ?tab=job picks the tab, so every tab has its own bookmarkable URL.
 Route::get('employees/{employee}', function (Employee $employee) {
     $tabs = [
         'personal' => __('Personal'),
@@ -71,13 +71,13 @@ foreach (['organization', 'recruitment', 'leave'] as $section) {
     })->name($section);
 }
 
-// HRM → Organization → Org chart: reporting lines (people) or the position tree. [ORG-02]
+// HRM → Organization → Org chart: reporting lines (people) or the position tree.
 // Own permission (employee view), so it is outside the "org" group below (organization.manage).
 Route::view('org/chart', 'hrm::org-chart')
     ->middleware('can:viewAny,'.Employee::class)
     ->name('org.chart');
 
-// HRM → Organization: one page view, one URL per section (hrm.org.units, hrm.org.grades ...). [ORG-01]
+// HRM → Organization: one page view, one URL per section (hrm.org.units, hrm.org.grades ...).
 Route::middleware('can:hrm.organization.manage')->prefix('org')->name('org.')->group(function () {
     foreach (['units', 'positions', 'designations', 'grades', 'branches', 'cost-centers', 'employment-types', 'unit-levels'] as $section) {
         Route::view($section, 'hrm::organization', ['section' => $section])->name($section);
@@ -103,8 +103,8 @@ Route::get('employees/{employee}/attachments/{section}/{id}', function (Employee
     return $uploads->download($row->attachment_path, $row->attachment_name);
 })->middleware('can:view,employee')->whereNumber('id')->name('employees.attachment');
 
-// HRM → Recruitment → Manpower requests (6.2): the start of the hiring process. Each user sees the
-// requests of the org units they can see (ManpowerRequest::visibleTo). [REC-01]
+// HRM → Recruitment → Manpower requests: the start of the hiring process. Each user sees the
+// requests of the org units they can see (ManpowerRequest::visibleTo).
 Route::view('recruitment/requests', 'hrm::recruitment.requests')
     ->middleware('can:hrm.recruitment.request')
     ->name('recruitment.requests');
@@ -116,8 +116,8 @@ Route::get('recruitment/requests/{id}', fn (int $id) => view('hrm::recruitment.r
     'request' => ManpowerRequest::query()->visibleTo(auth()->user())->findOrFail($id),
 ]))->middleware('can:hrm.recruitment.view-requests')->whereNumber('id')->name('recruitment.requests.show');
 
-// HRM → Job Postings (6.3): HR advertises approved manpower requests. Same org-unit limit as the
-// requests (JobPosting::visibleTo). [REC-02]
+// HRM → Job Postings: HR advertises approved manpower requests. Same org-unit limit as the
+// requests (JobPosting::visibleTo).
 Route::view('recruitment/postings', 'hrm::recruitment.postings')
     ->middleware('can:hrm.recruitment.manage')
     ->name('recruitment.postings');
@@ -127,9 +127,9 @@ Route::get('recruitment/postings/{id}', fn (int $id) => view('hrm::recruitment.p
     'posting' => JobPosting::query()->visibleTo(auth()->user())->findOrFail($id),
 ]))->middleware('can:hrm.recruitment.manage')->whereNumber('id')->name('recruitment.postings.show');
 
-// HRM → Applicants (6.4): the people HR entered, their profile (education, work history, CV) and
+// HRM → Applicants: the people HR entered, their profile (education, work history, CV) and
 // applications. The talent pool is company-wide: everyone with hrm.recruitment.manage sees all applicants,
-// but only the applications to postings of their org units (Application::visibleTo). [REC-03]
+// but only the applications to postings of their org units (Application::visibleTo).
 Route::middleware('can:hrm.recruitment.manage')->prefix('recruitment/applicants')->name('recruitment.applicants')->group(function () {
     Route::view('/', 'hrm::recruitment.applicants');
     Route::get('{applicant}', fn (Applicant $applicant) => view('hrm::recruitment.applicant-show', compact('applicant')))
@@ -142,7 +142,7 @@ Route::middleware('can:hrm.recruitment.manage')->prefix('recruitment/applicants'
     })->whereNumber('applicant')->name('.cv');
 });
 
-// Job offers (6.7): the offer's page and its letter (PDF). Found through the application's visibleTo(). [REC-06]
+// Job offers: the offer's page and its letter (PDF). Found through the application's visibleTo().
 Route::middleware('can:hrm.recruitment.manage')->prefix('recruitment/offers/{id}')->whereNumber('id')->name('recruitment.offers.')->group(function () {
     $find = fn (int $id) => JobOffer::query()->whereHas('application', fn ($q) => $q->visibleTo(auth()->user()))->findOrFail($id);
 
@@ -160,33 +160,33 @@ Route::middleware('can:hrm.recruitment.manage')->prefix('recruitment/offers/{id}
     })->name('letter');
 });
 
-// HRM → Recruitment Reports (6.9): one URL per report, like Organization. Data limited to the user's org units.
+// HRM → Recruitment Reports: one URL per report, like Organization. Data limited to the user's org units.
 Route::middleware('can:hrm.recruitment.manage')->prefix('recruitment/reports')->name('recruitment.reports.')->group(function () {
     foreach (['open-positions', 'funnel', 'time-to-hire'] as $report) {
         Route::view($report, 'hrm::recruitment.reports', ['report' => $report])->name($report);
     }
 });
 
-// HRM → Recruitment → Setup: interview factors and rejection reasons (6.1). Same idea as Organization:
-// one page view, one URL per section. [REC-04, REC-05]
+// HRM → Recruitment → Setup: interview factors and rejection reasons. Same idea as Organization:
+// one page view, one URL per section.
 Route::middleware('can:hrm.recruitment.setup')->prefix('recruitment/setup')->name('recruitment.setup.')->group(function () {
     foreach (['factors', 'reasons'] as $section) {
         Route::view($section, 'hrm::recruitment.setup', ['section' => $section])->name($section);
     }
 });
 
-// HRM → Leave → setup (8.1): leave types and leave profiles. One page view, one URL per section. [LV-01, LV-02]
+// HRM → Leave → setup: leave types and leave profiles. One page view, one URL per section.
 Route::middleware('can:hrm.leave.setup')->prefix('leave')->name('leave.')->group(function () {
     foreach (['types', 'profiles'] as $section) {
         Route::view($section, 'hrm::leave.setup', ['section' => $section])->name($section);
     }
 });
 
-// HRM → Leave → Applications (8.4): leave of the employees the user can see; HR applies for them. [LV-04]
+// HRM → Leave → Applications: leave of the employees the user can see; HR applies for them.
 Route::middleware('can:hrm.leave.manage')->get('leave/applications', fn () => view('hrm::leave.applications'))
     ->name('leave.applications');
 
-// HRM → Leave → Encashments (8.6), Calendar and Balances (8.7). [LV-03, LV-04, LV-06]
+// HRM → Leave → Encashments, Calendar and Balances.
 Route::middleware('can:hrm.leave.manage')->prefix('leave')->name('leave.')->group(function () {
     Route::view('encashments', 'hrm::leave.encashments')->name('encashments');
     Route::view('calendar', 'hrm::leave.calendar')->name('calendar');

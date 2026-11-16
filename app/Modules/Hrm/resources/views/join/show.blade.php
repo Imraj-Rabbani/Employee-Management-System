@@ -2,41 +2,84 @@
 <x-layouts.auth>
     <div class="flex flex-col gap-6">
         @if ($valid)
-            <x-auth-header :title="__('Join :company', ['company' => $company->name])" :description="__('Fill in your details and choose a password.')" />
+            <div class="flex w-full flex-col gap-2 text-center">
+                <h1 class="text-xl font-medium dark:text-zinc-200">{{ __('Join :company', ['company' => $company->name]) }}</h1>
+                <p class="text-sm dark:text-zinc-400">{{ __('Fill in your details and choose a password.') }}</p>
+            </div>
 
             <form method="POST" action="{{ $actionUrl }}" class="flex flex-col gap-5">
                 @csrf
-                <x-form.input name="email" type="email" :value="$user->email" :label="__('Email')" readonly autocomplete="username" />
+                <flux:field>
+                    <flux:label>{{ __('Email') }}</flux:label>
+                    <flux:input name="email" type="email" :value="$user->email" readonly autocomplete="username" />
+                    <flux:error name="email" />
+                </flux:field>
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <x-form.input name="first_name" :value="old('first_name')" :label="__('First name')" required autofocus autocomplete="given-name" />
-                    <x-form.input name="last_name" :value="old('last_name')" :label="__('Last name')" autocomplete="family-name" />
+                    <flux:field>
+                        <flux:label>{{ __('First name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                        <flux:input aria-required="true" name="first_name" :value="old('first_name')" autofocus autocomplete="given-name" />
+                        <flux:error name="first_name" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Last name') }}</flux:label>
+                        <flux:input name="last_name" :value="old('last_name')" autocomplete="family-name" />
+                        <flux:error name="last_name" />
+                    </flux:field>
                 </div>
 
-                <x-form.input name="code" :value="old('code')" :label="__('Employee ID')" :hint="__('The ID your company gave you, e.g. EMP-012.')" required />
+                <flux:field>
+                    <flux:label>{{ __('Employee ID') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:description>{{ __('The ID your company gave you, e.g. EMP-012.') }}</flux:description>
+                    <flux:input aria-required="true" name="code" :value="old('code')" />
+                    <flux:error name="code" />
+                </flux:field>
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <x-form.input name="mobile" :value="old('mobile')" :label="__('Mobile')" autocomplete="tel" />
-                    <x-form.field :label="__('Gender')" name="gender">
+                    <flux:field>
+                        <flux:label>{{ __('Mobile') }}</flux:label>
+                        <flux:input name="mobile" :value="old('mobile')" autocomplete="tel" />
+                        <flux:error name="mobile" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Gender') }}</flux:label>
                         <flux:select name="gender">
                             <flux:select.option value="">{{ __('Not set') }}</flux:select.option>
                             @foreach ($genders as $value => $label)
                                 <flux:select.option :value="$value" :selected="(string) old('gender') === (string) $value">{{ $label }}</flux:select.option>
                             @endforeach
                         </flux:select>
-                    </x-form.field>
+                        <flux:error name="gender" />
+                    </flux:field>
                 </div>
 
-                <x-form.date name="birth_date" :value="old('birth_date')" :label="__('Date of birth')" max="{{ now()->subDay()->toDateString() }}" />
+                <flux:field>
+                    <flux:label>{{ __('Date of birth') }}</flux:label>
+                    <flux:input type="date" name="birth_date" :value="old('birth_date')" max="{{ now()->subDay()->toDateString() }}" />
+                    <flux:error name="birth_date" />
+                </flux:field>
 
-                <x-form.input name="password" type="password" :label="__('Password')" required autocomplete="new-password" viewable />
-                <x-form.input name="password_confirmation" type="password" :label="__('Confirm password')" required autocomplete="new-password" viewable />
+                <flux:field>
+                    <flux:label>{{ __('Password') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:input aria-required="true" name="password" type="password" autocomplete="new-password" viewable />
+                    <flux:error name="password" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Confirm password') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:input aria-required="true" name="password_confirmation" type="password" autocomplete="new-password" viewable />
+                    <flux:error name="password_confirmation" />
+                </flux:field>
 
                 <flux:button type="submit" variant="primary" class="w-full">{{ __('Register and log in') }}</flux:button>
             </form>
         @else
-            <x-auth-header :title="__('This link no longer works')"
-                :description="__('It was already used, it expired, or a newer invitation was sent. If you have registered, just log in. Otherwise ask your company to send the invitation again.')" />
+            <div class="flex w-full flex-col gap-2 text-center">
+                <h1 class="text-xl font-medium dark:text-zinc-200">{{ __('This link no longer works') }}</h1>
+                <p class="text-sm dark:text-zinc-400">{{ __('It was already used, it expired, or a newer invitation was sent. If you have registered, just log in. Otherwise ask your company to send the invitation again.') }}</p>
+            </div>
             <flux:button :href="route('login')" variant="primary" class="w-full">{{ __('Go to login') }}</flux:button>
         @endif
     </div>

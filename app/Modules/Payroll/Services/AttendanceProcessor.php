@@ -12,7 +12,7 @@ use Carbon\CarbonInterface;
 
 /**
  * The attendance rules: ONE working day in, its result out. Pure logic (no database, no clock), so every
- * case is unit tested (tests/Unit/AttendanceProcessorTest). [TA-05] Architecture §10.
+ * case is unit tested (tests/Unit/AttendanceProcessorTest). Architecture §10.
  *
  *   on leave                          → Leave (punches still recorded)
  *   weekend / holiday, no work        → Off / Holiday
@@ -26,7 +26,7 @@ use Carbon\CarbonInterface;
  *       overtime      pre = before the start, post = after the (moved) end
  *
  * In = first punch, out = last punch of the day's window (windowFor()); punches in between are ignored.
- * An approved correction (7.6) replaces the first and / or last punch: inAndOut().
+ * An approved correction replaces the first and / or last punch: inAndOut().
  */
 class AttendanceProcessor
 {
@@ -115,7 +115,7 @@ class AttendanceProcessor
     }
 
     /**
-     * In and out of the day: the first and the last punch, each replaced by an approved correction's time (7.6).
+     * In and out of the day: the first and the last punch, each replaced by an approved correction's time.
      * Out is null when there is only one time (a single punch and no correction of the other end).
      *
      * @return array{0: CarbonImmutable|null, 1: CarbonImmutable|null}

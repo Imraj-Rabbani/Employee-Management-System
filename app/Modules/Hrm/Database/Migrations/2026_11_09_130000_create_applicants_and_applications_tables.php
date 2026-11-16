@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Applicants entered by HR, and their applications to job postings (6.4). [REC-03]
+ * Applicants entered by HR, and their applications to job postings.
  *
  *   applicants                one row per PERSON (the company's talent pool). email and phone are unique
  *                             (NULLs allowed: MySQL lets many rows have NULL in a unique column), so the
@@ -35,7 +35,7 @@ return new class extends Migration
             $table->string('address', 500)->nullable();
             $table->string('current_employer', 200)->nullable();
             $table->string('current_designation', 100)->nullable();
-            $table->decimal('expected_salary', 14, 2)->nullable();     // monthly gross, compared in 6.7
+            $table->decimal('expected_salary', 14, 2)->nullable();     // monthly gross, compared with the grade's range
             $table->string('cv_path')->nullable();                      // tenant disk, applicants/cv
             $table->string('cv_name')->nullable();                      // the file name when uploaded
             $table->text('notes')->nullable();
@@ -76,7 +76,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['applicant_id', 'job_posting_id']);   // once per posting
-            $table->index(['job_posting_id', 'stage']);           // the pipeline of one posting (6.5)
+            $table->index(['job_posting_id', 'stage']);           // the pipeline of one posting
         });
     }
 

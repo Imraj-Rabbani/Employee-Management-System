@@ -9,7 +9,7 @@ use App\Modules\Hrm\Models\OrgUnitType;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete org unit (modal "org-unit-form"). [ORG-01]
+ * New / Edit / Delete org unit (modal "org-unit-form").
  *
  * Extra rules (check()) come from OrgUnit::placementProblem(): no loops, the level rule
  * (a Department must be under a Division), no duplicate name under one parent.

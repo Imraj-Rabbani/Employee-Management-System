@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 /**
- * Task 2.7b: forgot / reset password through Fortify.
+ * Forgot / reset password through Fortify.
  */
 class PasswordResetTest extends TestCase
 {

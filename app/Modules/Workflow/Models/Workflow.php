@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * Who approves one approval type, for which documents (legacy `workflows` header). [WF-02]
- * Empty scope columns mean "any". The engine picks the most specific match (task 3.3).
+ * Who approves one approval type, for which documents (legacy `workflows` header).
+ * Empty scope columns mean "any". The engine picks the most specific match.
  *
  * @property int $id
  * @property int $approval_type_id

@@ -5,17 +5,17 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT table `employees` (legacy `employees`). [EMP-01]
+ * TENANT table `employees` (legacy `employees`).
  *
  * The small "pick one from a list" columns (gender, religion, status ...) are tinyints that hold
  * the int value of an enum in App\Modules\Hrm\Enums (cast on the model, 5.1b).
  *
  * Foreign keys:
- *   - org data from Phase 4 (designation, grade ...)  real FKs now, restrict on delete
+ *   - org data (designation, grade ...)  real FKs now, restrict on delete
  *     (a grade that employees still use cannot be deleted).
  *   - supervisor / dotted-line manager                 self-referencing FK (another employee).
  *   - shift, weekend/holiday/leave/salary/tax profiles  plain indexed ids: those tables come in
- *     Phases 7–11, which add the FKs (same approach as Phase 3).
+ *     later migrations, which add the FKs once those tables exist.
  *   - user_id                                          central `users.id`: different database, so
  *     it can never be a real FK (Architecture.md).
  */
@@ -25,7 +25,7 @@ return new class extends Migration
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id')->nullable()->unique();   // login (5.7), central DB
+            $table->unsignedBigInteger('user_id')->nullable()->unique();   // login, central DB
 
             // Identity
             $table->string('code', 50)->unique();                  // employee ID shown on screens
@@ -56,10 +56,10 @@ return new class extends Migration
             // Job
             $table->date('join_date');
             $table->date('planned_confirmation_date')->nullable();
-            $table->unsignedTinyInteger('confirmation_status')->nullable();   // enum added with confirmations (Phase 13)
+            $table->unsignedTinyInteger('confirmation_status')->nullable();   // enum added with confirmations
             $table->date('confirmation_date')->nullable();
-            // CURRENT org unit. The full dated history lives in employee_org_assignments (5.4), which keeps
-            // this column in step. Kept here because the list filter (5.2) and the VisibleToCurrentUser
+            // CURRENT org unit. The full dated history lives in employee_org_assignments, which keeps
+            // this column in step. Kept here because the list filter and the VisibleToCurrentUser
             // scope need it on every employee query, and a plain column is far faster than a history join.
             $table->foreignId('org_unit_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('employment_type_id')->nullable()->constrained()->restrictOnDelete();
@@ -71,7 +71,7 @@ return new class extends Migration
             $table->foreignId('supervisor_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->foreignId('dotted_line_manager_id')->nullable()->constrained('employees')->nullOnDelete();
 
-            // Attendance / leave / payroll setup. No FKs yet (tables come in Phases 7–11).
+            // Attendance / leave / payroll setup. No FKs yet (those tables are created later).
             $table->unsignedBigInteger('shift_id')->nullable()->index();
             $table->boolean('has_shifting')->default(false);
             $table->unsignedBigInteger('weekend_profile_id')->nullable()->index();
@@ -88,7 +88,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->index(['first_name', 'last_name']);   // name search on the list (5.2)
+            $table->index(['first_name', 'last_name']);   // name search on the list
         });
     }
 

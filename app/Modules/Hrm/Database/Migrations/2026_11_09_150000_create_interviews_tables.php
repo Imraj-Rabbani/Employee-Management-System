@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Interviews of an application, in rounds, with a panel of employees who each score every factor (6.6). [REC-05]
+ * Interviews of an application, in rounds, with a panel of employees who each score every factor.
  *
  *   interviews            one round of one application: when, where, status (InterviewStatus).
  *                         round 1, 2, 3 ... is unique per application.
@@ -39,7 +39,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('interview_id')->constrained()->cascadeOnDelete();
             $table->foreignId('employee_id')->constrained()->restrictOnDelete();
-            $table->string('recommendation', 20)->nullable();   // InterviewRecommendation (6.6c)
+            $table->string('recommendation', 20)->nullable();   // InterviewRecommendation
             $table->text('comment')->nullable();
             $table->timestamp('submitted_at')->nullable();      // score sheet sent: locked
             $table->timestamps();

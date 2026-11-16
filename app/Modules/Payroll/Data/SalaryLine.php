@@ -8,7 +8,7 @@ use App\Modules\Payroll\Enums\ProfileValueType;
 use App\Modules\Payroll\Models\SalaryHead;
 
 /**
- * One head of a salary: the head, how it was worked out ("50% of basic") and the amount. [PC-02, PC-03]
+ * One head of a salary: the head, how it was worked out ("50% of basic") and the amount.
  * valueType / rate are kept when the amount came from a percent (saved with an employee's salary); NULL = the basic
  * or a plain amount.
  */

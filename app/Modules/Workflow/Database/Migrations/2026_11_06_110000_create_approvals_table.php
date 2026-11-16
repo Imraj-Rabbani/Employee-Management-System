@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT table: the actual approval requests. [WF-03, WF-04]
+ * TENANT table: the actual approval requests.
  *
  *   approvals  legacy `approvals`: one row per document per level (per approver).
  *              "Leave #12 is waiting for Rahim at level 1" = one row.
@@ -25,11 +25,11 @@ return new class extends Migration
             $table->foreignId('workflow_step_id')->constrained()->restrictOnDelete();
             $table->unsignedTinyInteger('level');   // copied from the step, so history survives step edits
 
-            // No FKs yet: employees arrive in Phase 5.
+            // No FKs here: the employees table is created later (HRM).
             $table->unsignedBigInteger('requester_employee_id')->nullable()->index();
             $table->unsignedBigInteger('approver_employee_id')->nullable();
 
-            // pending | approved | rejected | review  (ApprovalStatus enum in task 3.2)
+            // pending | approved | rejected | review  (the ApprovalStatus enum)
             $table->string('status', 20)->default('pending');
 
             // Who actually answered (may be a representative). Login id in the CENTRAL users table: no FK.

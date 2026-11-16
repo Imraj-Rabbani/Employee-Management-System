@@ -17,7 +17,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * "Please change my mobile number": an employee's request to change their own personal details,
- * applied only once the workflow approves it (legacy `profileupdaterequests`). [EMP-08]
+ * applied only once the workflow approves it (legacy `profileupdaterequests`).
  *
  *     $request->field_changes          ['mobile' => ['old' => '017…', 'new' => '018…'], ...]
  *     $request->submitForApproval()    into the "profile_update" workflow (HasApprovals)

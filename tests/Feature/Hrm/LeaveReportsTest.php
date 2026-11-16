@@ -18,7 +18,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 8.7: HRM → Leave → Calendar (who is on leave) and Balances (the balance report). [LV-03, LV-04]
+ * HRM → Leave → Calendar (who is on leave) and Balances (the balance report).
  */
 class LeaveReportsTest extends TestCase
 {
@@ -91,10 +91,10 @@ class LeaveReportsTest extends TestCase
         $this->get(route('hrm.leave.balances'))->assertOk();
 
         Livewire::test(LeaveBalanceTable::class)
-            ->assertSet('filters.year', '2026')        // this leave year by default
+            ->assertSet('year', '2026')        // this leave year by default
             ->assertSee('E001 · Karim')->assertSee('7.5')->assertSee('2.5')
             ->assertDontSee('E002 · Rina')
-            ->set('filters.year', '2025')
+            ->set('year', '2025')
             ->assertSee('E002 · Rina')->assertDontSee('E001 · Karim');
     }
 

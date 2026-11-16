@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT tables for permissions. [FND-05]
+ * TENANT tables for permissions.
  *
  *   roles             legacy `profiles`: a named set of permissions, e.g. "HR Officer"
  *   role_permissions  legacy `permissions`: one row per permission key a role has, e.g. "payroll.run.approve"
@@ -22,7 +22,7 @@ return new class extends Migration
             // Administrator: passes every permission check. Set by the seeder, never from a form.
             $table->boolean('is_admin')->default(false);
             // Data scope (legacy profiles.entity): users with this role only see this org unit's employees.
-            // No foreign key yet: org_units arrive in Phase 4, enforcement in Phase 5.
+            // No foreign key: org_units live in the HRM module's migrations.
             $table->unsignedBigInteger('org_unit_id')->nullable()->index();
             $table->timestamps();
         });

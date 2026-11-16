@@ -19,7 +19,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 5.1: employees table, model, factory, policy and the VisibleToCurrentUser global scope. [EMP-01, FND-05]
+ * Employees table, model, factory, policy and the VisibleToCurrentUser global scope.
  *
  * Structure used: Head Office › Finance › Accounts, and Head Office › Sales.
  */

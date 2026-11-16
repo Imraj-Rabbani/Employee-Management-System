@@ -15,7 +15,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 5.5 (part 1): Family & Nominees tab. [EMP-02]
+ * Family & Nominees tab.
  */
 class FamilyAndNomineesTest extends TestCase
 {

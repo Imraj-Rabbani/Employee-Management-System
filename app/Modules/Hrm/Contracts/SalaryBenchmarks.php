@@ -4,7 +4,7 @@ namespace App\Modules\Hrm\Contracts;
 
 /**
  * What employees in the same grade / designation earn now (current monthly gross). The job offer compares its
- * salary with it (6.7, finished in 9.4). Salaries live in the Payroll module, which binds the real answer
+ * salary with it. Salaries live in the Payroll module, which binds the real answer
  * (ComparableSalaries); without it NoSalaryBenchmarks says "no salaries known".
  */
 interface SalaryBenchmarks

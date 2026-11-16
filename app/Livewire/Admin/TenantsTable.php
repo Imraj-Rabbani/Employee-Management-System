@@ -2,22 +2,45 @@
 
 namespace App\Livewire\Admin;
 
-use App\Core\Livewire\Table\Column;
-use App\Core\Livewire\Table\DataTable;
-use App\Core\Livewire\Table\SelectFilter;
+use App\Core\Exports\ArrayExport;
 use App\Models\Tenant;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\HtmlString;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Platform admin → Companies. Lists every tenant from the central database.
  * Only reachable through the /admin routes (can:super-admin).
+ * View: resources/views/livewire/admin/tenants-table.blade.php
  */
-class TenantsTable extends DataTable
+class TenantsTable extends Component
 {
+    use WithPagination;
+
+    #[Url(as: 'q', except: '')]
+    public string $search = '';
+
+    #[Url(as: 'sort', except: '')]
+    public string $sortBy = '';
+
+    #[Url(as: 'dir', except: 'asc')]
+    public string $sortDir = 'asc';
+
+    /** '' = all, 'active', 'inactive' */
+    #[Url(except: '')]
+    public string $status = '';
+
+    #[Url(as: 'per_page', except: 10)]
+    public int $perPage = 10;
+
+    private const SORTABLE = ['code', 'name', 'users_count', 'created_at'];
+
     /**
      * Runs on the first load AND on every later Livewire request (/livewire/update),
      * so nobody but a super admin can use this component, even by crafting requests.
@@ -27,47 +50,38 @@ class TenantsTable extends DataTable
         Gate::authorize('super-admin');
     }
 
-    /** @return Builder<Tenant> */
-    protected function query(): Builder
+    public function sort(string $field): void
     {
-        return Tenant::query()->withCount('users');
+        if (! in_array($field, self::SORTABLE, true)) {
+            return;
+        }
+
+        $this->sortDir = $this->sortBy === $field && $this->sortDir === 'asc' ? 'desc' : 'asc';
+        $this->sortBy = $field;
     }
 
-    protected function columns(): array
+    public function clearFilters(): void
     {
-        return [
-            // The code opens the Edit form: it sends an "edit-tenant" browser event that EditTenantForm listens for.
-            Column::make(__('Code'), 'code')->sortable()->searchable()->alwaysVisible()
-                ->format(fn (Tenant $tenant) => new HtmlString(Blade::render(
-                    '<button type="button" x-on:click="$dispatch(\'edit-tenant\', { id: {{ $id }} })" class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200" title="{{ __(\'Edit\') }}">{{ $code }}</button>',
-                    ['id' => $tenant->id, 'code' => $tenant->code],
-                ))),
-            Column::make(__('Company'), 'name')->sortable()->searchable(),
-            Column::make(__('Database'), 'database')->searchable(),
-            Column::make(__('Modules'), 'modules')
-                ->format(fn (Tenant $tenant) => collect($tenant->modules ?? [])
-                    ->map(fn (string $key) => Tenant::OPTIONAL_MODULES[$key] ?? $key)
-                    ->implode(', ') ?: '—'),
-            Column::make(__('Users'), 'users_count')->sortable(),
-            Column::make(__('Status'), 'is_active')
-                ->format(fn (Tenant $tenant) => new HtmlString(Blade::render(
-                    '<x-ui.badge :color="$color" dot>{{ $text }}</x-ui.badge>',
-                    $tenant->is_active
-                        ? ['color' => 'success', 'text' => __('Active')]
-                        : ['color' => 'danger', 'text' => __('Inactive')],
-                ))),
-            Column::make(__('Created'), 'created_at')
-                ->sortable()
-                ->format(fn (Tenant $tenant) => format_date($tenant->created_at)),
-        ];
+        $this->reset('search', 'status');
+        $this->resetPage();
     }
 
-    protected function filters(): array
+    public function export(): BinaryFileResponse
     {
-        return [
-            SelectFilter::make('status', __('Status'), ['active' => __('Active'), 'inactive' => __('Inactive')])
-                ->query(fn (Builder $query, string $value) => $query->where('is_active', $value === 'active')),
-        ];
+        $rows = $this->filteredQuery()->get()->map(fn (Tenant $tenant) => [
+            $tenant->code,
+            $tenant->name,
+            $tenant->database,
+            $this->moduleNames($tenant),
+            $tenant->getAttribute('users_count'),
+            $tenant->is_active ? __('Active') : __('Inactive'),
+            format_date($tenant->created_at),
+        ])->all();
+
+        return Excel::download(
+            new ArrayExport([__('Code'), __('Company'), __('Database'), __('Modules'), __('Users'), __('Status'), __('Created')], $rows),
+            'tenants-table-'.now()->format('Y-m-d').'.xlsx',
+        );
     }
 
     /** The New / Edit company forms announce a change; re-render to show it. */
@@ -75,5 +89,54 @@ class TenantsTable extends DataTable
     public function refreshList(): void
     {
         $this->resetPage();
+    }
+
+    public function updated(string $property): void
+    {
+        if (in_array($property, ['search', 'status', 'perPage'], true)) {
+            $this->resetPage();
+        }
+    }
+
+    /** "HRM, Payroll" from the stored keys ['hrm', 'payroll']. Used by the view and the export. */
+    public function moduleNames(Tenant $tenant): string
+    {
+        return collect($tenant->modules ?? [])
+            ->map(fn (string $key) => Tenant::OPTIONAL_MODULES[$key] ?? $key)
+            ->implode(', ') ?: '—';
+    }
+
+    /** @return Builder<Tenant> */
+    private function filteredQuery(): Builder
+    {
+        $query = Tenant::query()->withCount('users');
+
+        if (trim($this->search) !== '') {
+            $like = '%'.addcslashes(trim($this->search), '%_\\').'%';
+            $query->where(fn (Builder $q) => $q->where('code', 'like', $like)
+                ->orWhere('name', 'like', $like)
+                ->orWhere('database', 'like', $like));
+        }
+
+        if ($this->status === 'active') {
+            $query->where('is_active', true);
+        } elseif ($this->status === 'inactive') {
+            $query->where('is_active', false);
+        }
+
+        if (in_array($this->sortBy, self::SORTABLE, true)) {
+            $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
+        }
+
+        return $query;
+    }
+
+    public function render(): View
+    {
+        $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
+
+        return view('livewire.admin.tenants-table', [
+            'rows' => $this->filteredQuery()->paginate($perPage),
+        ]);
     }
 }

@@ -5,8 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT table `leave_accruals` (8.5): one row per employee, leave type and EARNING PERIOD that was credited.
- * [LV-05]
+ * TENANT table `leave_accruals`: one row per employee, leave type and EARNING PERIOD that was credited.
  *
  * The unique key is what makes the nightly AccrueEarnedLeave safe to run again and again: a period that has a
  * row is never credited twice. The Earned ledger row points back here (source), and `basis` explains the number:

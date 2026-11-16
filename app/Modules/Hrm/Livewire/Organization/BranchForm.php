@@ -7,7 +7,7 @@ use App\Modules\Hrm\Models\Branch;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete branch (modal "branch-form"). [ORG-01]
+ * New / Edit / Delete branch (modal "branch-form").
  * Everything except the fields comes from LookupForm.
  */
 class BranchForm extends LookupForm

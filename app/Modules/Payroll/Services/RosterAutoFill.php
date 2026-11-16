@@ -12,7 +12,7 @@ use App\Modules\Payroll\Models\WeekendProfile;
 use Illuminate\Support\Carbon;
 
 /**
- * "Fill empty cells" in the roster grid (7.2c): a first draft from what is already set up (7.1),
+ * "Fill empty cells" in the roster grid: a first draft from what is already set up,
  * which the planner then changes where needed. Only EMPTY cells are filled; planned ones stay.
  *
  *   holiday in the employee's holiday calendar   → off

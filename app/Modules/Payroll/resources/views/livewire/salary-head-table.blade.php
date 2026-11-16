@@ -1,0 +1,147 @@
+{{-- SalaryHeadTable list. PHP side: App\Modules\Payroll\Livewire\SalaryHeadTable --}}
+<div class="glass overflow-hidden rounded-2xl">
+
+    {{-- Toolbar --}}
+    <div class="flex flex-wrap items-center gap-3 border-b border-white/50 p-4 dark:border-white/10">
+        <div class="w-full sm:w-72">
+            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search…')" clearable />
+        </div>
+
+        @if ($search !== '')
+            <flux:button wire:click="clearFilters" variant="ghost" size="sm" icon="x-mark">{{ __('Clear') }}</flux:button>
+        @endif
+
+        <flux:spacer />
+
+        <flux:button wire:click="export" size="sm" icon="arrow-down-tray">{{ __('Export') }}</flux:button>
+    </div>
+
+    {{-- The table --}}
+    <div class="overflow-x-auto" wire:loading.class="opacity-60">
+        <table class="min-w-full text-sm">
+            <thead>
+                <tr class="border-b border-white/50 text-left text-zinc-600 dark:border-white/10 dark:text-zinc-300">
+                    <th class="px-4 py-3 font-medium whitespace-nowrap">
+                        <button type="button" wire:click="sort('sequence')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
+                            {{ __('Order') }}
+                            @if ($sortBy === 'sequence')
+                                <flux:icon :name="$sortDir === 'asc' ? 'chevron-up' : 'chevron-down'" variant="micro" />
+                            @else
+                                <flux:icon.chevron-up-down variant="micro" class="opacity-40" />
+                            @endif
+                        </button>
+                    </th>
+
+                    <th class="px-4 py-3 font-medium whitespace-nowrap">
+                        <button type="button" wire:click="sort('code')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
+                            {{ __('Code') }}
+                            @if ($sortBy === 'code')
+                                <flux:icon :name="$sortDir === 'asc' ? 'chevron-up' : 'chevron-down'" variant="micro" />
+                            @else
+                                <flux:icon.chevron-up-down variant="micro" class="opacity-40" />
+                            @endif
+                        </button>
+                    </th>
+
+                    <th class="px-4 py-3 font-medium whitespace-nowrap">
+                        <button type="button" wire:click="sort('name')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
+                            {{ __('Name') }}
+                            @if ($sortBy === 'name')
+                                <flux:icon :name="$sortDir === 'asc' ? 'chevron-up' : 'chevron-down'" variant="micro" />
+                            @else
+                                <flux:icon.chevron-up-down variant="micro" class="opacity-40" />
+                            @endif
+                        </button>
+                    </th>
+
+                    <th class="px-4 py-3 font-medium whitespace-nowrap">
+                        <button type="button" wire:click="sort('type')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
+                            {{ __('Type') }}
+                            @if ($sortBy === 'type')
+                                <flux:icon :name="$sortDir === 'asc' ? 'chevron-up' : 'chevron-down'" variant="micro" />
+                            @else
+                                <flux:icon.chevron-up-down variant="micro" class="opacity-40" />
+                            @endif
+                        </button>
+                    </th>
+
+                    <th class="px-4 py-3 font-medium">{{ __('Rule') }}</th>
+                    <th class="px-4 py-3 font-medium whitespace-nowrap">
+                        <button type="button" wire:click="sort('in_gross')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
+                            {{ __('In gross') }}
+                            @if ($sortBy === 'in_gross')
+                                <flux:icon :name="$sortDir === 'asc' ? 'chevron-up' : 'chevron-down'" variant="micro" />
+                            @else
+                                <flux:icon.chevron-up-down variant="micro" class="opacity-40" />
+                            @endif
+                        </button>
+                    </th>
+
+                    <th class="px-4 py-3 font-medium">{{ __('Paid') }}</th>
+                    <th class="px-4 py-3 font-medium whitespace-nowrap">
+                        <button type="button" wire:click="sort('is_active')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
+                            {{ __('Active') }}
+                            @if ($sortBy === 'is_active')
+                                <flux:icon :name="$sortDir === 'asc' ? 'chevron-up' : 'chevron-down'" variant="micro" />
+                            @else
+                                <flux:icon.chevron-up-down variant="micro" class="opacity-40" />
+                            @endif
+                        </button>
+                    </th>
+
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach ($rows as $salaryHead)
+                    <tr wire:key="salary-head-{{ $salaryHead->getKey() }}" class="border-b border-white/40 text-zinc-800 last:border-0 hover:bg-white/40 dark:border-white/5 dark:text-zinc-100 dark:hover:bg-white/5">
+                        <td class="px-4 py-3">{{ $salaryHead->sequence }}</td>
+                        <td class="px-4 py-3">{{ $salaryHead->code }}</td>
+                        {{-- Opens the edit form (it listens for "edit-salary-head"). --}}
+                        <td class="px-4 py-3">
+                            <button type="button" x-on:click="$dispatch('edit-salary-head', { id: {{ $salaryHead->getKey() }} })" class="text-left font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">
+                                {{ $salaryHead->name }}
+                            </button>
+                        </td>
+                        <td class="px-4 py-3">
+                            <x-ui.badge :color="$salaryHead->type->color()">{{ $salaryHead->type->label() }}</x-ui.badge>
+                        </td>
+                        <td class="px-4 py-3">{{ $salaryHead->rule() }}</td>
+                        <td class="px-4 py-3">{{ $salaryHead->in_gross ? __('Yes') : __('No') }}</td>
+                        <td class="px-4 py-3">{{ $salaryHead->pay_cycle->label() }}</td>
+                        <td class="px-4 py-3">
+                            @if ($salaryHead->is_active)
+                                <x-ui.badge color="success">{{ __('Active') }}</x-ui.badge>
+                            @else
+                                <x-ui.badge>{{ __('Inactive') }}</x-ui.badge>
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+        @if ($rows->isEmpty())
+            <div class="px-6 py-12 text-center">
+                <flux:heading size="lg">{{ __('No results') }}</flux:heading>
+            </div>
+        @endif
+    </div>
+
+    {{-- Footer: page size and page links --}}
+    <div class="flex flex-wrap items-center gap-4 border-t border-white/50 px-6 py-4 text-sm text-zinc-600 dark:border-white/10 dark:text-zinc-300">
+        <div class="flex items-center gap-2">
+            <span>{{ __('Rows per page') }}</span>
+            <div class="w-20">
+                <flux:select wire:model.live="perPage" size="sm" :aria-label="__('Rows per page')">
+                    <flux:select.option value="10">10</flux:select.option>
+                    <flux:select.option value="25">25</flux:select.option>
+                    <flux:select.option value="50">50</flux:select.option>
+                    <flux:select.option value="100">100</flux:select.option>
+                </flux:select>
+            </div>
+        </div>
+
+        <div class="ms-auto">{{ $rows->links() }}</div>
+    </div>
+</div>

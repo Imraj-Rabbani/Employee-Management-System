@@ -1,20 +1,57 @@
-{{-- New / Edit pay scale profile (PayScaleProfileForm). The payroll run (Phase 10) follows these rules. --}}
-<x-form.lookup-modal :$modal :$record :heading="$record ? __('Edit pay scale profile') : __('New pay scale profile')"
-    :deleteMessage="__('Not possible while employees use it. Make it inactive instead.')">
-    <div class="grid gap-4 sm:grid-cols-3">
-        <x-form.input wire:model="form.code" :label="__('Code')" required />
-        <x-form.input wire:model="form.name" :label="__('Name')" required class="sm:col-span-2" :hint="__('e.g. Regular staff, Workers')" />
-    </div>
+{{-- New / Edit pay scale profile (PayScaleProfileForm). The payroll run follows these rules. --}}
+<div>
+    <x-ui.modal :name="$modal" :heading="$record ? __('Edit pay scale profile') : __('New pay scale profile')">
+        <form wire:submit="save" id="{{ $modal }}" class="space-y-6">
+            <div class="grid gap-4 sm:grid-cols-3">
+                <flux:field>
+                    <flux:label>{{ __('Code') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:input aria-required="true" wire:model="form.code" />
+                    <flux:error name="form.code" />
+                </flux:field>
 
-    <x-form.toggle wire:model="form.pays_arrear" :label="__('Pay arrears')"
-        :hint="__('Back-dated salary changes, and the days of late joiners, are paid in a later run.')" />
-    <x-form.input wire:model="form.threshold_day" type="number" min="0" max="28" :label="__('Threshold day')" required
-        :hint="__('Who joins after this day of the month is first paid in the next month\'s run. 0 = no threshold.')" />
-    <x-form.toggle wire:model.live="form.deduct_lwp" :label="__('Deduct leave without pay')" />
-    @if ($form['deduct_lwp'] ?? true)
-        <x-form.toggle wire:model="form.ignore_late_lwp" :label="__('Except LWP from late attendance')"
-            :hint="__('LWP that comes from lates (e.g. 3 lates = 1 day) is not deducted.')" />
-    @endif
-    <x-form.textarea wire:model="form.detail" :label="__('Detail')" rows="2" />
-    <x-form.toggle wire:model="form.is_active" :label="__('Active')" />
-</x-form.lookup-modal>
+                <flux:field>
+                    <flux:label>{{ __('Name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:description>{{ __('e.g. Regular staff, Workers') }}</flux:description>
+                    <flux:input aria-required="true" wire:model="form.name" class="sm:col-span-2" />
+                    <flux:error name="form.name" />
+                </flux:field>
+            </div>
+
+            <flux:switch wire:model="form.pays_arrear" :label="__('Pay arrears')" :description="__('Back-dated salary changes, and the days of late joiners, are paid in a later run.')" />
+
+            <flux:field>
+                <flux:label>{{ __('Threshold day') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                <flux:description>{{ __('Who joins after this day of the month is first paid in the next month\'s run. 0 = no threshold.') }}</flux:description>
+                <flux:input aria-required="true" wire:model="form.threshold_day" type="number" min="0" max="28" />
+                <flux:error name="form.threshold_day" />
+            </flux:field>
+
+            <flux:switch wire:model.live="form.deduct_lwp" :label="__('Deduct leave without pay')" />
+            @if ($form['deduct_lwp'] ?? true)
+                <flux:switch wire:model="form.ignore_late_lwp" :label="__('Except LWP from late attendance')" :description="__('LWP that comes from lates (e.g. 3 lates = 1 day) is not deducted.')" />
+            @endif
+            <flux:field>
+                <flux:label>{{ __('Detail') }}</flux:label>
+                <flux:textarea wire:model="form.detail" rows="2" />
+                <flux:error name="form.detail" />
+            </flux:field>
+
+            <flux:switch wire:model="form.is_active" :label="__('Active')" />
+
+            {{-- Delete: only when editing an existing record --}}
+            @if ($record)
+                <flux:separator />
+                <flux:button size="sm" variant="ghost" icon="trash" class="!text-red-600" x-on:click="$dispatch('confirm', {
+                    title: @js(__('Delete this record?')),
+                    message: @js(__('Not possible while employees use it. Make it inactive instead.')),
+                    confirmText: @js(__('Delete')),
+                    onConfirm: () => $wire.delete(),
+                })">{{ __('Delete') }}</flux:button>
+            @endif
+        </form>
+
+        <x-slot:footer>
+            <flux:button type="submit" form="{{ $modal }}" variant="primary">{{ __('Save') }}</flux:button>
+        </x-slot:footer>
+    </x-ui.modal>
+</div>

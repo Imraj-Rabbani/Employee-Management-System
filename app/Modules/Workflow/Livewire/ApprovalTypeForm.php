@@ -11,7 +11,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * New / Edit approval type (modal "approval-type-form"). [WF-01]
+ * New / Edit approval type (modal "approval-type-form").
  * The key is what the code uses (Approvable::approvalType(), e.g. "leave"), so it cannot change after creation.
  */
 class ApprovalTypeForm extends Component

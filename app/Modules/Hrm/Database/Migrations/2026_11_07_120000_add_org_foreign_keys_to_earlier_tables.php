@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Columns made in Phases 2–3 before org_units / employment_types existed get their real
+ * Columns made before org_units / employment_types existed get their real
  * foreign keys now (see the "No FK yet" comments in those migrations).
  *
  * restrict, not "set null": if deleting an org unit emptied a workflow's scope, that workflow

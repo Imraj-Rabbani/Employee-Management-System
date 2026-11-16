@@ -2,29 +2,106 @@
 
 namespace App\Modules\Hrm\Livewire\Leave;
 
-use App\Core\Livewire\Table\Column;
-use App\Core\Livewire\Table\DataTable;
-use App\Core\Livewire\Table\SelectFilter;
+use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\LeaveApplication;
 use App\Modules\Hrm\Models\LeaveType;
 use App\Modules\Workflow\Enums\ApprovalStatus;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\HtmlString;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * HRM → Leave → Applications (8.4): every leave application of the employees the user can see, newest first.
- * Click the number to open it (details, timeline, change / withdraw). [LV-04]
+ * HRM → Leave → Applications: every leave application of the employees the user can see, newest first.
+ * Click the number to open it (details, timeline, change / withdraw).
+ *
+ * View: app/Modules/Hrm/resources/views/livewire/leave/leave-application-table.blade.php
  */
-class LeaveApplicationTable extends DataTable
+class LeaveApplicationTable extends Component
 {
+    use WithPagination;
+
+    #[Url(as: 'q', except: '')]
+    public string $search = '';
+
+    #[Url(as: 'sort', except: '')]
+    public string $sortBy = '';
+
+    #[Url(as: 'dir', except: 'asc')]
+    public string $sortDir = 'asc';
+
+    /** Filter "Month": '' = all */
+    #[Url(as: 'month', except: '')]
+    public string $month = '';
+
+    /** Filter "Leave type": '' = all */
+    #[Url(as: 'type', except: '')]
+    public string $type = '';
+
+    /** Filter "Status": '' = all */
+    #[Url(as: 'status', except: '')]
+    public string $status = '';
+
+    #[Url(as: 'per_page', except: 10)]
+    public int $perPage = 10;
+
+    /** Columns the user may sort by. Anything else sent from the browser is ignored. */
+    private const SORTABLE = ['id', 'from_date', 'days', 'created_at'];
+
     /** @var array<string, string> */
     protected $listeners = ['leave-saved' => '$refresh'];
 
+    public function sort(string $field): void
+    {
+        if (! in_array($field, self::SORTABLE, true)) {
+            return;
+        }
+
+        // Clicking the same column again flips the direction.
+        $this->sortDir = $this->sortBy === $field && $this->sortDir === 'asc' ? 'desc' : 'asc';
+        $this->sortBy = $field;
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset('search', 'month', 'type', 'status');
+        $this->resetPage();
+    }
+
+    public function export(): BinaryFileResponse
+    {
+        $rows = $this->filteredQuery()->get()->map(fn (LeaveApplication $leaveApplication) => [
+            $leaveApplication->number(),
+            $leaveApplication->employee ? $leaveApplication->employee->code.' · '.$leaveApplication->employee->name : '—',
+            $leaveApplication->leaveType->name ?? '—',
+            $leaveApplication->datesLabel(),
+            LeaveApplication::daysLabel($leaveApplication->days),
+            $leaveApplication->reason,
+            $leaveApplication->statusBadge()[0],
+            format_date($leaveApplication->created_at),
+        ])->all();
+
+        return Excel::download(
+            new ArrayExport([__('No.'), __('Employee'), __('Leave type'), __('Dates'), __('Days'), __('Reason'), __('Status'), __('Applied')], $rows),
+            'leave-application-table-'.now()->format('Y-m-d').'.xlsx',
+        );
+    }
+
+    /** Typing a search or picking a filter or page size starts again at page 1. */
+    public function updated(string $property): void
+    {
+        if (in_array($property, ['search', 'month', 'type', 'status', 'perPage'], true)) {
+            $this->resetPage();
+        }
+    }
+
     /** @return Builder<LeaveApplication> */
-    protected function query(): Builder
+    private function query(): Builder
     {
         // Employee::query() has the visibility scope (the relation itself does not: approvers need it).
         return LeaveApplication::query()
@@ -32,59 +109,83 @@ class LeaveApplicationTable extends DataTable
             ->whereIn('employee_id', Employee::query()->select('id'));
     }
 
-    protected function defaultSort(): array
-    {
-        return ['id' => 'desc'];
-    }
-
-    protected function filters(): array
+    /** @return array<int|string, string> choices of the "Month" filter */
+    private function monthOptions(): array
     {
         $months = [];
+
         for ($m = now()->addMonths(2)->startOfMonth(), $i = 0; $i < 15; $i++, $m = $m->subMonth()) {
             $months[$m->format('Y-m')] = $m->translatedFormat('F Y');
         }
-        $pending = fn (Builder $a) => $a->where('status', ApprovalStatus::Pending);
-        // The filter's Builder is untyped: the model's own scope, as an id subquery, keeps ONE definition of "active".
-        $active = fn (Builder $q) => $q->whereIn('id', LeaveApplication::query()->active()->select('id'));
 
+        return $months;
+    }
+
+    /** @return array<int|string, string> choices of the "Leave type" filter */
+    private function typeOptions(): array
+    {
+        return LeaveType::query()->ordered()->pluck('name', 'id')->all();
+    }
+
+    /** @return array<int|string, string> choices of the "Status" filter */
+    private function statusOptions(): array
+    {
         return [
-            SelectFilter::make('month', __('Month'), $months)->query(function (Builder $q, string $month) {
-                $start = Carbon::createFromFormat('!Y-m', $month) ?: now();
-                // Any overlap with the month.
-                $q->where('from_date', '<=', $start->copy()->endOfMonth()->toDateString())->where('to_date', '>=', $start->toDateString());
-            }),
-            SelectFilter::make('type', __('Leave type'), LeaveType::query()->ordered()->pluck('name', 'id')->all())
-                ->query(fn (Builder $q, string $id) => $q->where('leave_type_id', (int) $id)),
-            SelectFilter::make('status', __('Status'), [
-                'waiting' => __('Waiting for approval'), 'approved' => __('Approved'),
-                'review' => __('Sent back'), 'rejected' => __('Rejected'), 'withdrawn' => __('Withdrawn'),
-            ])->query(fn (Builder $q, string $v) => match ($v) {
-                'approved' => $q->whereNotNull('approved_at')->whereNull('withdrawn_at'),
-                'rejected' => $q->whereNotNull('rejected_at'),
-                'withdrawn' => $q->whereNotNull('withdrawn_at'),
-                'waiting' => $active($q)->whereHas('approvals', $pending),
-                default => $active($q)->whereNull('approved_at')->whereDoesntHave('approvals', $pending),
-            }),
+            'waiting' => __('Waiting for approval'), 'approved' => __('Approved'),
+            'review' => __('Sent back'), 'rejected' => __('Rejected'), 'withdrawn' => __('Withdrawn'),
         ];
     }
 
-    protected function columns(): array
+    /** @return Builder<LeaveApplication> */
+    private function filteredQuery(): Builder
     {
-        return [
-            Column::make(__('No.'), 'id')->sortable()->alwaysVisible()
-                ->format(fn (LeaveApplication $a) => $a->number())->opens('show-leave'),
-            Column::make(__('Employee'), 'employee_id')->alwaysVisible()
-                ->format(fn (LeaveApplication $a) => $a->employee ? $a->employee->code.' · '.$a->employee->name : '—'),
-            Column::make(__('Leave type'), 'leave_type_id')->format(fn (LeaveApplication $a) => $a->leaveType->name ?? '—'),
-            Column::make(__('Dates'), 'from_date')->sortable()->format(fn (LeaveApplication $a) => $a->datesLabel()),
-            Column::make(__('Days'), 'days')->sortable()->alignRight()->format(fn (LeaveApplication $a) => LeaveApplication::daysLabel($a->days)),
-            Column::make(__('Reason'), 'reason')->searchable(),
-            Column::make(__('Status'), 'approved_at')->format(function (LeaveApplication $a) {
-                [$label, $color] = $a->statusBadge();
+        $query = $this->query();
 
-                return new HtmlString(Blade::render('<x-ui.badge :$color>{{ $label }}</x-ui.badge>', compact('label', 'color')));
-            }),
-            Column::make(__('Applied'), 'created_at')->sortable()->format(fn (LeaveApplication $a) => format_date($a->created_at)),
-        ];
+        if (trim($this->search) !== '') {
+            // addcslashes: a search for "50%" means the text "50%", not "50 followed by anything".
+            $like = '%'.addcslashes(trim($this->search), '%_\\').'%';
+            $query->where(fn (Builder $q) => $q->where('reason', 'like', $like));
+        }
+
+        if ($this->month !== '' && array_key_exists($this->month, $this->monthOptions())) {
+            $start = Carbon::createFromFormat('!Y-m', $this->month) ?: now();
+
+            $query->where('from_date', '<=', $start->copy()->endOfMonth()->toDateString())->where('to_date', '>=', $start->toDateString());
+        }
+
+        if ($this->type !== '' && array_key_exists($this->type, $this->typeOptions())) {
+            $query->where('leave_type_id', (int) $this->type);
+        }
+
+        if ($this->status !== '' && array_key_exists($this->status, $this->statusOptions())) {
+            match ($this->status) {
+                'approved' => $query->whereNotNull('approved_at')->whereNull('withdrawn_at'),
+                'rejected' => $query->whereNotNull('rejected_at'),
+                'withdrawn' => $query->whereNotNull('withdrawn_at'),
+                'waiting' => ($query->whereIn('id', LeaveApplication::query()->active()->select('id')))->whereHas('approvals', fn (Builder $a) => $a->where('status', ApprovalStatus::Pending)),
+                default => ($query->whereIn('id', LeaveApplication::query()->active()->select('id')))->whereNull('approved_at')->whereDoesntHave('approvals', fn (Builder $a) => $a->where('status', ApprovalStatus::Pending)),
+            };
+        }
+
+        if (in_array($this->sortBy, self::SORTABLE, true)) {
+            $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('id', 'desc');
+        }
+
+        return $query;
+    }
+
+    public function render(): View
+    {
+        // A page size typed into the URL that is not offered falls back to 10.
+        $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
+
+        return view('hrm::livewire.leave.leave-application-table', [
+            'rows' => $this->filteredQuery()->paginate($perPage),
+            'monthOptions' => $this->monthOptions(),
+            'typeOptions' => $this->typeOptions(),
+            'statusOptions' => $this->statusOptions(),
+        ]);
     }
 }

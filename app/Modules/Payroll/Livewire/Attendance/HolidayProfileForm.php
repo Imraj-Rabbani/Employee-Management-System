@@ -7,7 +7,7 @@ use App\Modules\Payroll\Models\HolidayProfile;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete holiday calendar (modal "holiday-profile-form"). [TA-02]
+ * New / Edit / Delete holiday calendar (modal "holiday-profile-form").
  * Which holidays are in it is chosen on each holiday (HolidayForm): there are few calendars and many holidays.
  */
 class HolidayProfileForm extends LookupForm

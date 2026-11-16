@@ -13,7 +13,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  *     class Employee extends TenantModel { ... }
  *
- * Every create, update and delete is written to the company's activity log (who, when, old → new). [FND-06]
+ * Every create, update and delete is written to the company's activity log (who, when, old → new).
  * Leave sensitive or noisy columns out with:    protected array $auditExcept = ['photo_blob'];
  * Hidden attributes ($hidden) and timestamps are never logged.
  *

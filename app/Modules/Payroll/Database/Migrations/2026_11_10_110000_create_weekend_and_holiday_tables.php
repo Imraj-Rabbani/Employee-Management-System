@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT tables for days off. [TA-02]
+ * TENANT tables for days off.
  *
  *   weekend_profiles          legacy `weekendprofiles`: the weekly days off, e.g. Friday + Saturday
  *   holidays                  legacy `holidays`: one public / festival holiday on a date

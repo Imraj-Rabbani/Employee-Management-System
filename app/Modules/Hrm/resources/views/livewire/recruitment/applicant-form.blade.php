@@ -4,16 +4,44 @@
         :subheading="$applicant ? null : __('Give an email or a phone number: they are used to find people already entered.')">
         <form wire:submit="save" id="applicant-form" class="space-y-6">
             @unless ($applicant)
-                <x-form.select wire:model="postingId" :label="__('Applies to')" :options="$postings"
-                    :placeholder="$postings ? __('No posting (talent pool only)') : __('No posting is taking applications')"
-                    :hint="__('Open postings that take applications today')" />
+                <flux:field>
+                    <flux:label>{{ __('Applies to') }}</flux:label>
+                    <flux:description>{{ __('Open postings that take applications today') }}</flux:description>
+                    <flux:select wire:model="postingId">
+                        <flux:select.option value="">{{ $postings ? __('No posting (talent pool only)') : __('No posting is taking applications') }}</flux:select.option>
+                        @foreach ($postings as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="postingId" />
+                </flux:field>
             @endunless
 
             <div class="grid gap-4 sm:grid-cols-2">
-                <x-form.input wire:model="form.first_name" :label="__('First name')" required />
-                <x-form.input wire:model="form.last_name" :label="__('Last name')" />
-                <x-form.input wire:model.blur="form.email" type="email" :label="__('Email')" />
-                <x-form.input wire:model.blur="form.phone" :label="__('Phone')" :hint="__('e.g. 01711-000000')" />
+                <flux:field>
+                    <flux:label>{{ __('First name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:input aria-required="true" wire:model="form.first_name" />
+                    <flux:error name="form.first_name" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Last name') }}</flux:label>
+                    <flux:input wire:model="form.last_name" />
+                    <flux:error name="form.last_name" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Email') }}</flux:label>
+                    <flux:input wire:model.blur="form.email" type="email" />
+                    <flux:error name="form.email" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Phone') }}</flux:label>
+                    <flux:description>{{ __('e.g. 01711-000000') }}</flux:description>
+                    <flux:input wire:model.blur="form.phone" />
+                    <flux:error name="form.phone" />
+                </flux:field>
             </div>
 
             {{-- Duplicate check: shown as soon as an email / phone matches someone already entered. --}}
@@ -35,17 +63,55 @@
             @endif
 
             <div class="grid gap-4 sm:grid-cols-3">
-                <x-form.select wire:model="form.gender" :label="__('Gender')" :options="$genders" :placeholder="__('Not set')" />
-                <x-form.date wire:model="form.birth_date" :label="__('Date of birth')" />
-                <x-form.input wire:model="form.national_id" :label="__('National ID')" />
+                <flux:field>
+                    <flux:label>{{ __('Gender') }}</flux:label>
+                    <flux:select wire:model="form.gender">
+                        <flux:select.option value="">{{ __('Not set') }}</flux:select.option>
+                        @foreach ($genders as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="form.gender" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Date of birth') }}</flux:label>
+                    <flux:input type="date" wire:model="form.birth_date" />
+                    <flux:error name="form.birth_date" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('National ID') }}</flux:label>
+                    <flux:input wire:model="form.national_id" />
+                    <flux:error name="form.national_id" />
+                </flux:field>
             </div>
-            <x-form.input wire:model="form.address" :label="__('Address')" />
+            <flux:field>
+                <flux:label>{{ __('Address') }}</flux:label>
+                <flux:input wire:model="form.address" />
+                <flux:error name="form.address" />
+            </flux:field>
 
             <flux:separator :text="__('Now')" />
             <div class="grid gap-4 sm:grid-cols-3">
-                <x-form.input wire:model="form.current_employer" :label="__('Current employer')" />
-                <x-form.input wire:model="form.current_designation" :label="__('Current designation')" />
-                <x-form.input wire:model="form.expected_salary" type="number" min="0" step="0.01" :label="__('Expected salary')" :hint="__('Monthly gross')" />
+                <flux:field>
+                    <flux:label>{{ __('Current employer') }}</flux:label>
+                    <flux:input wire:model="form.current_employer" />
+                    <flux:error name="form.current_employer" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Current designation') }}</flux:label>
+                    <flux:input wire:model="form.current_designation" />
+                    <flux:error name="form.current_designation" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Expected salary') }}</flux:label>
+                    <flux:description>{{ __('Monthly gross') }}</flux:description>
+                    <flux:input wire:model="form.expected_salary" type="number" min="0" step="0.01" />
+                    <flux:error name="form.expected_salary" />
+                </flux:field>
             </div>
 
             <div class="space-y-2">
@@ -60,10 +126,20 @@
                         })">{{ __('Remove') }}</flux:button>
                     </div>
                 @endif
-                <x-form.file wire:model="cv" :label="$applicant?->cv_path ? __('Replace CV') : __('CV')" :hint="__('PDF or Word, up to 5 MB')" accept=".pdf,.doc,.docx" />
+                <flux:field>
+                    <flux:label>{{ $applicant?->cv_path ? __('Replace CV') : __('CV') }}</flux:label>
+                    <flux:description>{{ __('PDF or Word, up to 5 MB') }}</flux:description>
+                    <flux:input type="file" wire:model="cv" accept=".pdf,.doc,.docx" />
+                    <flux:text wire:loading wire:target="cv" class="mt-2 text-sm">{{ __('Uploading…') }}</flux:text>
+                    <flux:error name="cv" />
+                </flux:field>
             </div>
 
-            <x-form.textarea wire:model="form.notes" :label="__('Notes')" />
+            <flux:field>
+                <flux:label>{{ __('Notes') }}</flux:label>
+                <flux:textarea rows="3" wire:model="form.notes" />
+                <flux:error name="form.notes" />
+            </flux:field>
 
             @if ($applicant)
                 <flux:separator />

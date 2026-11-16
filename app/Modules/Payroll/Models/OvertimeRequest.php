@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * "Pay me 3 hours of overtime for 3 December" (legacy `overtimes`). [TA-07]
+ * "Pay me 3 hours of overtime for 3 December" (legacy `overtimes`).
  * Asked by the employee (Self Service) or by HR / a manager for them; approval type "overtime".
  *
  * Every approver enters the hours when approving (AsksApproverForAmount → approvals.amount):

@@ -15,7 +15,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 2.10: every change to a TenantModel is logged (who, when, old → new), and the History tab shows it. [FND-06]
+ * Every change to a TenantModel is logged (who, when, old → new), and the History tab shows it.
  */
 class ActivityLogTest extends TestCase
 {

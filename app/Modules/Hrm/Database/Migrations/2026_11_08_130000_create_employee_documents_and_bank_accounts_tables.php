@@ -5,13 +5,13 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Documents (with expiry) and bank accounts of an employee. [EMP-01, EMP-03]
+ * Documents (with expiry) and bank accounts of an employee.
  *
  *   employee_documents.type      DocumentType enum. title = free name for "Other".
  *   attachment_path / _name      same columns as education / work history (schema.mmd said file_path), so the
  *                                shared upload code (EmployeeRecords) works unchanged.
  *   employee_bank_accounts       exactly ONE is_primary per employee once there is any account: salary
- *                                goes there (Phase 12). Kept true by the BankAccounts component.
+ *                                goes there. Kept true by the BankAccounts component.
  */
 return new class extends Migration
 {

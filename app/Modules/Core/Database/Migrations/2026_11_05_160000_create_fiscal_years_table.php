@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT table: the company's fiscal (financial) years. Legacy: `fiscals`. [FND-04]
+ * TENANT table: the company's fiscal (financial) years. Legacy: `fiscals`.
  * Exactly one is active; it drives the tax year and reports. Use FiscalYear::activate() to change it.
  */
 return new class extends Migration

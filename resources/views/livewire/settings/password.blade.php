@@ -75,9 +75,13 @@ new class extends Component {
                     <flux:button variant="primary" type="submit" class="w-full">{{ __('Save') }}</flux:button>
                 </div>
 
-                <x-action-message class="me-3" on="password-updated">
+                {{-- "Saved." that fades out 2 seconds after the component dispatches password-updated --}}
+                <div x-data="{ shown: false, timeout: null }"
+                    x-init="$wire.on('password-updated', () => { clearTimeout(timeout); shown = true; timeout = setTimeout(() => { shown = false }, 2000) })"
+                    x-show="shown" x-transition:leave.opacity.duration.1500ms style="display: none"
+                    class="me-3 text-sm text-gray-600">
                     {{ __('Saved.') }}
-                </x-action-message>
+                </div>
             </div>
         </form>
     </x-settings.layout>

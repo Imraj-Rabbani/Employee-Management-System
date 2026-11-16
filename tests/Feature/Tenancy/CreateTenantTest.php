@@ -16,7 +16,7 @@ use RuntimeException;
 use Tests\TestCase;
 
 /**
- * Task 2.6b: CreateTenant sets up a whole company, or nothing at all.
+ * CreateTenant sets up a whole company, or nothing at all.
  * Uses real databases; tearDown() drops everything it made.
  */
 class CreateTenantTest extends TestCase
@@ -75,7 +75,7 @@ class CreateTenantTest extends TestCase
         $this->assertFalse($admin->isSuperAdmin());
         $this->assertTrue(Hash::check('secret-password', $admin->password));
 
-        // ...and has the company's Administrator role (task 2.9a). We are still switched to the tenant here.
+        // ...and has the company's Administrator role. We are still switched to the tenant here.
         $this->assertTrue($admin->role()?->is_admin);
     }
 

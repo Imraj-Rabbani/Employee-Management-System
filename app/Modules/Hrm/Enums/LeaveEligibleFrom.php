@@ -5,7 +5,7 @@ namespace App\Modules\Hrm\Enums;
 use App\Core\Enums\HasOptions;
 
 /**
- * The date "eligible after N months" counts from (legacy `leavetypes.eligibleFrom`). [LV-01]
+ * The date "eligible after N months" counts from (legacy `leavetypes.eligibleFrom`).
  */
 enum LeaveEligibleFrom: int
 {

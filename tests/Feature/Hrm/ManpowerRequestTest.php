@@ -21,7 +21,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.2: manpower requests (approvable). [REC-01]
+ * Manpower requests (approvable).
  */
 class ManpowerRequestTest extends TestCase
 {

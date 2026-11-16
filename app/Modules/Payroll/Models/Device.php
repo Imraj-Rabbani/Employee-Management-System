@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * A ZKTeco access-control device. Its punches are pulled every 5 minutes (SyncDevicePunches, 7.3d). [TA-04]
+ * A ZKTeco access-control device. Its punches are pulled every 5 minutes (SyncDevicePunches, 7.3d).
  *
  * @property int $id
  * @property string $name

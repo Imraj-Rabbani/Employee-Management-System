@@ -1,16 +1,27 @@
 <div>
-    <x-ui.card :heading="__('Nominees')" :subheading="__('Who receives the employee\'s benefits. The shares must add up to 100%.')" :padding="false">
-        <x-slot:actions>
-            @if ($rows->isNotEmpty())
-                <x-ui.badge :color="$complete ? 'success' : 'warning'">{{ __('Total :total%', ['total' => $total]) }}</x-ui.badge>
-            @endif
-            @if ($canUpdate)
-                <flux:button size="sm" icon="plus" wire:click="add">{{ __('Add nominee') }}</flux:button>
-            @endif
-        </x-slot:actions>
+    <div class="glass overflow-hidden rounded-2xl">
+        <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+            <div>
+                <flux:heading size="lg">{{ __('Nominees') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Who receives the employee\'s benefits. The shares must add up to 100%.') }}</flux:text>
+            </div>
+            <div class="flex shrink-0 items-center gap-2">
+                @if ($rows->isNotEmpty())
+                    <x-ui.badge :color="$complete ? 'success' : 'warning'">{{ __('Total :total%', ['total' => $total]) }}</x-ui.badge>
+                @endif
+                @if ($canUpdate)
+                    <flux:button size="sm" icon="plus" wire:click="add">{{ __('Add nominee') }}</flux:button>
+                @endif
+            </div>
+        </div>
 
         @if ($rows->isEmpty())
-            <x-ui.empty icon="user-group" :heading="__('No nominees yet')" />
+            <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                    <flux:icon name="user-group" />
+                </div>
+                <flux:heading size="lg" class="mt-4">{{ __('No nominees yet') }}</flux:heading>
+            </div>
         @else
             @unless ($complete)
                 <flux:callout variant="warning" icon="exclamation-triangle" class="m-4"
@@ -49,36 +60,113 @@
                 </tbody>
             </table>
         @endif
-    </x-ui.card>
+    </div>
 
     @if ($canUpdate)
-        <x-form.lookup-modal :$modal :$record size="lg" :heading="$record ? __('Edit nominee') : __('Add nominee')"
-            :delete-message="__('The nominee is removed. Remember to share their percentage among the others.')">
-            @if ($family && ! $record)
-                <x-form.select :label="__('Copy from family member')" :options="$family" :placeholder="__('Choose to fill name and relation…')"
-                    x-on:change="$event.target.value && $wire.copyFamily($event.target.value)" />
-            @endif
+        <div>
+            <x-ui.modal :name="$modal" size="lg" :heading="$record ? __('Edit nominee') : __('Add nominee')">
+                <form wire:submit="save" id="{{ $modal }}" class="space-y-6">
+                    @if ($family && ! $record)
+                        <flux:field>
+                            <flux:label>{{ __('Copy from family member') }}</flux:label>
+                            <flux:select x-on:change="$event.target.value && $wire.copyFamily($event.target.value)">
+                                <flux:select.option value="">{{ __('Choose to fill name and relation…') }}</flux:select.option>
+                                @foreach ($family as $optionValue => $optionLabel)
+                                    <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                        </flux:field>
+                    @endif
 
-            <div class="grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
-                <x-form.input wire:model="form.name" :label="__('Name')" required />
-                <x-form.select wire:model="form.relation" :label="__('Relation')" :options="$relations" :placeholder="__('Not set')" />
-                <x-form.input wire:model="form.share_percent" :label="__('Share %')" type="number" step="0.01" min="0.01" max="100" required />
-            </div>
-            <div class="grid gap-4 sm:grid-cols-2">
-                <x-form.input wire:model="form.national_id" :label="__('National ID')" />
-                <x-form.input wire:model="form.phone" :label="__('Phone')" type="tel" />
-            </div>
-            <x-form.textarea wire:model="form.address" :label="__('Address')" rows="2" />
+                    <div class="grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
+                        <flux:field>
+                            <flux:label>{{ __('Name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                            <flux:input aria-required="true" wire:model="form.name" />
+                            <flux:error name="form.name" />
+                        </flux:field>
 
-            <x-form.toggle wire:model.live="form.is_minor" :label="__('Minor (under 18)')" :hint="__('A minor needs a guardian.')" />
-            @if ($form['is_minor'] ?? false)
-                <div class="grid gap-4 rounded-xl bg-zinc-500/5 p-4 sm:grid-cols-2">
-                    <x-form.input wire:model="form.guardian_name" :label="__('Guardian name')" required />
-                    <x-form.input wire:model="form.guardian_relation" :label="__('Guardian relation')" :hint="__('to the nominee, e.g. Mother')" />
-                    <x-form.input wire:model="form.guardian_national_id" :label="__('Guardian national ID')" />
-                    <x-form.input wire:model="form.guardian_phone" :label="__('Guardian phone')" type="tel" />
-                </div>
-            @endif
-        </x-form.lookup-modal>
+                        <flux:field>
+                            <flux:label>{{ __('Relation') }}</flux:label>
+                            <flux:select wire:model="form.relation">
+                                <flux:select.option value="">{{ __('Not set') }}</flux:select.option>
+                                @foreach ($relations as $optionValue => $optionLabel)
+                                    <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:error name="form.relation" />
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>{{ __('Share %') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                            <flux:input aria-required="true" wire:model="form.share_percent" type="number" step="0.01" min="0.01" max="100" />
+                            <flux:error name="form.share_percent" />
+                        </flux:field>
+                    </div>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <flux:field>
+                            <flux:label>{{ __('National ID') }}</flux:label>
+                            <flux:input wire:model="form.national_id" />
+                            <flux:error name="form.national_id" />
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>{{ __('Phone') }}</flux:label>
+                            <flux:input wire:model="form.phone" type="tel" />
+                            <flux:error name="form.phone" />
+                        </flux:field>
+                    </div>
+                    <flux:field>
+                        <flux:label>{{ __('Address') }}</flux:label>
+                        <flux:textarea wire:model="form.address" rows="2" />
+                        <flux:error name="form.address" />
+                    </flux:field>
+
+                    <flux:switch wire:model.live="form.is_minor" :label="__('Minor (under 18)')" :description="__('A minor needs a guardian.')" />
+                    @if ($form['is_minor'] ?? false)
+                        <div class="grid gap-4 rounded-xl bg-zinc-500/5 p-4 sm:grid-cols-2">
+                            <flux:field>
+                                <flux:label>{{ __('Guardian name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                                <flux:input aria-required="true" wire:model="form.guardian_name" />
+                                <flux:error name="form.guardian_name" />
+                            </flux:field>
+
+                            <flux:field>
+                                <flux:label>{{ __('Guardian relation') }}</flux:label>
+                                <flux:description>{{ __('to the nominee, e.g. Mother') }}</flux:description>
+                                <flux:input wire:model="form.guardian_relation" />
+                                <flux:error name="form.guardian_relation" />
+                            </flux:field>
+
+                            <flux:field>
+                                <flux:label>{{ __('Guardian national ID') }}</flux:label>
+                                <flux:input wire:model="form.guardian_national_id" />
+                                <flux:error name="form.guardian_national_id" />
+                            </flux:field>
+
+                            <flux:field>
+                                <flux:label>{{ __('Guardian phone') }}</flux:label>
+                                <flux:input wire:model="form.guardian_phone" type="tel" />
+                                <flux:error name="form.guardian_phone" />
+                            </flux:field>
+                        </div>
+                    @endif
+
+                    {{-- Delete: only when editing an existing record --}}
+                    @if ($record)
+                        <flux:separator />
+                        <flux:button size="sm" variant="ghost" icon="trash" class="!text-red-600" x-on:click="$dispatch('confirm', {
+                            title: @js(__('Delete this record?')),
+                            message: @js(__('The nominee is removed. Remember to share their percentage among the others.')),
+                            confirmText: @js(__('Delete')),
+                            onConfirm: () => $wire.delete(),
+                        })">{{ __('Delete') }}</flux:button>
+                    @endif
+                </form>
+
+                <x-slot:footer>
+                    <flux:button type="submit" form="{{ $modal }}" variant="primary">{{ __('Save') }}</flux:button>
+                </x-slot:footer>
+            </x-ui.modal>
+        </div>
     @endif
 </div>

@@ -13,7 +13,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 2.11: languages (per user), and the company's timezone and date format. [FND-08]
+ * Languages (per user), and the company's timezone and date format.
  */
 class LocalisationTest extends TestCase
 {

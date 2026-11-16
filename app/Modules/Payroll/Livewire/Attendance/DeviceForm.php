@@ -10,7 +10,7 @@ use App\Modules\Payroll\Services\DeviceSync;
 use Illuminate\Validation\Rule;
 
 /**
- * New / Edit / Delete device (modal "device-form"), and "Sync now" for one device. [TA-04]
+ * New / Edit / Delete device (modal "device-form"), and "Sync now" for one device.
  * Deleting a device keeps its punches (punch_logs.device_id becomes NULL).
  */
 class DeviceForm extends LookupForm

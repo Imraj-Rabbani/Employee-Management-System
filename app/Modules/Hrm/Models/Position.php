@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * A seat in the structure, e.g. "Accounts Officer" in Finance (legacy `positions`). [ORG-01]
+ * A seat in the structure, e.g. "Accounts Officer" in Finance (legacy `positions`).
  * Positions form their own tree: parent = the position this one reports to (used by the org chart, 5.9).
  *
  * @property int $id

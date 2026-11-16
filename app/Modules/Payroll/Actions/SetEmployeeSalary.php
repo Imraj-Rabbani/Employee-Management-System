@@ -10,7 +10,7 @@ use App\Modules\Payroll\Models\SalaryProfile;
 use Carbon\CarbonImmutable;
 
 /**
- * Gives an employee a new salary from a date: a set of heads with amounts. [PC-03]
+ * Gives an employee a new salary from a date: a set of heads with amounts.
  *
  *     $action->problem($employee, $from, $salary)    null, or ['field' => ..., 'message' => ...]
  *     $action->handle($employee, $from, $salary, $profile)
@@ -20,7 +20,7 @@ use Carbon\CarbonImmutable;
  * start date as the latest = a correction: those rows are replaced.
  * Heads with amount 0 are left out. ONE readable entry in the employee's history.
  *
- * Not checked yet: payroll periods already paid (Phase 10 locks them).
+ * Not checked yet: payroll periods already paid (the payroll run will lock them).
  */
 class SetEmployeeSalary
 {

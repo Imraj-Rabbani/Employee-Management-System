@@ -12,7 +12,7 @@ use Carbon\CarbonImmutable;
 use Tests\TestCase;
 
 /**
- * Task 7.4: the attendance rules, one case per test. No database: inputs in, result out. [TA-05]
+ * The attendance rules, one case per test. No database: inputs in, result out.
  * Laravel's TestCase only for __() (translated notes).
  *
  * General shift: 09:00–18:00, 15 min grace. Day: Tuesday 1 December 2026.
@@ -206,7 +206,7 @@ class AttendanceProcessorTest extends TestCase
         $this->assertSame(['2026-12-01 00:00', '2026-12-02 00:00'], $fmt(AttendanceProcessor::windowFor($date, null, null, null)));
     }
 
-    // ---- Corrections (7.6) --------------------------------------------------------------------
+    // ---- Corrections --------------------------------------------------------------------
 
     /** @param  list<string>  $punches  "08:55" on 1 Dec */
     private function corrected(array $punches, ?string $in, ?string $out, DayType $type = DayType::Workday): DayResult

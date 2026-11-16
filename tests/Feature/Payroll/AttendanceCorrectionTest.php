@@ -36,7 +36,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 7.6: attendance corrections, asked by HR or the employee, approved through the workflow. [TA-06]
+ * Attendance corrections, asked by HR or the employee, approved through the workflow.
  * The processing rules themselves are unit tested in tests/Unit/AttendanceProcessorTest.
  *
  * Today = Thursday 10 December 2026, 12:00.

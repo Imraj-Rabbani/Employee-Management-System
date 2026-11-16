@@ -30,7 +30,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.2: HRM → Recruitment → Manpower requests (list + New / Edit / Delete as a draft). [REC-01]
+ * HRM → Recruitment → Manpower requests (list + New / Edit / Delete as a draft).
  */
 class ManpowerRequestPagesTest extends TestCase
 {

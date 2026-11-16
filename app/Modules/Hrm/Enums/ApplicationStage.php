@@ -5,7 +5,7 @@ namespace App\Modules\Hrm\Enums;
 use App\Core\Enums\HasOptions;
 
 /**
- * Where a job application is in the hiring pipeline (applications.stage, Phase 6). Not in legacy.
+ * Where a job application is in the hiring pipeline (applications.stage). Not in legacy.
  * String-backed (like ImportStatus), so the database shows "shortlisted", not a number.
  *
  *     applied → shortlisted → interview → offered → hired
@@ -13,7 +13,7 @@ use App\Core\Enums\HasOptions;
  *
  *     ApplicationStage::Offered->color()        'info'   for <x-ui.badge>
  *     ApplicationStage::Rejected->isFinal()     true     the application is closed
- *     ApplicationStage::Withdrawn->needsReason() true    the stage change form asks why (6.5)
+ *     ApplicationStage::Withdrawn->needsReason() true    the stage change form asks why
  */
 enum ApplicationStage: string
 {

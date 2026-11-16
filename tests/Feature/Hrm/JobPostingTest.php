@@ -14,7 +14,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.3: job postings made from approved manpower requests. [REC-02]
+ * Job postings made from approved manpower requests.
  */
 class JobPostingTest extends TestCase
 {
@@ -69,7 +69,7 @@ class JobPostingTest extends TestCase
         $first->update(['status' => JobPostingStatus::Closed]);
         $this->assertSame(5, $request->openingsToAdvertise());
 
-        // People hired (6.8) are no longer open at all.
+        // People hired are no longer open at all.
         $request->forceFill(['hired_count' => 4])->save();
         $this->assertSame(1, $request->fresh()->openingsToAdvertise());
     }

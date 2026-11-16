@@ -1,5 +1,5 @@
 {{--
-    HRM → Job Postings → one posting (6.3). The route passes $posting (already checked with visibleTo).
+    HRM → Job Postings → one posting. The route passes $posting (already checked with visibleTo).
 --}}
 <x-layouts.app :title="$posting->number()">
     <div class="space-y-4">
@@ -12,7 +12,7 @@
         <livewire:hrm::recruitment.job-posting-details :posting-id="$posting->id" />
         {{-- Separate component: it redraws on its own (tabs, moves) without redrawing the details. --}}
         <livewire:hrm::recruitment.application-pipeline :posting-id="$posting->id" />
-        {{-- Interviews of this posting (6.6): plan, complete, scores, and the ranking. --}}
+        {{-- Interviews of this posting: plan, complete, scores, and the ranking. --}}
         <livewire:hrm::recruitment.posting-interviews :posting-id="$posting->id" />
         <livewire:hrm::recruitment.job-posting-form />
         <livewire:hrm::recruitment.applicant-form />

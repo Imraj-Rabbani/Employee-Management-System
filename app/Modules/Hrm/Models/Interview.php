@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * One interview round of one application. [REC-05]
+ * One interview round of one application.
  *
  *     $interview->panelists          the employees interviewing, each with their scores
  *     InterviewScoring::interview()  the round's result in % (average of the panelists who submitted)

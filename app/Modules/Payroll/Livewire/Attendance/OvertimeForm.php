@@ -16,7 +16,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * "Ask for overtime" (modal "overtime-form"), new or changed after it was sent back. [TA-07]
+ * "Ask for overtime" (modal "overtime-form"), new or changed after it was sent back.
  *
  *   HR / manager (Overtime tab,    $self = false)  any employee they can see; permission payroll.overtime.manage
  *   ESS          (My Attendance,   $self = true)   always their OWN employee record

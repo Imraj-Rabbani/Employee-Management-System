@@ -4,7 +4,7 @@ namespace App\Modules\Hrm\Enums;
 
 use App\Core\Enums\HasOptions;
 
-/** A panelist's overall advice on their score sheet (interview_panelists.recommendation, 6.6). [REC-05] */
+/** A panelist's overall advice on their score sheet (interview_panelists.recommendation, 6.6). */
 enum InterviewRecommendation: string
 {
     use HasOptions;

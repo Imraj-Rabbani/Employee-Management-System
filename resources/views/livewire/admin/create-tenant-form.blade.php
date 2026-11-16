@@ -2,9 +2,18 @@
     <x-ui.modal name="create-tenant" :heading="__('New company')" :subheading="__('Creates the company, its own database, and its first admin login.')">
         <form wire:submit="save" class="space-y-6" id="create-tenant-form">
             <div class="grid gap-4 sm:grid-cols-3">
-                <x-form.input wire:model.blur="code" :label="__('Code')" :hint="__('e.g. sss. Cannot be changed later.')" required />
+                <flux:field>
+                    <flux:label>{{ __('Code') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:description>{{ __('e.g. sss. Cannot be changed later.') }}</flux:description>
+                    <flux:input aria-required="true" wire:model.blur="code" />
+                    <flux:error name="code" />
+                </flux:field>
                 <div class="sm:col-span-2">
-                    <x-form.input wire:model="name" :label="__('Company name')" required />
+                    <flux:field>
+                        <flux:label>{{ __('Company name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                        <flux:input aria-required="true" wire:model="name" />
+                        <flux:error name="name" />
+                    </flux:field>
                 </div>
             </div>
 
@@ -16,9 +25,24 @@
 
             <flux:separator :text="__('First admin login')" />
 
-            <x-form.input wire:model="adminName" :label="__('Name')" required />
-            <x-form.input wire:model="adminEmail" type="email" :label="__('Email')" required />
-            <x-form.input wire:model="adminPassword" type="password" :label="__('Password')" :hint="__('At least 8 characters. Share it with the company admin.')" viewable required />
+            <flux:field>
+                <flux:label>{{ __('Name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                <flux:input aria-required="true" wire:model="adminName" />
+                <flux:error name="adminName" />
+            </flux:field>
+
+            <flux:field>
+                <flux:label>{{ __('Email') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                <flux:input aria-required="true" wire:model="adminEmail" type="email" />
+                <flux:error name="adminEmail" />
+            </flux:field>
+
+            <flux:field>
+                <flux:label>{{ __('Password') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                <flux:description>{{ __('At least 8 characters. Share it with the company admin.') }}</flux:description>
+                <flux:input aria-required="true" wire:model="adminPassword" type="password" viewable />
+                <flux:error name="adminPassword" />
+            </flux:field>
         </form>
 
         <x-slot:footer>

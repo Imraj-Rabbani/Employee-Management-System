@@ -4,7 +4,7 @@ namespace App\Modules\Payroll\Enums;
 
 use App\Core\Enums\HasOptions;
 
-/** How often a head is paid. (Not the same as App\Core\Support\PeriodCycle, which is the part of the month.) [PC-01] */
+/** How often a head is paid. (Not the same as App\Core\Support\PeriodCycle, which is the part of the month.) */
 enum PayCycle: string
 {
     use HasOptions;

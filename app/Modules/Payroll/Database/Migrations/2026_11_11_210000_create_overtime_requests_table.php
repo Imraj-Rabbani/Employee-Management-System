@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Task 7.7: overtime requests (legacy `overtimes`). [TA-07]
+ * Overtime requests (legacy `overtimes`).
  * hours = asked; recommended_hours = the last number before the final level; approved_hours = the final level's.
  * The approvers' numbers are entered in the approval modal (approvals.amount); onApproved() copies them here.
  * Approved hours go to attendance_days.ot_approved_minutes, which payroll pays at the day type's rate.

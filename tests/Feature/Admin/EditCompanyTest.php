@@ -14,7 +14,7 @@ use Tests\Fixtures\Plugins\BangladeshTax;
 use Tests\TestCase;
 
 /**
- * Task 2.6d: Platform admin → Edit company.
+ * Platform admin → Edit company.
  */
 class EditCompanyTest extends TestCase
 {

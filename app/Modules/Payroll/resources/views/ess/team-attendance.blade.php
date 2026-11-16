@@ -1,4 +1,4 @@
-{{-- Self Service → My Team Attendance (7.8): the people below me in the supervisor chain. [TA-08, ESS-04] --}}
+{{-- Self Service → My Team Attendance: the people below me in the supervisor chain. --}}
 <x-layouts.app :title="__('My Team Attendance')">
     <div class="space-y-4">
         @if ($employeeId)

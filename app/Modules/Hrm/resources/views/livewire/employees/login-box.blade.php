@@ -44,18 +44,40 @@
 
             @if ($mode === 'invite')
                 <form wire:submit="invite" id="employee-login-form" class="space-y-5">
-                    <x-form.input wire:model="email" type="email" :label="__('Email')" required
-                        :hint="__('They get an email with a link to set their password (valid :days days).', ['days' => \App\Modules\Core\Notifications\UserInvited::DAYS_VALID])" />
+                    <flux:field>
+                        <flux:label>{{ __('Email') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                        <flux:description>{{ __('They get an email with a link to set their password (valid :days days).', ['days' => \App\Modules\Core\Notifications\UserInvited::DAYS_VALID]) }}</flux:description>
+                        <flux:input aria-required="true" wire:model="email" type="email" />
+                        <flux:error name="email" />
+                    </flux:field>
                     @if ($roles)
-                        <x-form.select wire:model="roleId" :label="__('Role')" :options="$roles" :placeholder="__('None: self service only')"
-                            :hint="__('Without a role they only see their own record.')" />
+                        <flux:field>
+                            <flux:label>{{ __('Role') }}</flux:label>
+                            <flux:description>{{ __('Without a role they only see their own record.') }}</flux:description>
+                            <flux:select wire:model="roleId">
+                                <flux:select.option value="">{{ __('None: self service only') }}</flux:select.option>
+                                @foreach ($roles as $optionValue => $optionLabel)
+                                    <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:error name="roleId" />
+                        </flux:field>
                     @endif
                 </form>
             @else
                 <form wire:submit="link" id="employee-login-form" class="space-y-5">
                     @if ($freeLogins)
-                        <x-form.select wire:model="userId" :label="__('Login')" :options="$freeLogins" :placeholder="__('Choose…')" required
-                            :hint="__('Logins of this company that do not belong to an employee yet.')" />
+                        <flux:field>
+                            <flux:label>{{ __('Login') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                            <flux:description>{{ __('Logins of this company that do not belong to an employee yet.') }}</flux:description>
+                            <flux:select aria-required="true" wire:model="userId">
+                                <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
+                                @foreach ($freeLogins as $optionValue => $optionLabel)
+                                    <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:error name="userId" />
+                        </flux:field>
                     @else
                         <flux:text>{{ __('Every login of this company already belongs to an employee. Use “Invite by email”.') }}</flux:text>
                     @endif

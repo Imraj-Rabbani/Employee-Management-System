@@ -6,7 +6,7 @@ use App\Core\Enums\HasOptions;
 
 /**
  * Marital status (legacy `MaritalStatus`).
- * Backed by the SAME integers as legacy, so migrated data (Phase 15) keeps its values.
+ * Backed by the SAME integers as legacy, so migrated data keeps its values.
  * Legacy 0 = "None" is not a case: store NULL instead.
  *
  *     MaritalStatus::from(1)          MaritalStatus::Single

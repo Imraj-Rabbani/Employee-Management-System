@@ -21,7 +21,7 @@ use Livewire\Component;
 
 /**
  * One panelist's score sheet (modal "interview-score-sheet"): a score 1–5 per interview factor with an
- * optional note, an overall recommendation and a comment. [REC-05]
+ * optional note, an overall recommendation and a comment.
  *
  *     $dispatch('open-score-sheet', { panelistId: 7 })
  *

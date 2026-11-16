@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * A job advertisement, made from an approved manpower request. [REC-02]
+ * A job advertisement, made from an approved manpower request.
  *
  *     $posting->manpowerRequest              the approved request it hires for
  *     $posting->isAcceptingApplications()    Open AND today between open_date and close_date
@@ -85,7 +85,7 @@ class JobPosting extends TenantModel
         return 'JOB-'.str_pad((string) $this->id, 4, '0', STR_PAD_LEFT);
     }
 
-    /** Open, and today is inside the dates. Applications (6.4) may only be added then. */
+    /** Open, and today is inside the dates. Applications may only be added then. */
     public function isAcceptingApplications(?Carbon $today = null): bool
     {
         $today ??= today();
@@ -129,7 +129,7 @@ class JobPosting extends TenantModel
         $this->update(['status' => JobPostingStatus::Open]);
     }
 
-    /** Open → Closed: no new applications. Existing ones carry on through the pipeline (6.5). */
+    /** Open → Closed: no new applications. Existing ones carry on through the pipeline. */
     public function close(): void
     {
         if ($this->status !== JobPostingStatus::Open) {

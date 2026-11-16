@@ -7,13 +7,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Task 8.6: leave encashments (legacy `leaveencash`): "pay me 5 unused days of Earned leave". [LV-06]
+ * Leave encashments (legacy `leaveencash`): "pay me 5 unused days of Earned leave".
  * Approval type "leave_encashment". On approval the days leave the balance (ledger Encashed, source = this).
  *
- * The MONEY is decided by payroll: there are no salaries yet (Phase 9). An approved, not withdrawn
+ * The MONEY is decided by payroll: there are no salaries yet. An approved, not withdrawn
  * encashment with payroll_run_id NULL is "ready for payroll" (LeaveEncashment::readyForPayroll()); the payroll
- * run (Phase 10) works out `amount` (e.g. basic ÷ 30 × days), pays it and stamps payroll_run_id / paid_at.
- * payroll_run_id is a plain id until payroll_runs exists (FK added in Phase 10).
+ * run works out `amount` (e.g. basic ÷ 30 × days), pays it and stamps payroll_run_id / paid_at.
+ * payroll_run_id is a plain id until the payroll_runs table exists (the FK is added then).
  */
 return new class extends Migration
 {
@@ -26,7 +26,7 @@ return new class extends Migration
             $table->unsignedSmallInteger('leave_year');           // the balance the days come from
             $table->decimal('days', 6, 2);
             $table->string('reason', 500)->nullable();
-            $table->decimal('amount', 14, 2)->nullable();          // set by payroll (Phase 10)
+            $table->decimal('amount', 14, 2)->nullable();          // set by payroll
             $table->unsignedBigInteger('payroll_run_id')->nullable()->index();
             $table->timestamp('paid_at')->nullable();
             $table->unsignedBigInteger('requested_by_user_id')->nullable();

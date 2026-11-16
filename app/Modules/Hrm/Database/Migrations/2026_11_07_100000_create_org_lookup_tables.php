@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT lookup tables of the organisation. [ORG-01]
+ * TENANT lookup tables of the organisation.
  *
  *   org_unit_types    legacy `entitytypes`: the company's own levels, e.g. Function → Department → Location
  *   cost_centers      legacy `costcenters`: where salary cost is booked (GL / accounting)
@@ -33,7 +33,7 @@ return new class extends Migration
             $table->string('code', 50)->unique();
             $table->string('name', 100);
             $table->string('function_code', 50)->nullable();
-            $table->string('account_code', 50)->nullable();   // GL account for the accounting export (12.4)
+            $table->string('account_code', 50)->nullable();   // GL account for the accounting export
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

@@ -7,12 +7,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT tables for rosters: the PLANNED shift per employee per day. [TA-03]
+ * TENANT tables for rosters: the PLANNED shift per employee per day.
  *
  *   rosters        one plan for one org unit and a date range, e.g. "Factory, 1–31 December". Approvable.
  *   roster_items   one cell of the grid: employee × date → shift, day off, or on call
  *
- * Only APPROVED rosters count for attendance (7.4); without one, the employee's own / default shift is used.
+ * Only APPROVED rosters count for attendance; without one, the employee's own / default shift is used.
  * No status column (same as manpower requests): draft / pending / approved comes from the approval rows,
  * and onApproved() stamps approved_at so lists and the attendance engine need not read the approvals.
  * Also registers the approval type "roster" (see Workflow → Setup).
@@ -50,7 +50,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['roster_id', 'employee_id', 'date']);   // one cell per employee and day
-            $table->index(['employee_id', 'date']);                 // attendance (7.4): "the plan for X on day Y"
+            $table->index(['employee_id', 'date']);                 // attendance: "the plan for X on day Y"
         });
 
         if (! DB::table('approval_types')->where('key', 'roster')->exists()) {

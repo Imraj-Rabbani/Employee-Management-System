@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 /**
- * Self Service → My Leave Requests (8.4): my balances this leave year, "Apply for leave", and my last
- * applications (click one: details, change and send again, withdraw), and my encashments (8.6). [LV-04, LV-06, ESS-02]
+ * Self Service → My Leave Requests: my balances this leave year, "Apply for leave", and my last
+ * applications (click one: details, change and send again, withdraw), and my encashments.
  * The forms are LeaveApplicationForm / LeaveApplicationDetails with self = true.
  */
 class MyLeave extends Component

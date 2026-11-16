@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 /**
  * @phpstan-import-type FunnelRow from RecruitmentStats
  *
- * Recruitment report: the pipeline funnel per job posting (6.9). How many applications EVER reached each
+ * Recruitment report: the pipeline funnel per job posting. How many applications EVER reached each
  * step, the % kept from "applied", and how many were rejected / withdrew. Numbers: RecruitmentStats::funnel().
  * Only postings of the user's org units. Not a DataTable (rows are worked out in PHP), so it has its own
  * filters and export (ArrayExport).

@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * applications.hired_employee_id: the employee record made from this application by the hire (6.8). [REC-07]
+ * applications.hired_employee_id: the employee record made from this application by the hire.
  * Links the hiring history to the employee (and stops the same application being hired twice).
  */
 return new class extends Migration

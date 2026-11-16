@@ -12,8 +12,8 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * Base for the "Edit" modals on the employee profile (Personal, Job ...). [EMP-01]
- * Like LookupForm (1.7), but for ONE section of ONE employee, and every action checks
+ * Base for the "Edit" modals on the employee profile (Personal, Job ...).
+ * Like LookupForm, but for ONE section of ONE employee, and every action checks
  * EmployeePolicy::update (permission + org-unit scope).
  *
  * A child class declares:

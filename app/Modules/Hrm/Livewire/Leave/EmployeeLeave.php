@@ -19,7 +19,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * Profile → Leave: the employee's balances in one leave year, and the ledger rows behind a balance. [LV-03]
+ * Profile → Leave: the employee's balances in one leave year, and the ledger rows behind a balance.
  * HR with hrm.leave.balance adds an opening balance or a correction ("Add entry"). Everything is written
  * through LeaveLedger.
  *

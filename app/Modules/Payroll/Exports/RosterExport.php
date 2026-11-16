@@ -10,7 +10,7 @@ use Maatwebsite\Excel\Concerns\Export;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 /**
- * A roster as Excel (7.2e). Two sheets:
+ * A roster as Excel. Two sheets:
  *   "Roster"  Code | Name | 2026-12-01 | 2026-12-02 | …   one row per employee, cells = shift code, OFF, CALL or empty
  *   "Codes"   what may be typed in the cells
  * The same file, changed and uploaded again, is the import format (RosterSheetReader). Only "Roster" is read.

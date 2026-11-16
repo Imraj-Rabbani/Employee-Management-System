@@ -11,14 +11,27 @@
     $plannedRows = array_filter($matrix, fn ($row) => array_filter($row, fn ($v) => $v !== '') !== []);
 @endphp
 <div class="space-y-4">
-    <x-ui.details :items="[
-        __('Roster') => $document->number().' · '.$document->title,
-        __('Org unit') => $document->orgUnit?->path(),
-        __('Period') => format_date($document->from_date).' – '.format_date($document->to_date),
-        __('Change of') => $document->replaces?->number(),
-        __('Employees planned') => count($plannedRows),
-        __('Note') => $document->note,
-    ]" />
+    <dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+        @foreach ([
+                __('Roster') => $document->number().' · '.$document->title,
+                __('Org unit') => $document->orgUnit?->path(),
+                __('Period') => format_date($document->from_date).' – '.format_date($document->to_date),
+                __('Change of') => $document->replaces?->number(),
+                __('Employees planned') => count($plannedRows),
+                __('Note') => $document->note,
+        ] as $detailLabel => $detailValue)
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ $detailLabel }}</dt>
+                <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                    @if ($detailValue === null || $detailValue === '')
+                        <span class="text-zinc-400">—</span>
+                    @else
+                        {{ $detailValue }}
+                    @endif
+                </dd>
+            </div>
+        @endforeach
+    </dl>
 
     @if ($plannedRows)
         <div class="max-h-96 overflow-auto rounded-lg border border-zinc-200 dark:border-white/10">

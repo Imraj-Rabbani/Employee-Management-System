@@ -18,7 +18,7 @@ use Carbon\CarbonInterface;
  *
  * Loaded here: the employee's gender / religion / dates, their profile's days for this type, the balance in
  * the leave year of $from (LeaveLedger), and the days off around the leave (WorkCalendar).
- * NOT loaded here: $timesTaken and $overlaps, because they come from leave_applications (8.4): the caller
+ * NOT loaded here: $timesTaken and $overlaps, because they come from leave_applications: the caller
  * (ApplyForLeave) passes them. They are required arguments on purpose, so no caller forgets them.
  */
 class LeaveRequestInputs

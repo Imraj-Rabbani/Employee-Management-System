@@ -20,7 +20,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 7.2b: Payroll → Attendance → Rosters: list, roster page, New / Edit / Delete. [TA-03]
+ * Payroll → Attendance → Rosters: list, roster page, New / Edit / Delete.
  */
 class RosterPagesTest extends TestCase
 {

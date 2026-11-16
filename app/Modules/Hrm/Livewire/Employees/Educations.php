@@ -5,7 +5,7 @@ namespace App\Modules\Hrm\Livewire\Employees;
 use App\Modules\Hrm\Models\EmployeeEducation;
 
 /**
- * Profile → Education → "Education" card, with a certificate per row. [EMP-03]
+ * Profile → Education → "Education" card, with a certificate per row.
  */
 class Educations extends EmployeeRecords
 {

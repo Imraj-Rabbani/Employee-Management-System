@@ -13,7 +13,7 @@ use InvalidArgumentException;
 use Tests\TestCase;
 
 /**
- * Task 2.5: the upload helper saves into the current company's folder.
+ * The upload helper saves into the current company's folder.
  */
 class TenantUploadsTest extends TestCase
 {

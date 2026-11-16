@@ -24,7 +24,7 @@ class TenantDatabaseSeeder extends Seeder
             CurrencySeeder::class,
             OrgUnitTypesSeeder::class,
             // Added as the modules are built, e.g.:
-            // \App\Modules\Hrm\Database\Seeders\LeaveTypeSeeder::class,      (Phase 5)
+            // \App\Modules\Hrm\Database\Seeders\LeaveTypeSeeder::class,
         ]);
     }
 }

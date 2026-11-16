@@ -13,7 +13,7 @@ use Livewire\Component;
 
 /**
  * One application's history, as a timeline in a modal: every move, who made it, when, the note and the
- * reason. [REC-04] Read only: history rows are never changed.
+ * reason. Read only: history rows are never changed.
  *
  *     $dispatch('show-application-history', { id: 12 })     from the pipeline or the applicant's profile
  *

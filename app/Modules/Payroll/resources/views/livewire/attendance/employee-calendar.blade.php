@@ -16,15 +16,20 @@
 <div>
     {{-- No linked employee record (Self Service): nothing; My Attendance already says so. --}}
     @if ($employee)
-        <x-ui.card :heading="$mode === 'self' ? __('My calendar') : $employee->code.' · '.$employee->name" :padding="false">
-            <x-slot:actions>
-                <div class="flex items-center gap-1">
-                    <flux:button size="sm" variant="ghost" icon="chevron-left" wire:click="previous" :aria-label="__('Previous month')" />
-                    <span class="min-w-32 text-center text-sm font-medium">{{ $monthStart->translatedFormat('F Y') }}</span>
-                    <flux:button size="sm" variant="ghost" icon="chevron-right" wire:click="next" :aria-label="__('Next month')" />
-                    <flux:button size="sm" variant="ghost" wire:click="thisMonth">{{ __('Today') }}</flux:button>
+        <div class="glass overflow-hidden rounded-2xl">
+            <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
+                <div>
+                    <flux:heading size="lg">{{ $mode === 'self' ? __('My calendar') : $employee->code.' · '.$employee->name }}</flux:heading>
                 </div>
-            </x-slot:actions>
+                <div class="flex shrink-0 items-center gap-2">
+                    <div class="flex items-center gap-1">
+                        <flux:button size="sm" variant="ghost" icon="chevron-left" wire:click="previous" :aria-label="__('Previous month')" />
+                        <span class="min-w-32 text-center text-sm font-medium">{{ $monthStart->translatedFormat('F Y') }}</span>
+                        <flux:button size="sm" variant="ghost" icon="chevron-right" wire:click="next" :aria-label="__('Next month')" />
+                        <flux:button size="sm" variant="ghost" wire:click="thisMonth">{{ __('Today') }}</flux:button>
+                    </div>
+                </div>
+            </div>
 
             <div class="overflow-x-auto">
                 <div class="grid min-w-[640px] grid-cols-7 border-t border-zinc-200 text-xs dark:border-white/10">
@@ -88,6 +93,6 @@
                 <span>{{ __('Overtime worked: :h', ['h' => AttendanceDay::hoursLabel($totals['overtime'])]) }}</span>
                 <span>{{ __('Overtime approved: :h', ['h' => AttendanceDay::hoursLabel($totals['approvedOvertime'])]) }}</span>
             </div>
-        </x-ui.card>
+        </div>
     @endif
 </div>

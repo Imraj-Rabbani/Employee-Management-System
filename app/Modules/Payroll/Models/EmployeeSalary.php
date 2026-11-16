@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
 
 /**
- * One head of an employee's salary, valid from effective_from to effective_to (legacy `salaries`). [PC-03]
+ * One head of an employee's salary, valid from effective_from to effective_to (legacy `salaries`).
  * A salary = the rows of one employee with the same effective_from. Written only through Actions\SetEmployeeSalary,
  * which logs ONE readable entry on the employee (the rows log nothing themselves).
  *

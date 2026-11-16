@@ -8,7 +8,7 @@ use App\Modules\Payroll\Enums\WeekParity;
 use App\Modules\Payroll\Models\WeekendProfile;
 use Illuminate\Validation\Rule;
 
-/** New / Edit / Delete weekend profile (modal "weekend-profile-form"). [TA-02] */
+/** New / Edit / Delete weekend profile (modal "weekend-profile-form"). */
 class WeekendProfileForm extends LookupForm
 {
     protected function key(): string

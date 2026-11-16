@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * A set of leave entitlements, e.g. "Staff" = Casual 10, Sick 14, Earned 1 per 18 days (legacy `leaveprofiles`).
- * Each employee has one (employees.leave_profile_id). [LV-02]
+ * Each employee has one (employees.leave_profile_id).
  *
  *     $profile->entitlements()        [leave_type_id => days per year]
  *     $profile->syncEntitlements([3 => 10.0, 5 => 14.0])   saves them, one history entry

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * One move of an application through the pipeline: from → to, who, when, why. [REC-04]
+ * One move of an application through the pipeline: from → to, who, when, why.
  * Written only by ApplyToPosting (the first row) and MoveApplication. Never edited (no updated_at).
  *
  * @property int $id

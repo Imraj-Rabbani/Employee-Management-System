@@ -88,7 +88,7 @@ class User extends Authenticatable implements HasLocalePreference // , MustVerif
         return UserRole::where('user_id', $this->id)->first()?->role;
     }
 
-    /** Invited (5.7) but the password has not been set yet. */
+    /** Invited but the password has not been set yet. */
     public function hasOpenInvitation(): bool
     {
         return $this->invited_at !== null && $this->invitation_accepted_at === null;

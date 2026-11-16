@@ -31,7 +31,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 7.7: overtime requests with recommended / approved hours, through the workflow. [TA-07]
+ * Overtime requests with recommended / approved hours, through the workflow.
  * Two levels: the team lead recommends, the manager approves; each enters hours when approving.
  *
  * Today = Thursday 10 December 2026, 12:00.

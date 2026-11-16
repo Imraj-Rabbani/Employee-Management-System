@@ -5,8 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * employees.shift_id / weekend_profile_id / holiday_profile_id were plain ids (Phase 5) because these tables
- * did not exist yet. Now they do: add the foreign keys. [TA-01, TA-02]
+ * employees.shift_id / weekend_profile_id / holiday_profile_id were plain ids because these tables
+ * did not exist yet. Now they do: add the foreign keys.
  *
  * restrictOnDelete: a shift or profile that employees still use cannot be deleted (the setup form then
  * says "still in use, make it inactive instead").

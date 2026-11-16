@@ -1,4 +1,4 @@
-{{-- Profile → History. Org unit history now (5.4); promotions, transfers etc. join it in Phase 13. --}}
+{{-- Profile → History. Org unit history now; promotions, transfers etc. will join it later. --}}
 <div class="space-y-4">
     <livewire:hrm::employees.org-history :$employee />
 </div>

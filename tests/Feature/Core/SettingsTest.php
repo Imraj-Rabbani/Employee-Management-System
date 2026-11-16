@@ -14,7 +14,7 @@ use Tests\Concerns\CreatesTenantDatabases;
 use Tests\TestCase;
 
 /**
- * Task 2.8a: per-company key/value settings with autoload and cache. [FND-03]
+ * Per-company key/value settings with autoload and cache.
  */
 class SettingsTest extends TestCase
 {

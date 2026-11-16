@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT tables that DESCRIBE how approvals work. [WF-01, WF-02]
+ * TENANT tables that DESCRIBE how approvals work.
  * (The `approvals` rows themselves come in the next migration.)
  *
  *   approval_types  legacy `approvables`: a kind of document that needs approval, e.g. "leave"
@@ -33,8 +33,8 @@ return new class extends Migration
             $table->string('name', 100);
 
             // Scope: which documents this workflow is for. NULL = "any".
-            // The engine picks the MOST specific workflow that matches (task 3.3).
-            // No foreign keys yet: org_units / employment_types arrive in Phase 4.
+            // The engine picks the MOST specific workflow that matches.
+            // No foreign keys: org_units / employment_types are HRM tables.
             $table->unsignedBigInteger('scope_org_unit_id')->nullable()->index();
             $table->unsignedBigInteger('scope_employment_type_id')->nullable()->index();
             $table->decimal('min_amount', 15, 2)->nullable();   // e.g. loans above 50,000 need the CFO
@@ -51,9 +51,9 @@ return new class extends Migration
             $table->foreignId('workflow_id')->constrained()->cascadeOnDelete();
             $table->unsignedTinyInteger('level');          // 1, 2, 3 ...
 
-            // employee | supervisor | org_head | role  (an enum class in task 3.2)
+            // employee | supervisor | org_head | role  (the ApproverType enum)
             $table->string('approver_type', 20);
-            // Filled only when approver_type = employee. No FK yet: employees arrive in Phase 5.
+            // Filled only when approver_type = employee. No FK: the employees table is created later (HRM).
             $table->unsignedBigInteger('approver_employee_id')->nullable()->index();
             // Filled only when approver_type = role.
             $table->foreignId('approver_role_id')->nullable()->constrained('roles')->nullOnDelete();

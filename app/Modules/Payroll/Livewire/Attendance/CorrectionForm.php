@@ -16,7 +16,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * "Request a correction" (modal "correction-form"), new or changed after it was sent back. [TA-06]
+ * "Request a correction" (modal "correction-form"), new or changed after it was sent back.
  *
  *   HR      (Corrections tab, $self = false)  any employee they can see; permission payroll.correction.manage
  *   ESS     (My Attendance,   $self = true)   always their OWN employee record, with the company's limits

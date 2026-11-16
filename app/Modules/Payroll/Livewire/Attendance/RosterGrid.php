@@ -18,8 +18,8 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
 /**
- * The roster's grid: employees × days (7.2c), plus its actions: Send for approval / Plan a change (7.2d)
- * and Excel import (7.2e). [TA-03]
+ * The roster's grid: employees × days, plus its actions: Send for approval / Plan a change
+ * and Excel import.
  *
  * The BROWSER holds the grid while you paint (Alpine, nothing is sent per click). Save / Fill send the whole
  * grid as an argument and get the new grid back as the return value ($wire.save(cells) → cells). So the

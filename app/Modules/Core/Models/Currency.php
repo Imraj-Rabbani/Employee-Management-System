@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
- * A currency the company works with (legacy `currencies`). [ORG-01]
+ * A currency the company works with (legacy `currencies`).
  *
  *     Currency::defaultCode() "BDT": the company's default currency (setting "currency", BDT if not chosen yet)
  *     Currency::default()     its row, or null

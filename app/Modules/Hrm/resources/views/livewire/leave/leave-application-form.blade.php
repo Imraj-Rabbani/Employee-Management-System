@@ -5,19 +5,43 @@
         :subheading="$self ? __('Your approvers are asked in turn. The days are taken from your balance once approved.') : __('For an employee you can see. Notice and post-facto limits do not apply to HR.')">
         <form wire:submit="save" id="leave-form" class="space-y-4">
             @unless ($self)
-                <x-form.select wire:model.live="employeeId" :label="__('Employee')" :options="$employees" :placeholder="__('Choose…')" required
-                               :disabled="$applicationId !== null" />
+                <flux:field>
+                    <flux:label>{{ __('Employee') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:select aria-required="true" wire:model.live="employeeId" :disabled="$applicationId !== null">
+                        <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
+                        @foreach ($employees as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="employeeId" />
+                </flux:field>
             @endunless
 
             <div class="grid gap-4 sm:grid-cols-2">
-                <x-form.select wire:model.live="leaveTypeId" :label="__('Leave type')" :options="$types" required
-                    :placeholder="$types === [] && $employeeId !== '' ? __('No leave profile: ask HR') : __('Choose…')" />
+                <flux:field>
+                    <flux:label>{{ __('Leave type') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:select aria-required="true" wire:model.live="leaveTypeId">
+                        <flux:select.option value="">{{ $types === [] && $employeeId !== '' ? __('No leave profile: ask HR') : __('Choose…') }}</flux:select.option>
+                        @foreach ($types as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="leaveTypeId" />
+                </flux:field>
                 <div class="flex items-end pb-2">
-                    <x-form.toggle wire:model.live="isHalfDay" :label="__('Half day')" />
+                    <flux:switch wire:model.live="isHalfDay" :label="__('Half day')" />
                 </div>
-                <x-form.date wire:model.live="fromDate" :label="$isHalfDay ? __('Day') : __('First day')" required />
+                <flux:field>
+                    <flux:label>{{ $isHalfDay ? __('Day') : __('First day') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:input type="date" aria-required="true" wire:model.live="fromDate" />
+                    <flux:error name="fromDate" />
+                </flux:field>
                 @unless ($isHalfDay)
-                    <x-form.date wire:model.live="toDate" :label="__('Last day')" required />
+                    <flux:field>
+                        <flux:label>{{ __('Last day') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                        <flux:input type="date" aria-required="true" wire:model.live="toDate" />
+                        <flux:error name="toDate" />
+                    </flux:field>
                 @endunless
             </div>
 
@@ -43,18 +67,42 @@
             @endif
 
             <div class="grid gap-4 sm:grid-cols-2">
-                <x-form.select wire:model="delegateeId" :label="__('Delegatee')" :options="$delegatees" :placeholder="__('Nobody')"
-                    :hint="__('Who does the work meanwhile.')" />
-                <x-form.input wire:model="contact" :label="__('Contact during leave')" :hint="__('Phone or address.')" />
+                <flux:field>
+                    <flux:label>{{ __('Delegatee') }}</flux:label>
+                    <flux:description>{{ __('Who does the work meanwhile.') }}</flux:description>
+                    <flux:select wire:model="delegateeId">
+                        <flux:select.option value="">{{ __('Nobody') }}</flux:select.option>
+                        @foreach ($delegatees as $optionValue => $optionLabel)
+                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="delegateeId" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Contact during leave') }}</flux:label>
+                    <flux:description>{{ __('Phone or address.') }}</flux:description>
+                    <flux:input wire:model="contact" />
+                    <flux:error name="contact" />
+                </flux:field>
             </div>
-            <x-form.textarea wire:model.blur="reason" :label="__('Reason')" rows="2" :required="(bool) $leaveType?->reason_required" />
+            <flux:field>
+                <flux:label>{{ __('Reason') }} @if ((bool) $leaveType?->reason_required)<span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span>@endif</flux:label>
+                <flux:textarea :aria-required="((bool) $leaveType?->reason_required) ? 'true' : null" wire:model.blur="reason" rows="2" />
+                <flux:error name="reason" />
+            </flux:field>
 
             <div class="space-y-2">
                 @if ($existing?->attachment_path)
                     <flux:text class="text-sm">{{ __('Current attachment: :name', ['name' => $existing->attachment_name]) }}</flux:text>
                 @endif
-                <x-form.file wire:model.live="upload" :label="$existing?->attachment_path ? __('Replace attachment') : __('Attachment')"
-                    accept=".pdf,.jpg,.jpeg,.png,.docx" :hint="__('e.g. a medical certificate. PDF, JPG, PNG or Word, max 5 MB.')" />
+                <flux:field>
+                    <flux:label>{{ $existing?->attachment_path ? __('Replace attachment') : __('Attachment') }}</flux:label>
+                    <flux:description>{{ __('e.g. a medical certificate. PDF, JPG, PNG or Word, max 5 MB.') }}</flux:description>
+                    <flux:input type="file" wire:model.live="upload" accept=".pdf,.jpg,.jpeg,.png,.docx" />
+                    <flux:text wire:loading wire:target="upload" class="mt-2 text-sm">{{ __('Uploading…') }}</flux:text>
+                    <flux:error name="upload" />
+                </flux:field>
             </div>
         </form>
 

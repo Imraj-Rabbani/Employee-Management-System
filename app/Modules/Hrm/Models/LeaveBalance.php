@@ -6,7 +6,7 @@ use App\Core\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Cached totals of the ledger for one employee, leave type and leave year. [LV-03]
+ * Cached totals of the ledger for one employee, leave type and leave year.
  * Rebuilt by LeaveLedger::refresh() after every ledger write; never changed by hand.
  * `taken`, `encashed`, `expired` are positive; balance = opening + earned + carried_forward + adjusted − used.
  *

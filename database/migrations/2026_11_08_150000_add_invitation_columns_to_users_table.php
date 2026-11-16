@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Invitations (5.7): a login created by "Invite" has a random password until its owner sets their own
+ * Invitations: a login created by "Invite" has a random password until its owner sets their own
  * through the emailed link.
  *
  *   invited_at               last time an invitation was sent (null = created some other way)

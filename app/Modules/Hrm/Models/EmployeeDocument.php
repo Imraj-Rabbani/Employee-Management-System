@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * A document of an employee: NID, passport, licence ... with an optional expiry date. [EMP-03]
+ * A document of an employee: NID, passport, licence ... with an optional expiry date.
  *
  *     $doc->name()                    "Passport", or the title for "Other"
  *     $doc->daysToExpiry()            -3 = expired 3 days ago, 12 = expires in 12 days, null = never

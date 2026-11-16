@@ -5,7 +5,7 @@ namespace App\Modules\Payroll\Enums;
 use App\Core\Enums\HasOptions;
 
 /**
- * The result of one employee's day (attendance_days.status). [TA-05]
+ * The result of one employee's day (attendance_days.status).
  * Late / early exit are not statuses: a late day is Present with late_minutes > 0 (and is_late).
  */
 enum AttendanceStatus: int
@@ -15,7 +15,7 @@ enum AttendanceStatus: int
     case Present = 1;
     case HalfDay = 2;   // came, but too late or too short (the shift's half-day rules)
     case Absent = 3;    // a working day without punches and without leave
-    case Leave = 4;     // approved leave (Phase 8)
+    case Leave = 4;     // approved leave
     case Off = 5;       // weekend, or a day off in the roster
     case Holiday = 6;   // public / festival holiday in the employee's calendar
 
@@ -31,7 +31,7 @@ enum AttendanceStatus: int
         };
     }
 
-    /** Colour for <x-ui.badge> and the calendar (7.8). */
+    /** Colour for <x-ui.badge> and the calendar. */
     public function color(): string
     {
         return match ($this) {

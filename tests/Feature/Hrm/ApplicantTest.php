@@ -15,7 +15,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.4: applicants, duplicate check, and ApplyToPosting. [REC-03]
+ * Applicants, duplicate check, and ApplyToPosting.
  */
 class ApplicantTest extends TestCase
 {

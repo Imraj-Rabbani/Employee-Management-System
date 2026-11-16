@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use LogicException;
 
 /**
- * Puts an applicant on a job posting's list (stage "applied"). [REC-03]
+ * Puts an applicant on a job posting's list (stage "applied").
  * The ONLY place that creates applications, so the rules below hold everywhere (forms, tests, 6.8 ...).
  *
  *     $action = app(ApplyToPosting::class);

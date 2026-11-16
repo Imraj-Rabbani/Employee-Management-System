@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * A job the employee had before joining (legacy `workhistory`). [EMP-03]
+ * A job the employee had before joining (legacy `workhistory`).
  *
  * @property int $id
  * @property int $employee_id

@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * A job advertisement made from an APPROVED manpower request (6.3). Applicants apply to a posting (6.4). [REC-02]
+ * A job advertisement made from an APPROVED manpower request. Applicants apply to a posting.
  *
  *   manpower_request_id  required: no posting without an approved request. One request may get more than
  *                        one posting (e.g. advertised again after closing), but their openings together

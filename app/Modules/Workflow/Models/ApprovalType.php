@@ -6,7 +6,7 @@ use App\Core\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A kind of document that needs approval, e.g. "leave" (legacy `approvables`). [WF-01]
+ * A kind of document that needs approval, e.g. "leave" (legacy `approvables`).
  *
  *     ApprovalType::forKey('leave')
  *

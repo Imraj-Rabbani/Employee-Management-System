@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * One earlier job of an applicant. Same columns as EmployeeWorkHistory, without a file. [REC-03]
+ * One earlier job of an applicant. Same columns as EmployeeWorkHistory, without a file.
  *
  * @property int $id
  * @property int $applicant_id

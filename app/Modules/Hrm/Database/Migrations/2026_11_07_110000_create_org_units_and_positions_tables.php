@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT tree tables. [ORG-01]
+ * TENANT tree tables.
  *
  *   org_units  legacy `entities` (+ `departments`): the company's structure as a tree.
  *              Each unit points at its parent; the top unit has parent_id NULL.
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->foreignId('org_unit_type_id')->constrained()->restrictOnDelete();
             $table->string('code', 50)->nullable()->unique();
             $table->string('name', 100);
-            // The unit's head (approver type "org head", Phase 5). No FK yet: employees arrive in Phase 5.
+            // The unit's head (approver type "org head"). No FK here: the employees table comes later (FK added then).
             $table->unsignedBigInteger('head_employee_id')->nullable()->index();
             $table->foreignId('cost_center_id')->nullable()->constrained()->nullOnDelete();
             $table->boolean('is_active')->default(true);
@@ -41,7 +41,7 @@ return new class extends Migration
             $table->foreignId('org_unit_id')->constrained()->restrictOnDelete();
             $table->foreignId('grade_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('cost_center_id')->nullable()->constrained()->nullOnDelete();
-            // Current holder. No FK yet: employees arrive in Phase 5.
+            // Current holder. No FK here: the employees table comes later (FK added then).
             $table->unsignedBigInteger('employee_id')->nullable()->index();
             $table->boolean('is_vacant')->default(true);
             $table->date('effective_from')->nullable();

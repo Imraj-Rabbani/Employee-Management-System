@@ -5,11 +5,11 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT tables for punches (raw clock-ins and clock-outs). [TA-04]
+ * TENANT tables for punches (raw clock-ins and clock-outs).
  *
  *   devices      the ZKTeco access-control devices the company has (synced every 5 minutes, 7.3d)
- *   punch_logs   legacy `punchlog`: every punch from every source, never edited. Attendance processing (7.4)
- *                reads them; mistakes are fixed with attendance corrections (7.6), not by changing punches.
+ *   punch_logs   legacy `punchlog`: every punch from every source, never edited. Attendance processing
+ *                reads them; mistakes are fixed with attendance corrections, not by changing punches.
  *
  * A punch is matched to an employee by access_code (= employees.access_code, "Attendance ID").
  * employee_id stays NULL when no employee has that code yet; PunchLog::linkEmployees() fills it later.
@@ -39,7 +39,7 @@ return new class extends Migration
             $table->dateTime('punched_at');
             $table->unsignedTinyInteger('source');                     // Enums\PunchSource
             $table->foreignId('device_id')->nullable()->constrained()->nullOnDelete();
-            // Web / mobile punch: where the person was, and how far from the shift's geofence point (7.3e).
+            // Web / mobile punch: where the person was, and how far from the shift's geofence point.
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
             $table->unsignedInteger('distance_m')->nullable();
@@ -48,7 +48,7 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by_user_id')->nullable();   // central users.id (CSV / manual)
             $table->timestamps();
 
-            $table->index(['employee_id', 'punched_at']);              // attendance (7.4): "punches of X on day Y"
+            $table->index(['employee_id', 'punched_at']);              // attendance: "punches of X on day Y"
             // A device sends the same punch again on every sync: the same code, time and device is stored once.
             $table->unique(['device_id', 'access_code', 'punched_at']);
         });

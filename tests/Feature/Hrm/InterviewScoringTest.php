@@ -16,7 +16,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 6.6: interview tables and the scoring maths. [REC-05]
+ * Interview tables and the scoring maths.
  * Numbers are small on purpose: each expected % can be checked by hand.
  */
 class InterviewScoringTest extends TestCase

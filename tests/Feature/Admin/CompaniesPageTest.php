@@ -13,7 +13,7 @@ use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
- * Task 2.6c: Platform admin → Companies list and "New company" form.
+ * Platform admin → Companies list and "New company" form.
  */
 class CompaniesPageTest extends TestCase
 {

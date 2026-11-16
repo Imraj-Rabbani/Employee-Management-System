@@ -6,7 +6,7 @@ use App\Core\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * One leave type in a leave profile, with its days per year (legacy `leaveitems`). [LV-02]
+ * One leave type in a leave profile, with its days per year (legacy `leaveitems`).
  * Written only through LeaveProfile::syncEntitlements(), which logs ONE entry on the profile.
  *
  * @property int $id

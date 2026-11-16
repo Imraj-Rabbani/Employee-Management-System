@@ -13,7 +13,7 @@ use Tests\Concerns\CreatesTenantDatabases;
 use Tests\TestCase;
 
 /**
- * Task 7.4a: attendance_days (the result of processing a day). [TA-05]
+ * Attendance_days (the result of processing a day).
  */
 class AttendanceDayModelTest extends TestCase
 {

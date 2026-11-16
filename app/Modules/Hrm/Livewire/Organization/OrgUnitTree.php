@@ -9,7 +9,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * HRM → Organization → Org units, tree view. [ORG-01]
+ * HRM → Organization → Org units, tree view.
  *
  * - The whole tree is built from ONE query (units are grouped by parent in PHP).
  * - Expand / collapse runs in the browser only (Alpine), and is remembered ($persist).

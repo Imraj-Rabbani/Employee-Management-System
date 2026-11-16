@@ -6,8 +6,8 @@ use App\Core\Enums\HasOptions;
 
 /**
  * Jobs a salary head can do for the payroll run, set in the payroll settings (legacy config keys headTax,
- * headPF, headOvertime ...). E.g. the overtime stage pays into whichever head is mapped to Overtime. [PC-05]
- * The basic is not here: that is salary_heads.is_basic (9.3).
+ * headPF, headOvertime ...). E.g. the overtime stage pays into whichever head is mapped to Overtime.
+ * The basic is not here: that is salary_heads.is_basic.
  */
 enum HeadRole: string
 {

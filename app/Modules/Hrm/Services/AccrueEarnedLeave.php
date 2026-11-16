@@ -15,7 +15,7 @@ use App\Modules\Payroll\Models\AttendanceDay;
 use Carbon\CarbonImmutable;
 
 /**
- * Credits earned leave for the current company: every night (hrm:accrue-leave, 03:00). [LV-05]
+ * Credits earned leave for the current company: every night (hrm:accrue-leave, 03:00).
  *
  * For each employee with a leave profile, each ACTIVE leave type in it: LeaveEarning says which periods are
  * due; those without a leave_accruals row are credited (LeaveLedger::credit Earned, source = the accrual row).

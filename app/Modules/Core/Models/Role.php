@@ -8,7 +8,7 @@ use App\Modules\Core\Services\Permissions;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A role of the current company (legacy "profile"). [FND-05]
+ * A role of the current company (legacy "profile").
  *
  *     $role->permissionKeys()                     ['hrm.employee.view', ...]
  *     $role->syncPermissions(['hrm.employee.view'])   replace its permissions

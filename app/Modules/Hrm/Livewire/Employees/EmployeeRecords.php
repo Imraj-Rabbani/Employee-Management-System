@@ -20,17 +20,17 @@ use Livewire\WithFileUploads;
 
 /**
  * Base for the profile's list-of-records sections (family, nominees, education, documents, bank ...):
- * a card with the rows, plus a modal to add / edit / delete one. [EMP-02, EMP-03]
+ * a card with the rows, plus a modal to add / edit / delete one.
  *
  * A child class declares:
  *     relation()     'nominees' → $employee->nominees(); events "add-employee-nominees", modal "employee-nominees-form"
  *     defaults()     the form fields and their values for a new row
  *     fieldRules()   validation per field
- *     view()         the Blade view: the list card + <x-form.lookup-modal> with the inputs
+ *     view()         the Blade view: the list card + an <x-ui.modal> with the inputs
  * Optional: labels(), viewData(), check($values), saved($employee, $record), deleted($employee),
  *           toForm($record) / fromForm($values) when the form differs from the columns (e.g. JSON),
  *           attachmentFolder() to allow ONE file per row (needs columns attachment_path + attachment_name):
- *           the view adds <x-form.file wire:model="upload" />, the base stores / replaces / deletes it.
+ *           the view adds <flux:input type="file" wire:model="upload" />, the base stores / replaces / deletes it.
  *
  * Security: reading needs EmployeePolicy::view, every change EmployeePolicy::update, and a row is always
  * looked up THROUGH the employee ($employee->nominees()->findOrFail($id)), so an id of another employee's

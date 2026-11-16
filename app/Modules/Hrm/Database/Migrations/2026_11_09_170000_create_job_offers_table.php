@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Job offers (6.7): what the company offers an applicant, approved through a workflow, sent as a letter,
- * then accepted or declined. [REC-06]
+ * Job offers: what the company offers an applicant, approved through a workflow, sent as a letter,
+ * then accepted or declined.
  *
  *   gross_salary          monthly gross offered; compared with the grade band, the request's range and
  *                         the applicant's expected salary (JobOffer::comparisons())

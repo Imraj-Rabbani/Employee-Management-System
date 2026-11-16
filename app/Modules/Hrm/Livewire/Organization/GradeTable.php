@@ -2,37 +2,115 @@
 
 namespace App\Modules\Hrm\Livewire\Organization;
 
-use App\Core\Livewire\Table\Column;
-use App\Core\Livewire\Table\DataTable;
+use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Models\Grade;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-/** List of grades. Click a row's name to edit it. [ORG-01] */
-class GradeTable extends DataTable
+/** List of grades. Click a row's name to edit it. */
+class GradeTable extends Component
 {
+    use WithPagination;
+
+    #[Url(as: 'q', except: '')]
+    public string $search = '';
+
+    #[Url(as: 'sort', except: '')]
+    public string $sortBy = '';
+
+    #[Url(as: 'dir', except: 'asc')]
+    public string $sortDir = 'asc';
+
+    #[Url(as: 'per_page', except: 10)]
+    public int $perPage = 10;
+
+    /** Columns the user may sort by. Anything else sent from the browser is ignored. */
+    private const SORTABLE = ['sequence', 'name', 'code', 'salary_min', 'is_active'];
+
     /** @var array<string, string> refresh the list when its form saved something */
     protected $listeners = ['grade-saved' => '$refresh'];
 
+    public function sort(string $field): void
+    {
+        if (! in_array($field, self::SORTABLE, true)) {
+            return;
+        }
+
+        // Clicking the same column again flips the direction.
+        $this->sortDir = $this->sortBy === $field && $this->sortDir === 'asc' ? 'desc' : 'asc';
+        $this->sortBy = $field;
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset('search');
+        $this->resetPage();
+    }
+
+    public function export(): BinaryFileResponse
+    {
+        $rows = $this->filteredQuery()->get()->map(fn (Grade $grade) => [
+            $grade->sequence,
+            $grade->name,
+            $grade->code,
+            $grade->salaryRange() ?? '—',
+            $grade->description,
+            $grade->is_active ? __('Active') : __('Inactive'),
+        ])->all();
+
+        return Excel::download(
+            new ArrayExport([__('Order'), __('Name'), __('Code'), __('Salary band'), __('Description'), __('Active')], $rows),
+            'grade-table-'.now()->format('Y-m-d').'.xlsx',
+        );
+    }
+
+    /** Typing a search or picking a filter or page size starts again at page 1. */
+    public function updated(string $property): void
+    {
+        if (in_array($property, ['search', 'perPage'], true)) {
+            $this->resetPage();
+        }
+    }
+
     /** @return Builder<Grade> */
-    protected function query(): Builder
+    private function query(): Builder
     {
         return Grade::query();
     }
 
-    protected function defaultSort(): array
+    /** @return Builder<Grade> */
+    private function filteredQuery(): Builder
     {
-        return ['sequence' => 'asc', 'name' => 'asc'];
+        $query = $this->query();
+
+        if (trim($this->search) !== '') {
+            // addcslashes: a search for "50%" means the text "50%", not "50 followed by anything".
+            $like = '%'.addcslashes(trim($this->search), '%_\\').'%';
+            $query->where(fn (Builder $q) => $q->where('name', 'like', $like)->orWhere('code', 'like', $like)->orWhere('description', 'like', $like));
+        }
+
+        if (in_array($this->sortBy, self::SORTABLE, true)) {
+            $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('sequence', 'asc');
+            $query->orderBy('name', 'asc');
+        }
+
+        return $query;
     }
 
-    protected function columns(): array
+    public function render(): View
     {
-        return [
-            Column::make(__('Order'), 'sequence')->sortable(),
-            Column::make(__('Name'), 'name')->sortable()->searchable()->alwaysVisible()->opens('edit-grade'),
-            Column::make(__('Code'), 'code')->sortable()->searchable(),
-            Column::make(__('Salary band'), 'salary_min')->sortable()->alignRight()->format(fn (Grade $g) => $g->salaryRange() ?? '—'),
-            Column::make(__('Description'), 'description')->searchable(),
-            Column::active(),
-        ];
+        // A page size typed into the URL that is not offered falls back to 10.
+        $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
+
+        return view('hrm::livewire.organization.grade-table', [
+            'rows' => $this->filteredQuery()->paginate($perPage),
+        ]);
     }
 }

@@ -11,7 +11,7 @@ use App\Modules\Hrm\Models\JobPosting;
 use Illuminate\Support\Collection;
 
 /**
- * The interview maths, in one place. All results are percentages (0–100, one decimal). [REC-05]
+ * The interview maths, in one place. All results are percentages (0–100, one decimal).
  *
  *   panelist     one interviewer's weighted score:  Σ (score / MAX × weight) / Σ weight × 100
  *                e.g. Communication 4/5 weight 40, Technical 3/5 weight 60 → (0.8×40 + 0.6×60) / 100 = 68 %

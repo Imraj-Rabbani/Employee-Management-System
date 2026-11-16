@@ -10,7 +10,7 @@ use Carbon\CarbonImmutable;
 use Tests\TestCase;
 
 /**
- * Task 8.5: which earning periods are due and what they earn, per earn type. No database. [LV-05]
+ * Which earning periods are due and what they earn, per earn type. No database.
  * 12 days a year unless said otherwise; calendar leave year (start month 1) unless said otherwise.
  */
 class LeaveEarningTest extends TestCase

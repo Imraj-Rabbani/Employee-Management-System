@@ -165,7 +165,7 @@ return [
         // other logins are created by CreateTenant and by company admins.
         // Profile and password updates are handled by our own Settings pages, so those are off too.
         Features::resetPasswords(),
-        // Two-factor authentication (task 2.7c). Settings → Two-factor authentication.
+        // Two-factor authentication. Settings → Two-factor authentication.
         // confirm: 2FA is only on after the user typed a code from their app (so a half-done setup can't lock them out).
         // confirmPassword: Fortify's own 2FA routes ask for the password first (our settings page does the same).
         Features::twoFactorAuthentication([

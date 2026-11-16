@@ -10,14 +10,14 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * "Process these employees' attendance again for these days": ONE place that queues ProcessAttendance jobs. [TA-05, TA-06]
+ * "Process these employees' attendance again for these days": ONE place that queues ProcessAttendance jobs.
  * Used by the nightly command, the Processing tab (HR picks a range) and every change that alters a past day:
  *
  *   roster approved         Roster::onApproved()
  *   holiday added / edited  HolidayForm
  *   new or matched punches  PunchLog::linkEmployees()   (uploads, device sync, "Match unmatched punches")
- *   correction approved     AttendanceCorrection::onApproved()   (7.6)
- *   leave approved / withdrawn                       → Phase 8 calls queue() the same way
+ *   correction approved     AttendanceCorrection::onApproved()
+ *   leave approved / withdrawn                       → calls queue() the same way
  *
  *     app(AttendanceReprocessor::class)->queue([5, 8], '2026-12-01', '2026-12-31');
  *

@@ -8,12 +8,12 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * A manager asks for people: "2 Sales Officers for Chattogram by 1 January". Goes through an approval
- * workflow; once approved, HR can open a job posting for it (6.3). [REC-01]
+ * workflow; once approved, HR can open a job posting for it.
  *
  *   type                  'new' or 'replacement' (ManpowerRequestType)
  *   replaces_employee_id  who is being replaced (only for type = replacement)
- *   salary_min / max      the monthly gross the manager has in mind; compared to the grade range in 6.7
- *   hired_count           how many have been hired against it so far (6.8); "filled" when = headcount
+ *   salary_min / max      the monthly gross the manager has in mind; compared to the grade range
+ *   hired_count           how many have been hired against it so far; "filled" when = headcount
  *   approved_at           set by onApproved(): 6.3 lists only approved requests, without reading approvals
  *
  * No status column: "draft / pending / approved / rejected" comes from the approval rows (approvalStatus()).

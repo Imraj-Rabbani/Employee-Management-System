@@ -2,31 +2,107 @@
 
 namespace App\Modules\Hrm\Livewire\Recruitment\Reports;
 
-use App\Core\Livewire\Table\Column;
-use App\Core\Livewire\Table\DataTable;
-use App\Core\Livewire\Table\SelectFilter;
+use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Enums\JobPostingStatus;
 use App\Modules\Hrm\Models\ManpowerRequest;
 use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Services\EmployeeVisibility;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\HtmlString;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Recruitment report: open positions (6.9). Every APPROVED manpower request that still has people to hire:
- * how many are wanted, hired, still open, and how many of those are advertised right now. [REC-01..07]
+ * Recruitment report: open positions. Every APPROVED manpower request that still has people to hire:
+ * how many are wanted, hired, still open, and how many of those are advertised right now.
  *
  * One query for the whole page: "open_count" is worked out by MySQL (headcount − hired_count) and
  * "advertised" with withSum() (Draft / Open postings), so both can be sorted and exported.
  * Only the org units the user can see (ManpowerRequest::visibleTo). Excel export comes from DataTable.
+ *
+ * View: app/Modules/Hrm/resources/views/livewire/recruitment/reports/open-positions-report.blade.php
  */
-class OpenPositionsReport extends DataTable
+class OpenPositionsReport extends Component
 {
+    use WithPagination;
+
+    #[Url(as: 'sort', except: '')]
+    public string $sortBy = '';
+
+    #[Url(as: 'dir', except: 'asc')]
+    public string $sortDir = 'asc';
+
+    /** Filter "Org unit": '' = all */
+    #[Url(as: 'org_unit', except: '')]
+    public string $orgUnit = '';
+
+    /** Filter "Needed by": '' = all */
+    #[Url(as: 'timing', except: '')]
+    public string $timing = '';
+
+    /** Filter "Advertised": '' = all */
+    #[Url(as: 'advertised', except: '')]
+    public string $advertised = '';
+
+    #[Url(as: 'per_page', except: 10)]
+    public int $perPage = 10;
+
+    /** Columns the user may sort by. Anything else sent from the browser is ignored. */
+    private const SORTABLE = ['id', 'headcount', 'hired_count', 'open_count', 'advertised', 'needed_by', 'approved_at'];
+
+    public function sort(string $field): void
+    {
+        if (! in_array($field, self::SORTABLE, true)) {
+            return;
+        }
+
+        // Clicking the same column again flips the direction.
+        $this->sortDir = $this->sortBy === $field && $this->sortDir === 'asc' ? 'desc' : 'asc';
+        $this->sortBy = $field;
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset('orgUnit', 'timing', 'advertised');
+        $this->resetPage();
+    }
+
+    public function export(): BinaryFileResponse
+    {
+        $rows = $this->filteredQuery()->get()->map(fn (ManpowerRequest $manpowerRequest) => [
+            $manpowerRequest->number(),
+            $manpowerRequest->designation->name ?? '-',
+            $manpowerRequest->orgUnit->name ?? '-',
+            $manpowerRequest->type->label(),
+            $manpowerRequest->headcount,
+            $manpowerRequest->hired_count,
+            $manpowerRequest->getAttribute('open_count'),
+            (int) $manpowerRequest->getAttribute('advertised'),
+            $manpowerRequest->needed_by ? format_date($manpowerRequest->needed_by).($manpowerRequest->needed_by->isPast() ? ' ('.__('Overdue').')' : '') : '—',
+            $manpowerRequest->approved_at ? trans_choice(':count day|:count days', (int) $manpowerRequest->approved_at->diffInDays(now()), ['count' => (int) $manpowerRequest->approved_at->diffInDays(now())]) : '-',
+        ])->all();
+
+        return Excel::download(
+            new ArrayExport([__('Request'), __('Designation'), __('Org unit'), __('Type'), __('Wanted'), __('Hired'), __('Open'), __('Advertised'), __('Needed by'), __('Open for')], $rows),
+            'open-positions-report-'.now()->format('Y-m-d').'.xlsx',
+        );
+    }
+
+    /** Typing a search or picking a filter or page size starts again at page 1. */
+    public function updated(string $property): void
+    {
+        if (in_array($property, ['orgUnit', 'timing', 'advertised', 'perPage'], true)) {
+            $this->resetPage();
+        }
+    }
+
     /** @return Builder<ManpowerRequest> */
-    protected function query(): Builder
+    private function query(): Builder
     {
         return ManpowerRequest::query()
             ->approved()
@@ -37,53 +113,68 @@ class OpenPositionsReport extends DataTable
             ->with(['designation', 'orgUnit']);
     }
 
-    protected function defaultSort(): array
-    {
-        return ['needed_by' => 'asc'];
-    }
-
-    protected function filters(): array
+    /** @return array<int|string, string> choices of the "Org unit" filter */
+    private function orgUnitOptions(): array
     {
         $units = app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user());
 
-        return [
-            SelectFilter::make('org_unit', __('Org unit'), $this->stringKeys($units))
-                ->query(fn (Builder $q, string $id) => $q->whereIn('org_unit_id', [(int) $id, ...(OrgUnit::find((int) $id)?->descendantIds() ?? [])])),
-            SelectFilter::make('timing', __('Needed by'), ['overdue' => __('Overdue'), 'month' => __('Within 30 days')])
-                ->query(fn (Builder $q, string $v) => $v === 'overdue'
-                    ? $q->where('needed_by', '<', today())
-                    : $q->whereBetween('needed_by', [today(), today()->addDays(30)])),
-            SelectFilter::make('advertised', __('Advertised'), ['no' => __('Not advertised'), 'part' => __('Partly'), 'all' => __('Fully')])
-                ->query(fn (Builder $q, string $v) => match ($v) {
-                    'no' => $q->having('advertised', '=', 0)->orHavingNull('advertised'),
-                    'part' => $q->having('advertised', '>', 0)->havingRaw('advertised < open_count'),
-                    default => $q->havingRaw('advertised >= open_count'),
-                }),
-        ];
+        return $units;
     }
 
-    protected function columns(): array
+    /** @return array<int|string, string> choices of the "Needed by" filter */
+    private function timingOptions(): array
     {
-        return [
-            Column::make(__('Request'), 'id')->sortable()->alwaysVisible()
-                ->format(fn (ManpowerRequest $r) => new HtmlString(Blade::render(
-                    '<a href="{{ route(\'hrm.recruitment.requests.show\', $r->id) }}" wire:navigate class="font-medium text-brand-800 hover:underline dark:text-brand-200">{{ $r->number() }}</a>',
-                    ['r' => $r],
-                ))),
-            Column::make(__('Designation'), 'designation_id')->alwaysVisible()->format(fn (ManpowerRequest $r) => $r->designation->name ?? '-'),
-            Column::make(__('Org unit'), 'org_unit_id')->format(fn (ManpowerRequest $r) => $r->orgUnit->name ?? '-'),
-            Column::make(__('Type'), 'type')->format(fn (ManpowerRequest $r) => $r->type->label()),
-            Column::make(__('Wanted'), 'headcount')->sortable()->alignRight(),
-            Column::make(__('Hired'), 'hired_count')->sortable()->alignRight(),
-            Column::make(__('Open'), 'open_count')->sortable()->alignRight(),
-            Column::make(__('Advertised'), 'advertised')->sortable()->alignRight()->format(fn (ManpowerRequest $r) => (int) $r->getAttribute('advertised')),
-            Column::make(__('Needed by'), 'needed_by')->sortable()
-                ->format(fn (ManpowerRequest $r) => new HtmlString(Blade::render(
-                    '@if ($d) {{ format_date($d) }} @if ($d->isPast()) <x-ui.badge color="danger">{{ __(\'Overdue\') }}</x-ui.badge> @endif @else — @endif',
-                    ['d' => $r->needed_by],
-                ))),
-            Column::make(__('Open for'), 'approved_at')->sortable()
-                ->format(fn (ManpowerRequest $r) => $r->approved_at ? trans_choice(':count day|:count days', (int) $r->approved_at->diffInDays(now()), ['count' => (int) $r->approved_at->diffInDays(now())]) : '-'),
-        ];
+        return ['overdue' => __('Overdue'), 'month' => __('Within 30 days')];
+    }
+
+    /** @return array<int|string, string> choices of the "Advertised" filter */
+    private function advertisedOptions(): array
+    {
+        return ['no' => __('Not advertised'), 'part' => __('Partly'), 'all' => __('Fully')];
+    }
+
+    /** @return Builder<ManpowerRequest> */
+    private function filteredQuery(): Builder
+    {
+        $query = $this->query();
+
+        if ($this->orgUnit !== '' && array_key_exists($this->orgUnit, $this->orgUnitOptions())) {
+            $query->whereIn('org_unit_id', [(int) $this->orgUnit, ...(OrgUnit::find((int) $this->orgUnit)?->descendantIds() ?? [])]);
+        }
+
+        if ($this->timing !== '' && array_key_exists($this->timing, $this->timingOptions())) {
+            $this->timing === 'overdue'
+                    ? $query->where('needed_by', '<', today())
+                    : $query->whereBetween('needed_by', [today(), today()->addDays(30)]);
+        }
+
+        if ($this->advertised !== '' && array_key_exists($this->advertised, $this->advertisedOptions())) {
+            match ($this->advertised) {
+                'no' => $query->having('advertised', '=', 0)->orHavingNull('advertised'),
+                'part' => $query->having('advertised', '>', 0)->havingRaw('advertised < open_count'),
+                default => $query->havingRaw('advertised >= open_count'),
+            };
+        }
+
+        if (in_array($this->sortBy, self::SORTABLE, true)) {
+            $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('needed_by', 'asc');
+        }
+
+        return $query;
+    }
+
+    public function render(): View
+    {
+        // A page size typed into the URL that is not offered falls back to 10.
+        $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
+
+        return view('hrm::livewire.recruitment.reports.open-positions-report', [
+            'rows' => $this->filteredQuery()->paginate($perPage),
+            'orgUnitOptions' => $this->orgUnitOptions(),
+            'timingOptions' => $this->timingOptions(),
+            'advertisedOptions' => $this->advertisedOptions(),
+        ]);
     }
 }

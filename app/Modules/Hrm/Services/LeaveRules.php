@@ -11,7 +11,7 @@ use App\Modules\Hrm\Models\LeaveType;
 use Carbon\CarbonImmutable;
 
 /**
- * Judges one leave request against the rules of its leave type (8.1). [LV-01] PURE: no database, no clock
+ * Judges one leave request against the rules of its leave type. PURE: no database, no clock
  * (today comes in the request), so every rule has its own unit test (tests/Unit/LeaveRulesTest.php).
  *
  *     $check = app(LeaveRules::class)->check($type, $request);     // LeaveRequestInputs builds $request

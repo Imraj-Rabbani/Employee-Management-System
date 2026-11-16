@@ -1,5 +1,5 @@
 {{--
-    HRM → Job Postings (6.3). The list + the New / Edit modal. [REC-02]
+    HRM → Job Postings. The list + the New / Edit modal.
 --}}
 <x-layouts.app :title="__('Recruitment')">
     <div class="space-y-4">

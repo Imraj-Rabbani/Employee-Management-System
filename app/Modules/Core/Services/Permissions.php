@@ -41,8 +41,8 @@ class Permissions
     }
 
     /**
-     * The org unit this login's DATA is limited to (the role's org-unit scope, legacy profiles.entity). [FND-05]
-     * Used by the VisibleToCurrentUser scope on employees (Phase 5).
+     * The org unit this login's DATA is limited to (the role's org-unit scope, legacy profiles.entity).
+     * Used by the VisibleToCurrentUser scope on employees.
      *
      *   null   no limit: Administrator, or a role without an org unit
      *   int    only this org unit and the units below it

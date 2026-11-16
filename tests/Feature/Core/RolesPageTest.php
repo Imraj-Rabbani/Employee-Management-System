@@ -14,7 +14,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Task 2.9d + 2.9e: Setup → Roles & Permissions, and giving users a role. [FND-05]
+ * Setup → Roles & Permissions, and giving users a role.
  */
 class RolesPageTest extends TestCase
 {

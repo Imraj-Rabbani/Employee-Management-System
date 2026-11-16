@@ -11,7 +11,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * The body of one job posting's page: status, details, and the buttons Edit / Open / Close / Reopen. [REC-02]
+ * The body of one job posting's page: status, details, and the buttons Edit / Open / Close / Reopen.
  * The rules live in the model (JobPosting::openProblem(), open(), close()); this class only asks and reports.
  * Permission: the page route needs hrm.recruitment.manage, and Livewire re-checks it on every click.
  */

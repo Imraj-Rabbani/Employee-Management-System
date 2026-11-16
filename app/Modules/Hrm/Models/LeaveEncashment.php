@@ -17,12 +17,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * "Pay me 5 unused days of Earned leave" (legacy `leaveencash`). Approval type "leave_encashment". [LV-06]
+ * "Pay me 5 unused days of Earned leave" (legacy `leaveencash`). Approval type "leave_encashment".
  * Written only by Actions\RequestEncashment.
  *
  *   approved   → onApproved(): the days leave the balance (ledger Encashed, source = this) → ready for payroll
  *   withdrawn  → before payroll paid it: ledger reversed, pending approvals removed
- *   paid       → the payroll run (Phase 10) sets amount, payroll_run_id, paid_at
+ *   paid       → the payroll run sets amount, payroll_run_id, paid_at
  *
  * @property int $id
  * @property int $employee_id
@@ -81,7 +81,7 @@ class LeaveEncashment extends TenantModel implements Approvable, ShowsApprovalDe
     }
 
     /**
-     * Approved, not withdrawn, not paid yet: what the payroll run (Phase 10) picks up.
+     * Approved, not withdrawn, not paid yet: what the payroll run picks up.
      *
      * @param  Builder<self>  $query
      */

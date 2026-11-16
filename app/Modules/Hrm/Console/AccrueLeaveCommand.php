@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 
 /**
  * Credits earned leave for the current company (AccrueEarnedLeave). Safe to run again: credited periods are
- * skipped. Scheduled every night at 03:00 (after attendance processing, which PerDaysWorked needs). [LV-05]
+ * skipped. Scheduled every night at 03:00 (after attendance processing, which PerDaysWorked needs).
  *
  *     php artisan tenants:run hrm:accrue-leave
  *     php artisan tenants:run "hrm:accrue-leave --date=2027-01-01 --employee=5"

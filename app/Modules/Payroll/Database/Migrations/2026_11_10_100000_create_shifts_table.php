@@ -5,9 +5,9 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TENANT table `shifts` (legacy `shifts`): the working hours an employee is expected to keep. [TA-01]
+ * TENANT table `shifts` (legacy `shifts`): the working hours an employee is expected to keep.
  *
- * Used by attendance processing (7.4) to decide present / late / early exit / half day / overtime.
+ * Used by attendance processing to decide present / late / early exit / half day / overtime.
  * Example: "General" 09:00–18:00, 15 minutes grace. A night shift 22:00–06:00 has is_overnight = true.
  */
 return new class extends Migration
@@ -35,7 +35,7 @@ return new class extends Migration
             $table->boolean('is_overnight')->default(false);                  // ends on the next calendar day
             $table->boolean('is_default')->default(false);                    // used when an employee has no shift
 
-            // Web / mobile punch must be within radius_m metres of this point (7.3).
+            // Web / mobile punch must be within radius_m metres of this point.
             $table->boolean('geofence_enabled')->default(false);
             $table->decimal('geofence_lat', 10, 7)->nullable();
             $table->decimal('geofence_lng', 10, 7)->nullable();

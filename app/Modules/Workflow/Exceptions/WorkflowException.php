@@ -45,7 +45,7 @@ class WorkflowException extends RuntimeException
         ]));
     }
 
-    // ---------------------------------------------------------------- respond() (task 3.4)
+    // ---------------------------------------------------------------- respond()
 
     public static function amountRequired(string $label, float $max): self
     {

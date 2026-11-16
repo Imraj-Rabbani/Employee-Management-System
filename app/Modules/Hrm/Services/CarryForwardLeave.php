@@ -9,7 +9,7 @@ use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use Carbon\CarbonImmutable;
 
 /**
- * Leave year end for the current company: every night (hrm:carry-forward-leave, 03:30), after the accrual. [LV-05]
+ * Leave year end for the current company: every night (hrm:carry-forward-leave, 03:30), after the accrual.
  *
  *   1. Once the previous leave year ended more than CLOSE_AFTER_DAYS ago (company setting, default 15, so leave
  *      of late December approved in early January still lands in its year): every balance of that year is

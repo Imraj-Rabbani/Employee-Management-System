@@ -16,7 +16,7 @@ use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 
 /**
- * "Apply profile": a salary profile + a basic OR a gross → the amount of every head. [PC-02]
+ * "Apply profile": a salary profile + a basic OR a gross → the amount of every head.
  *
  *     $calc->forProfile($profile, SalaryBasis::Gross, Money::of(30000))->amounts()
  *

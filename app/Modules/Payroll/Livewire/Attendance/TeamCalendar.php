@@ -15,7 +15,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * A team's attendance month: employees × days, one letter per processed day (7.8). [TA-08, ESS-04]
+ * A team's attendance month: employees × days, one letter per processed day.
  *
  *   mode "hr"    Payroll → Attendance → Calendar: employees the user can see, filter by org unit and name / code
  *   mode "team"  Self Service → My Team Attendance: everyone below the manager in the supervisor chain

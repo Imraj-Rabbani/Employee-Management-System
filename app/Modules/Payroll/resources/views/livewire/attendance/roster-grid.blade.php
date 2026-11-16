@@ -59,58 +59,66 @@
     x-on:beforeunload.window="if (dirty) { $event.preventDefault(); $event.returnValue = '' }"
 >
     {{-- Toolbar --}}
-    <x-ui.card>
-        <div class="flex flex-wrap items-end justify-between gap-4">
-            @if ($editable)
-                <div class="flex flex-wrap items-end gap-3">
-                    <flux:field>
-                        <flux:label>{{ __('Brush') }}</flux:label>
-                        <flux:select x-model="brush" size="sm" class="min-w-56">
-                            @foreach ($shifts as $shift)
-                                <flux:select.option :value="(string) $shift->id">{{ $shift->code }} · {{ $shift->optionLabel() }}</flux:select.option>
-                            @endforeach
-                            <flux:select.option value="off">{{ __('Off · day off') }}</flux:select.option>
-                            <flux:select.option value="call">{{ __('OC · on call') }}</flux:select.option>
-                            <flux:select.option value="">{{ __('Clear · not planned') }}</flux:select.option>
-                        </flux:select>
-                    </flux:field>
-                    <flux:button size="sm" icon="sparkles" x-on:click="fill()" x-bind:disabled="busy">{{ __('Fill empty cells') }}</flux:button>
-                    <flux:button size="sm" variant="primary" icon="check" x-on:click="save()" x-bind:disabled="busy || ! dirty">{{ __('Save') }}</flux:button>
-                    <span x-show="dirty" x-cloak class="text-sm text-amber-700 dark:text-amber-300">{{ __('Unsaved changes') }}</span>
-                </div>
-            @else
-                <flux:text>{{ $roster->isApproved() ? __('Approved: this plan counts for attendance.') : __('Waiting for approval: the grid cannot be changed.') }}</flux:text>
-            @endif
-
-            <div class="flex flex-wrap gap-2">
-                <flux:button size="sm" icon="arrow-down-tray" :href="route('payroll.attendance.rosters.export', $roster->id)">{{ __('Export to Excel') }}</flux:button>
+    <div class="glass overflow-hidden rounded-2xl">
+        <div class="p-6">
+            <div class="flex flex-wrap items-end justify-between gap-4">
                 @if ($editable)
-                    <flux:modal.trigger name="roster-import">
-                        <flux:button size="sm" icon="arrow-up-tray">{{ __('Import from Excel') }}</flux:button>
-                    </flux:modal.trigger>
-                    <flux:button size="sm" variant="primary" icon="paper-airplane" x-on:click="needsSave(() => $dispatch('confirm', {
-                        title: @js(__('Send for approval?')),
-                        message: @js(__('You cannot change the roster while it is waiting for approval.')),
-                        confirmText: @js(__('Send')),
-                        onConfirm: () => $wire.submit(),
-                    }))">{{ $roster->approvalStatus() ? __('Send again') : __('Send for approval') }}</flux:button>
-                @elseif ($roster->isApproved())
-                    <flux:button size="sm" variant="primary" icon="document-duplicate" x-on:click="$dispatch('confirm', {
-                        title: @js(__('Plan a change?')),
-                        message: @js(__('A copy of this roster is made as a new draft. Change it and send it for approval; once approved, it replaces this plan.')),
-                        confirmText: @js(__('Make a copy')),
-                        onConfirm: () => $wire.planChange(),
-                    })">{{ __('Plan a change') }}</flux:button>
+                    <div class="flex flex-wrap items-end gap-3">
+                        <flux:field>
+                            <flux:label>{{ __('Brush') }}</flux:label>
+                            <flux:select x-model="brush" size="sm" class="min-w-56">
+                                @foreach ($shifts as $shift)
+                                    <flux:select.option :value="(string) $shift->id">{{ $shift->code }} · {{ $shift->optionLabel() }}</flux:select.option>
+                                @endforeach
+                                <flux:select.option value="off">{{ __('Off · day off') }}</flux:select.option>
+                                <flux:select.option value="call">{{ __('OC · on call') }}</flux:select.option>
+                                <flux:select.option value="">{{ __('Clear · not planned') }}</flux:select.option>
+                            </flux:select>
+                        </flux:field>
+                        <flux:button size="sm" icon="sparkles" x-on:click="fill()" x-bind:disabled="busy">{{ __('Fill empty cells') }}</flux:button>
+                        <flux:button size="sm" variant="primary" icon="check" x-on:click="save()" x-bind:disabled="busy || ! dirty">{{ __('Save') }}</flux:button>
+                        <span x-show="dirty" x-cloak class="text-sm text-amber-700 dark:text-amber-300">{{ __('Unsaved changes') }}</span>
+                    </div>
+                @else
+                    <flux:text>{{ $roster->isApproved() ? __('Approved: this plan counts for attendance.') : __('Waiting for approval: the grid cannot be changed.') }}</flux:text>
                 @endif
+
+                <div class="flex flex-wrap gap-2">
+                    <flux:button size="sm" icon="arrow-down-tray" :href="route('payroll.attendance.rosters.export', $roster->id)">{{ __('Export to Excel') }}</flux:button>
+                    @if ($editable)
+                        <flux:modal.trigger name="roster-import">
+                            <flux:button size="sm" icon="arrow-up-tray">{{ __('Import from Excel') }}</flux:button>
+                        </flux:modal.trigger>
+                        <flux:button size="sm" variant="primary" icon="paper-airplane" x-on:click="needsSave(() => $dispatch('confirm', {
+                            title: @js(__('Send for approval?')),
+                            message: @js(__('You cannot change the roster while it is waiting for approval.')),
+                            confirmText: @js(__('Send')),
+                            onConfirm: () => $wire.submit(),
+                        }))">{{ $roster->approvalStatus() ? __('Send again') : __('Send for approval') }}</flux:button>
+                    @elseif ($roster->isApproved())
+                        <flux:button size="sm" variant="primary" icon="document-duplicate" x-on:click="$dispatch('confirm', {
+                            title: @js(__('Plan a change?')),
+                            message: @js(__('A copy of this roster is made as a new draft. Change it and send it for approval; once approved, it replaces this plan.')),
+                            confirmText: @js(__('Make a copy')),
+                            onConfirm: () => $wire.planChange(),
+                        })">{{ __('Plan a change') }}</flux:button>
+                    @endif
+                </div>
             </div>
         </div>
-    </x-ui.card>
+    </div>
 
     {{-- Grid --}}
     @if ($employees->isEmpty())
-        <x-ui.empty icon="users" :heading="__('No employees')" :description="__('This org unit (and the units below it) has no active employees you can see.')" />
+        <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+            <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
+                <flux:icon name="users" />
+            </div>
+            <flux:heading size="lg" class="mt-4">{{ __('No employees') }}</flux:heading>
+            <flux:text class="mt-1 max-w-sm">{{ __('This org unit (and the units below it) has no active employees you can see.') }}</flux:text>
+        </div>
     @else
-        <x-ui.card :padding="false">
+        <div class="glass overflow-hidden rounded-2xl">
             <div wire:ignore class="max-h-[70vh] overflow-auto select-none">
                 <table class="border-separate border-spacing-0 text-xs">
                     <thead class="sticky top-0 z-20">
@@ -153,7 +161,7 @@
                     </tbody>
                 </table>
             </div>
-        </x-ui.card>
+        </div>
 
         <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
             @foreach ($shifts as $shift)
@@ -170,7 +178,12 @@
         <x-ui.modal name="roster-import" :heading="__('Import from Excel')">
             <form wire:submit="import" id="roster-import-form" class="space-y-4">
                 <flux:text class="text-sm">{{ __('Use "Export to Excel" as the template: change the cells and upload the file. Type a shift code, OFF or CALL; leave a cell empty to clear it. Employees and days not in the file stay as they are.') }}</flux:text>
-                <x-form.file wire:model="file" :label="__('Excel file')" accept=".xlsx,.xls,.csv" />
+                <flux:field>
+                    <flux:label>{{ __('Excel file') }}</flux:label>
+                    <flux:input type="file" wire:model="file" accept=".xlsx,.xls,.csv" />
+                    <flux:text wire:loading wire:target="file" class="mt-2 text-sm">{{ __('Uploading…') }}</flux:text>
+                    <flux:error name="file" />
+                </flux:field>
 
                 @if ($importProblems)
                     <flux:callout variant="danger" icon="exclamation-triangle" :heading="__('Nothing was imported. Fix these and upload again:')">
