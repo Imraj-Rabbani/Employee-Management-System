@@ -2,6 +2,7 @@
 
 use App\Modules\Hrm\Exports\TemplateSheet;
 use App\Modules\Payroll\Exports\RosterExport;
+use App\Modules\Payroll\Exports\SalaryImportTemplate;
 use App\Modules\Payroll\Models\Roster;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
@@ -67,11 +68,15 @@ Route::middleware('can:payroll.attendance.setup')->prefix('attendance')->name('a
     }
 });
 
-// Payroll → Salary Setup: the sidebar item opens the first tab. One page view, one URL per section. [PC-01, PC-02]
+// Payroll → Salary Setup: the sidebar item opens the first tab. One page view, one URL per section. [PC-01..05]
 Route::middleware('can:payroll.salary.manage')->group(function () {
     Route::get('setup', fn () => redirect()->route('payroll.setup.heads'))->name('setup');
 
-    foreach (['heads', 'profiles'] as $section) {
+    // Excel template for the salary import (9.6): lists the employees this user may see.
+    Route::get('setup/import/template', fn () => Excel::download(new SalaryImportTemplate, 'salary-import-template.xlsx'))
+        ->name('setup.import.template');
+
+    foreach (['heads', 'profiles', 'pay-scales', 'import', 'settings'] as $section) {
         Route::view("setup/{$section}", 'payroll::setup', ['section' => $section])->name("setup.{$section}");
     }
 });

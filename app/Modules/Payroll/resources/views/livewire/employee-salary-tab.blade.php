@@ -28,6 +28,24 @@
         </div>
     @endif
 
+    {{-- Pay scale profile (9.5): how payroll treats the employee; none = the company default. --}}
+    <div class="glass flex items-center justify-between gap-4 rounded-2xl px-6 py-3 text-sm" data-test="pay-scale">
+        <div>
+            <span class="text-zinc-500">{{ __('Pay scale profile') }}:</span>
+            @if ($employee->payScaleProfile)
+                <span class="font-medium">{{ $employee->payScaleProfile->name }}</span>
+                <span class="text-zinc-500">· {{ $employee->payScaleProfile->summary() }}</span>
+            @elseif ($defaultPayScale)
+                <span class="font-medium">{{ $defaultPayScale->name }}</span> <span class="text-zinc-500">({{ __('company default') }})</span>
+            @else
+                <span class="text-zinc-500">{{ __('None (no default in the payroll settings)') }}</span>
+            @endif
+        </div>
+        @if ($canManage)
+            <flux:button size="sm" variant="ghost" wire:click="openPayScale">{{ __('Change') }}</flux:button>
+        @endif
+    </div>
+
     <x-ui.card :heading="__('Current salary')" :subheading="$current
             ? __('Since :date', ['date' => format_date($current->from)]).($current->profile ? ' · '.__('Profile: :name', ['name' => $current->profile]) : '')
             : null" :padding="false">
@@ -172,6 +190,17 @@
 
             <x-slot:footer>
                 <flux:button type="submit" form="employee-salary" variant="primary">{{ __('Save') }}</flux:button>
+            </x-slot:footer>
+        </x-ui.modal>
+
+        <x-ui.modal name="pay-scale" :heading="__('Pay scale profile')">
+            <form wire:submit="savePayScale" id="pay-scale" class="space-y-5">
+                <x-form.select wire:model="payScaleId" :label="__('Pay scale profile')" :options="$payScales"
+                    :placeholder="$defaultPayScale ? __('Company default (:name)', ['name' => $defaultPayScale->name]) : __('None')" />
+            </form>
+
+            <x-slot:footer>
+                <flux:button type="submit" form="pay-scale" variant="primary">{{ __('Save') }}</flux:button>
             </x-slot:footer>
         </x-ui.modal>
 

@@ -80,7 +80,7 @@ final readonly class Money implements JsonSerializable, Stringable
     /**
      * Split by ratios; the parts always add up to the original (leftover minor units go to the first parts).
      *
-     * @param  non-empty-list<int>  $ratios
+     * @param  list<int>  $ratios  must not be empty, checked below
      * @return list<self>
      */
     public function allocate(array $ratios): array

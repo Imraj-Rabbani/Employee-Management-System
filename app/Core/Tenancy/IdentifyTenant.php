@@ -10,7 +10,6 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Route middleware "tenant": runs after "auth" and switches the app to the
  * logged-in user's company database for the rest of the request.
- *
  */
 class IdentifyTenant
 {

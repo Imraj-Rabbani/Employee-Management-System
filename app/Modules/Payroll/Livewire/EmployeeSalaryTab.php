@@ -12,8 +12,10 @@ use App\Modules\Payroll\Enums\ProfileValueType;
 use App\Modules\Payroll\Enums\SalaryBasis;
 use App\Modules\Payroll\Exceptions\SalaryProfileException;
 use App\Modules\Payroll\Models\EmployeeSalary;
+use App\Modules\Payroll\Models\PayScaleProfile;
 use App\Modules\Payroll\Models\SalaryHead;
 use App\Modules\Payroll\Models\SalaryProfile;
+use App\Modules\Payroll\Services\PayrollSettings;
 use App\Modules\Payroll\Services\SalaryProfileCalculator;
 use Carbon\CarbonImmutable;
 use Flux\Flux;
@@ -25,7 +27,7 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * Profile → Salary: the current salary (every head + gross / deductions / net), the hold flags, and the history of
+ * Profile → Salary: the pay scale profile (9.5), the current salary (every head + gross / deductions / net), the hold flags, and the history of
  * salaries (click one for its heads). [PC-03]
  *
  * Seeing it: EmployeePolicy::view + payroll.salary.view. Changing it: payroll.salary.manage.
@@ -51,6 +53,9 @@ class EmployeeSalaryTab extends Component
 
     /** @var array{salary_on_hold: bool, bank_transfer_on_hold: bool, salary_hold_reason: string} */
     public array $hold = ['salary_on_hold' => false, 'bank_transfer_on_hold' => false, 'salary_hold_reason' => ''];
+
+    /** pay_scale_profile_id being chosen ('' = the company default) */
+    public string $payScaleId = '';
 
     public function mount(Employee $employee): void
     {
@@ -183,6 +188,28 @@ class EmployeeSalaryTab extends Component
         $this->dispatch('toast', message: __('Salary hold saved.'), variant: 'success');
     }
 
+    // ---- Pay scale profile ---------------------------------------------------------------------
+
+    public function openPayScale(): void
+    {
+        $employee = $this->authorizeManage();
+        $this->payScaleId = (string) ($employee->pay_scale_profile_id ?? '');
+        $this->resetValidation();
+
+        Flux::modal('pay-scale')->show();
+    }
+
+    public function savePayScale(): void
+    {
+        $employee = $this->authorizeManage();
+        $this->validate(['payScaleId' => ['nullable', Rule::exists(PayScaleProfile::class, 'id')]], attributes: ['payScaleId' => __('pay scale profile')]);
+
+        $employee->update(['pay_scale_profile_id' => $this->payScaleId !== '' ? (int) $this->payScaleId : null]);
+
+        Flux::modal('pay-scale')->close();
+        $this->dispatch('toast', message: __('Pay scale profile saved.'), variant: 'success');
+    }
+
     // ---- Helpers -------------------------------------------------------------------------------
 
     /** What is typed in the modal as a salary (empty amounts left out). */
@@ -237,7 +264,7 @@ class EmployeeSalaryTab extends Component
 
     public function render(): View
     {
-        $employee = $this->employee()->load('salaryProfile');
+        $employee = $this->employee()->load(['salaryProfile', 'payScaleProfile']);
 
         $history = EmployeeSalary::historyOf($employee)->map(fn ($rows, string $from) => (object) [
             'from' => $rows->first()->effective_from,
@@ -260,6 +287,8 @@ class EmployeeSalaryTab extends Component
             'typed' => $this->typedSalary(),
             'profiles' => SalaryProfile::where('is_active', true)->orWhere('id', (int) ($this->form['salary_profile_id'] ?: 0))->orderBy('name')->pluck('name', 'id')->all(),
             'bases' => SalaryBasis::options(),
+            'defaultPayScale' => app(PayrollSettings::class)->defaultPayScale(),
+            'payScales' => PayScaleProfile::where('is_active', true)->orWhere('id', (int) ($this->payScaleId ?: 0))->orderBy('name')->pluck('name', 'id')->all(),
         ]);
     }
 }

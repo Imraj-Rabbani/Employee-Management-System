@@ -30,7 +30,7 @@ use Illuminate\Validation\Rule;
  */
 class SalaryProfileForm extends LookupForm
 {
-    /** @var array<int, array{value_type: string, value: string|int|float|null}> */
+    /** @var array<int, array{value_type?: string, value?: string|int|float|null}> as sent by the browser */
     public array $items = [];
 
     public string $previewBasis = 'gross';
@@ -176,12 +176,16 @@ class SalaryProfileForm extends LookupForm
     private function filled(): array
     {
         $allowed = $this->heads()->modelKeys();
+        $filled = [];
+        foreach ($this->items as $headId => $item) {
+            $type = ProfileValueType::tryFrom((string) ($item['value_type'] ?? ''));
+            $value = $item['value'] ?? null;
+            if ($type !== null && is_numeric($value) && in_array($headId, $allowed, true)) {
+                $filled[$headId] = ['value_type' => $type->value, 'value' => $value];
+            }
+        }
 
-        return array_filter(
-            $this->items,
-            fn ($item, $headId) => in_array($headId, $allowed, true) && is_numeric($item['value'] ?? null) && ProfileValueType::tryFrom((string) ($item['value_type'] ?? '')) !== null,
-            ARRAY_FILTER_USE_BOTH,
-        );
+        return $filled;
     }
 
     /**

@@ -30,7 +30,7 @@ class SetEmployeeSalary
         $latest = EmployeeSalary::where('employee_id', $employee->id)->max('effective_from');
 
         $message = match (true) {
-            $employee->join_date !== null && $from->lt($employee->join_date) => __('The salary cannot start before the joining date (:date).', ['date' => format_date($employee->join_date)]),
+            $from->lt($employee->join_date) => __('The salary cannot start before the joining date (:date).', ['date' => format_date($employee->join_date)]),
             $employee->separation_date !== null && $from->gt($employee->separation_date) => __('The employee left on :date.', ['date' => format_date($employee->separation_date)]),
             $latest !== null && $from->lt(CarbonImmutable::parse($latest)) => __('A salary already starts on :date. A new salary can start on that day (to correct it) or later.', ['date' => format_date($latest)]),
             default => null,

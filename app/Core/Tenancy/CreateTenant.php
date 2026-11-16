@@ -30,7 +30,6 @@ use Throwable;
  *
  * If any step fails, what was already done is undone and the error is thrown again.
  * (A DB transaction can't do this for us: MySQL commits on CREATE DATABASE.)
- *
  */
 class CreateTenant
 {

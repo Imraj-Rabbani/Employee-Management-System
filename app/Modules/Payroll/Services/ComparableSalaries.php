@@ -18,10 +18,6 @@ class ComparableSalaries implements SalaryBenchmarks
 {
     public function grossRange(string $column, int $id): array
     {
-        if (! in_array($column, ['grade_id', 'designation_id'], true)) {
-            throw new \InvalidArgumentException("Cannot compare by {$column}.");
-        }
-
         // One row per employee: the sum of today's earnings counted in gross.
         $perEmployee = EmployeeSalary::query()
             ->effectiveOn(today())

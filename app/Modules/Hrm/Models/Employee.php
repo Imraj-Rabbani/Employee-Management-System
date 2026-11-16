@@ -14,6 +14,7 @@ use App\Modules\Hrm\Enums\Religion;
 use App\Modules\Hrm\Policies\EmployeePolicy;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use App\Modules\Payroll\Models\HolidayProfile;
+use App\Modules\Payroll\Models\PayScaleProfile;
 use App\Modules\Payroll\Models\SalaryProfile;
 use App\Modules\Payroll\Models\Shift;
 use App\Modules\Payroll\Models\WeekendProfile;
@@ -405,6 +406,17 @@ class Employee extends TenantModel
     public function salaryProfile(): BelongsTo
     {
         return $this->belongsTo(SalaryProfile::class);
+    }
+
+    /**
+     * How payroll treats this employee: arrears, threshold day, LWP (Payroll, 9.5). NULL = the company default
+     * (PayrollSettings::payScaleFor()).
+     *
+     * @return BelongsTo<PayScaleProfile, $this>
+     */
+    public function payScaleProfile(): BelongsTo
+    {
+        return $this->belongsTo(PayScaleProfile::class);
     }
 
     /** @return BelongsTo<self, $this> */

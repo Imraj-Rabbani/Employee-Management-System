@@ -91,6 +91,9 @@ return [
             'tabs' => [
                 ['label' => 'Salary heads', 'route' => 'payroll.setup.heads', 'can' => 'payroll.salary.manage'],
                 ['label' => 'Salary profiles', 'route' => 'payroll.setup.profiles', 'can' => 'payroll.salary.manage'],
+                ['label' => 'Pay scale profiles', 'route' => 'payroll.setup.pay-scales', 'can' => 'payroll.salary.manage'],
+                ['label' => 'Import salaries', 'route' => 'payroll.setup.import', 'can' => 'payroll.salary.manage'],
+                ['label' => 'Settings', 'route' => 'payroll.setup.settings', 'can' => 'payroll.salary.manage'],
             ],
         ],
 
