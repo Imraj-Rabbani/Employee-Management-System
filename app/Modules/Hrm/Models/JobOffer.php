@@ -4,6 +4,7 @@ namespace App\Modules\Hrm\Models;
 
 use App\Core\Models\TenantModel;
 use App\Modules\Hrm\Actions\MoveApplication;
+use App\Modules\Hrm\Contracts\SalaryBenchmarks;
 use App\Modules\Hrm\Database\Factories\JobOfferFactory;
 use App\Modules\Hrm\Enums\ApplicationStage;
 use App\Modules\Hrm\Enums\OfferStatus;
@@ -143,7 +144,8 @@ class JobOffer extends TenantModel implements Approvable, ShowsApprovalDetails
      *   label   "Grade G5 band"
      *   range   "30,000 – 45,000" (or a single amount)
      *   verdict 'below' / 'inside' / 'above', or null when there is nothing to compare with
-     * "Comparable employees" comes after Phase 9.4 (employee salaries).
+     * Plus what employees in the same grade / designation earn now (SalaryBenchmarks, 9.4): their gross range,
+     * only from 3 people up (fewer: the count only, so nobody's salary shows).
      *
      * @return list<array{label: string, range: string|null, verdict: string|null}>
      */
@@ -158,6 +160,22 @@ class JobOffer extends TenantModel implements Approvable, ShowsApprovalDetails
             $min !== null && $salary < (float) $min => 'below',
             $max !== null && $salary > (float) $max => 'above',
             default => 'inside',
+        };
+
+        $peers = function (string $column, ?int $id, string $label) use ($band): array {
+            $range = $id ? app(SalaryBenchmarks::class)->grossRange($column, $id) : null;
+
+            return [
+                'label' => $range ? __(':label (:count employees)', ['label' => $label, 'count' => $range['count']]) : $label,
+                'range' => match (true) {
+                    $range === null || $range['count'] === 0 => null,
+                    $range['min'] === null => __('fewer than :n, not shown', ['n' => SalaryBenchmarks::MIN_PEOPLE]),
+                    default => __(':min – :max (average :avg)', [
+                        'min' => number_format((float) $range['min']), 'max' => number_format((float) $range['max']), 'avg' => number_format((float) $range['average']),
+                    ]),
+                },
+                'verdict' => $range && $range['min'] !== null ? $band($range['min'], $range['max']) : null,
+            ];
         };
 
         return [
@@ -180,6 +198,8 @@ class JobOffer extends TenantModel implements Approvable, ShowsApprovalDetails
                     }
                     : null,
             ],
+            $peers('grade_id', $this->grade_id, __('Same grade now')),
+            $peers('designation_id', $this->designation_id, __('Same designation now')),
         ];
     }
 

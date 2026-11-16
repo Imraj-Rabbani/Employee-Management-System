@@ -94,30 +94,21 @@ class SalaryProfileCalculator
                 ProfileValueType::PercentOfBasic => $basic->percent((string) $item->rate),
                 ProfileValueType::PercentOfGross => $gross->percent((string) $item->rate),
             };
-            $inGross = $this->inGross($item->head);
-            $lines[] = new SalaryLine($item->head, $item->describe(), $value, $inGross);
-            if ($inGross) {
+            $line = new SalaryLine($item->head, $item->describe(), $value, $item->value_type->usesRate() ? $item->value_type : null, $item->value_type->usesRate() ? (string) $item->rate : null);
+            $lines[] = $line;
+            if ($line->inGross()) {
                 $otherInGross = $otherInGross->add($value);
             }
         }
 
         if ($basis === SalaryBasis::Gross) {
             $basic = $gross->subtract($otherInGross);   // takes the rounding cents: heads add up to the gross exactly
-        } else {
-            $gross = $basic->add($otherInGross);        // the real sum (may be a cent off the formula)
         }
 
-        $lines[] = new SalaryLine($basicHead, __('Basic'), $basic, true);
-        usort($lines, fn (SalaryLine $a, SalaryLine $b) => [$a->head->sequence, $a->head->name] <=> [$b->head->sequence, $b->head->name]);
+        $lines[] = new SalaryLine($basicHead, __('Basic'), $basic);
 
-        $deductions = Money::zero();
-        foreach ($lines as $line) {
-            if ($line->head->type === HeadType::Deduction) {
-                $deductions = $deductions->add($line->amount);
-            }
-        }
-
-        return new SalaryBreakdown($lines, $basic, $gross, $deductions, $gross->subtract($deductions));
+        // Totals from the lines (from basic: the real sum, which may be a cent off the formula).
+        return SalaryBreakdown::fromLines($lines);
     }
 
     private function inGross(SalaryHead $head): bool

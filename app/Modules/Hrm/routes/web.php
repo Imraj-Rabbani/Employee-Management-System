@@ -11,6 +11,7 @@ use App\Modules\Hrm\Models\ManpowerRequest;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Hrm\Services\OfferLetter;
 use App\Modules\Workflow\Models\Approval;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -48,6 +49,10 @@ Route::get('employees/{employee}', function (Employee $employee) {
         'bank' => __('Bank'),
         'history' => __('History'),
     ];
+    // Salary (Payroll module, 9.4): only for who may see salaries (false too when the company has no Payroll).
+    if (Gate::allows('payroll.salary.view')) {
+        $tabs = array_merge(array_slice($tabs, 0, 2), ['salary' => __('Salary')], array_slice($tabs, 2));
+    }
     $tab = array_key_exists((string) request()->query('tab'), $tabs) ? (string) request()->query('tab') : 'personal';
 
     return view('hrm::employees.show', compact('employee', 'tabs', 'tab'));

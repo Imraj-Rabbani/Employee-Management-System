@@ -4,12 +4,14 @@ namespace App\Modules\Payroll;
 
 use App\Core\Plugins\PluginRegistry;
 use App\Core\Support\ModuleServiceProvider;
+use App\Modules\Hrm\Contracts\SalaryBenchmarks;
 use App\Modules\Hrm\Contracts\WorkCalendar;
 use App\Modules\Payroll\Console\ProcessAttendanceCommand;
 use App\Modules\Payroll\Console\SyncDevicePunches;
 use App\Modules\Payroll\Contracts\LeaveCalendar;
 use App\Modules\Payroll\Contracts\PunchDeviceClient;
 use App\Modules\Payroll\Services\AttendanceWorkCalendar;
+use App\Modules\Payroll\Services\ComparableSalaries;
 use App\Modules\Payroll\Services\NoLeaveCalendar;
 use App\Modules\Payroll\Services\ZktecoClient;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +29,8 @@ class PayrollServiceProvider extends ModuleServiceProvider
         $this->app->bindIf(LeaveCalendar::class, NoLeaveCalendar::class);
         // Days off for leave counting (8.3): the HRM leave rules ask, the attendance setup answers.
         $this->app->bind(WorkCalendar::class, AttendanceWorkCalendar::class);
+        // What comparable employees earn, for HRM job offers (9.4).
+        $this->app->bind(SalaryBenchmarks::class, ComparableSalaries::class);
     }
 
     public function boot(): void

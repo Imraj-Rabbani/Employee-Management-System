@@ -89,6 +89,9 @@ use Illuminate\Validation\Rule;
  * @property int|null $holiday_profile_id
  * @property int|null $leave_profile_id
  * @property int|null $salary_profile_id
+ * @property bool $salary_on_hold Payroll (9.4): the payroll run leaves the salary unpaid until switched off
+ * @property bool $bank_transfer_on_hold Payroll (9.4): paid, but not sent to the bank
+ * @property string|null $salary_hold_reason
  * @property int|null $pay_scale_profile_id
  * @property int|null $tax_profile_id
  * @property PaymentMethod|null $payment_method
@@ -116,7 +119,7 @@ class Employee extends TenantModel
         'org_unit_id', 'employment_type_id', 'designation_id', 'grade_id', 'position_id',
         'branch_id', 'cost_center_id', 'supervisor_id', 'dotted_line_manager_id',
         'shift_id', 'has_shifting', 'weekend_profile_id', 'holiday_profile_id', 'leave_profile_id',
-        'salary_profile_id', 'pay_scale_profile_id', 'tax_profile_id', 'payment_method',
+        'salary_profile_id', 'salary_on_hold', 'bank_transfer_on_hold', 'salary_hold_reason', 'pay_scale_profile_id', 'tax_profile_id', 'payment_method',
         'status', 'separation_date',
     ];
 
@@ -167,6 +170,8 @@ class Employee extends TenantModel
             'confirmation_date' => 'date',
             'separation_date' => 'date',
             'has_shifting' => 'boolean',
+            'salary_on_hold' => 'boolean',
+            'bank_transfer_on_hold' => 'boolean',
         ];
     }
 

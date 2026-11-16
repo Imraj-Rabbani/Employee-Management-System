@@ -6,9 +6,11 @@ use App\Core\Support\ModuleServiceProvider;
 use App\Models\User;
 use App\Modules\Hrm\Console\AccrueLeaveCommand;
 use App\Modules\Hrm\Console\CarryForwardLeaveCommand;
+use App\Modules\Hrm\Contracts\SalaryBenchmarks;
 use App\Modules\Hrm\Contracts\WorkCalendar;
 use App\Modules\Hrm\Services\ApprovedLeaveCalendar;
 use App\Modules\Hrm\Services\EmployeeVisibility;
+use App\Modules\Hrm\Services\NoSalaryBenchmarks;
 use App\Modules\Hrm\Services\NoWorkCalendar;
 use App\Modules\Payroll\Contracts\LeaveCalendar;
 use Illuminate\Support\Facades\Gate;
@@ -26,6 +28,9 @@ class HrmServiceProvider extends ModuleServiceProvider
         // Days off for leave counting (8.3). bindIf: the Payroll module binds the real one (attendance setup),
         // whichever provider registers first.
         $this->app->bindIf(WorkCalendar::class, NoWorkCalendar::class);
+
+        // Salaries of comparable employees for job offers (9.4). bindIf: the Payroll module binds the real one.
+        $this->app->bindIf(SalaryBenchmarks::class, NoSalaryBenchmarks::class);
 
         // Approved leave for attendance processing (Payroll asks, 8.4).
         $this->app->bind(LeaveCalendar::class, ApprovedLeaveCalendar::class);

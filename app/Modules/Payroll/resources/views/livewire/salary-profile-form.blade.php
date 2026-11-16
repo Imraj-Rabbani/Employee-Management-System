@@ -77,7 +77,7 @@
                             <td class="py-1 text-zinc-500">
                                 {{ $line->basis }}
                                 @if ($line->head->type === \App\Modules\Payroll\Enums\HeadType::Deduction) · {{ __('deduction') }}
-                                @elseif (! $line->inGross) · {{ __('not in gross') }} @endif
+                                @elseif (! $line->inGross()) · {{ __('not in gross') }} @endif
                             </td>
                             <td class="py-1 text-right tabular-nums">{{ $line->amount->format() }}</td>
                         </tr>

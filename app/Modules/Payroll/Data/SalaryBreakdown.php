@@ -6,14 +6,15 @@ use App\Core\Support\Money;
 use App\Modules\Payroll\Enums\HeadType;
 
 /**
- * A salary profile applied to a basic or gross (SalaryProfileCalculator): every head with its amount + totals. [PC-02]
- * gross = basic + the earnings counted in gross; net = gross − deductions (info heads and earnings outside gross
- * are listed, but in neither total).
+ * A salary: every head with its amount + totals. Made by SalaryProfileCalculator (a profile applied) or from an
+ * employee's saved rows (EmployeeSalary::breakdown()). [PC-02, PC-03]
+ * gross = the earnings counted in gross (basic included); net = gross − deductions. Info heads and earnings
+ * outside gross are listed, but in neither total.
  */
 final readonly class SalaryBreakdown
 {
-    /** @param  list<SalaryLine>  $lines  in head order (sequence, name), basic included */
-    public function __construct(
+    /** @param  list<SalaryLine>  $lines  in head order (sequence, name) */
+    private function __construct(
         public array $lines,
         public Money $basic,
         public Money $gross,
@@ -21,7 +22,28 @@ final readonly class SalaryBreakdown
         public Money $net,
     ) {}
 
-    /** @return array<int, Money> salary_head_id => amount, e.g. to save as the employee's salary (9.4) */
+    /** @param  list<SalaryLine>  $lines  any order; the basic is the line whose head is_basic */
+    public static function fromLines(array $lines): self
+    {
+        usort($lines, fn (SalaryLine $a, SalaryLine $b) => [$a->head->sequence, $a->head->name] <=> [$b->head->sequence, $b->head->name]);
+
+        $basic = $gross = $deductions = Money::zero();
+        foreach ($lines as $line) {
+            if ($line->head->is_basic) {
+                $basic = $basic->add($line->amount);
+            }
+            if ($line->inGross()) {
+                $gross = $gross->add($line->amount);
+            }
+            if ($line->head->type === HeadType::Deduction) {
+                $deductions = $deductions->add($line->amount);
+            }
+        }
+
+        return new self($lines, $basic, $gross, $deductions, $gross->subtract($deductions));
+    }
+
+    /** @return array<int, Money> salary_head_id => amount */
     public function amounts(): array
     {
         $amounts = [];
@@ -32,9 +54,8 @@ final readonly class SalaryBreakdown
         return $amounts;
     }
 
-    /** @return list<SalaryLine> */
-    public function linesOfType(HeadType $type): array
+    public function isEmpty(): bool
     {
-        return array_values(array_filter($this->lines, fn (SalaryLine $l) => $l->head->type === $type));
+        return $this->lines === [];
     }
 }

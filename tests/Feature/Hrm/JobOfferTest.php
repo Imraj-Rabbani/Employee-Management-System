@@ -109,7 +109,8 @@ class JobOfferTest extends TestCase
 
         $rows = collect($offer->fresh()->comparisons());
 
-        $this->assertSame(['above', 'inside', 'below'], $rows->pluck('verdict')->all());   // band ≤ 38,000 · 35–50k · expects 45,000
+        // band ≤ 38,000 · 35–50k · expects 45,000 · same grade / designation now: nobody has a salary (9.4)
+        $this->assertSame(['above', 'inside', 'below', null, null], $rows->pluck('verdict')->all());
         $this->assertSame('30,000 – 38,000', $rows[0]['range']);
         $this->assertSame('35,000 – 50,000', $rows[1]['range']);
         $this->assertSame('45,000', $rows[2]['range']);
