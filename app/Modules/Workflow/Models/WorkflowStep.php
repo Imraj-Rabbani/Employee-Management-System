@@ -4,6 +4,7 @@ namespace App\Modules\Workflow\Models;
 
 use App\Core\Models\TenantModel;
 use App\Modules\Core\Models\Role;
+use App\Modules\Hrm\Models\EntityType;
 use App\Modules\Workflow\Enums\ApproverType;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,13 +18,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property ApproverType $approver_type
  * @property int|null $approver_employee_id
  * @property int|null $approver_role_id
+ * @property int|null $approver_entity_type_id entity_head steps: the head of which type (Department, Branch ...)
  * @property bool $attachment_required
  * @property list<int>|null $representatives employee ids who may answer instead
  */
 class WorkflowStep extends TenantModel
 {
     protected $fillable = [
-        'workflow_id', 'level', 'approver_type', 'approver_employee_id', 'approver_role_id',
+        'workflow_id', 'level', 'approver_type', 'approver_employee_id', 'approver_role_id', 'approver_entity_type_id',
         'attachment_required', 'representatives',
     ];
 
@@ -49,6 +51,12 @@ class WorkflowStep extends TenantModel
     public function approverRole(): BelongsTo
     {
         return $this->belongsTo(Role::class, 'approver_role_id');
+    }
+
+    /** @return BelongsTo<EntityType, $this> */
+    public function approverEntityType(): BelongsTo
+    {
+        return $this->belongsTo(EntityType::class, 'approver_entity_type_id');
     }
 
     /** @return HasMany<Approval, $this> */

@@ -107,7 +107,7 @@
                 </ul>
             @endif
             @if ($hiddenApplications > 0)
-                <flux:text class="px-6 pb-3 text-xs">{{ trans_choice('+:count application in org units you cannot see|+:count applications in org units you cannot see', $hiddenApplications, ['count' => $hiddenApplications]) }}</flux:text>
+                <flux:text class="px-6 pb-3 text-xs">{{ trans_choice('+:count application in entities you cannot see|+:count applications in entities you cannot see', $hiddenApplications, ['count' => $hiddenApplications]) }}</flux:text>
             @endif
         </div>
     </div>

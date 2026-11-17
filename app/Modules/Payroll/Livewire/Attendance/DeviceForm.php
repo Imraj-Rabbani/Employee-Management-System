@@ -3,7 +3,7 @@
 namespace App\Modules\Payroll\Livewire\Attendance;
 
 use App\Core\Livewire\LookupForm;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Payroll\Exceptions\DeviceException;
 use App\Modules\Payroll\Models\Device;
 use App\Modules\Payroll\Services\DeviceSync;
@@ -27,7 +27,7 @@ class DeviceForm extends LookupForm
 
     protected function defaults(): array
     {
-        return ['name' => '', 'serial_number' => '', 'ip' => '', 'port' => '4370', 'org_unit_id' => '', 'is_active' => true];
+        return ['name' => '', 'serial_number' => '', 'ip' => '', 'port' => '4370', 'entity_id' => '', 'is_active' => true];
     }
 
     protected function fieldRules(): array
@@ -37,14 +37,14 @@ class DeviceForm extends LookupForm
             'serial_number' => ['nullable', 'string', 'max:100', Rule::unique(Device::class, 'serial_number')->ignore($this->recordId)],
             'ip' => ['required', 'ip'],
             'port' => ['required', 'integer', 'between:1,65535'],
-            'org_unit_id' => ['nullable', Rule::exists(OrgUnit::class, 'id')],
+            'entity_id' => ['nullable', Rule::exists(Entity::class, 'id')],
             'is_active' => ['boolean'],
         ];
     }
 
     protected function labels(): array
     {
-        return ['ip' => __('IP address'), 'org_unit_id' => __('org unit'), 'serial_number' => __('serial number')];
+        return ['ip' => __('IP address'), 'entity_id' => __('entity'), 'serial_number' => __('serial number')];
     }
 
     /** Pulls this device's punches right away (same as the 5-minute schedule) and says how it went. */
@@ -63,7 +63,7 @@ class DeviceForm extends LookupForm
 
     protected function viewData(): array
     {
-        return ['units' => OrgUnit::pathOptions()];
+        return ['units' => Entity::options()];
     }
 
     protected function view(): string

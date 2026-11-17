@@ -58,16 +58,11 @@ return new class extends Migration
             $table->date('planned_confirmation_date')->nullable();
             $table->unsignedTinyInteger('confirmation_status')->nullable();   // enum added with confirmations
             $table->date('confirmation_date')->nullable();
-            // CURRENT org unit. The full dated history lives in employee_org_assignments, which keeps
-            // this column in step. Kept here because the list filter and the VisibleToCurrentUser
-            // scope need it on every employee query, and a plain column is far faster than a history join.
-            $table->foreignId('org_unit_id')->nullable()->constrained()->restrictOnDelete();
+            // Department, Branch, ... (entities) are in employee_entities: one per entity type, with history.
             $table->foreignId('employment_type_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('designation_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('grade_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('position_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('branch_id')->nullable()->constrained()->restrictOnDelete();
-            $table->foreignId('cost_center_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('supervisor_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->foreignId('dotted_line_manager_id')->nullable()->constrained('employees')->nullOnDelete();
 

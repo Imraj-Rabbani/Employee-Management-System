@@ -19,12 +19,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property string|null $description
  * @property bool $is_admin
- * @property int|null $org_unit_id
+ * @property int|null $entity_id
  */
 class Role extends TenantModel
 {
     /** is_admin is not fillable: only the seeder creates the Administrator role. */
-    protected $fillable = ['name', 'description', 'org_unit_id'];
+    protected $fillable = ['name', 'description', 'entity_id'];
 
     protected $attributes = ['is_admin' => false];
 

@@ -6,7 +6,7 @@ use App\Models\Tenant;
 use App\Modules\Core\Services\Permissions;
 use App\Modules\Hrm\Models\Designation;
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
@@ -14,7 +14,7 @@ use Tests\TestCase;
 /**
  * The employee profile page with tabs.
  *
- * Structure: Head Office › Finance and Head Office › Sales.
+ * Entities: Finance and Sales.
  * Rahim (Finance) reports to Salma (Sales).
  */
 class EmployeeProfileTest extends TestCase
@@ -24,7 +24,7 @@ class EmployeeProfileTest extends TestCase
 
     private Tenant $tenant;
 
-    private OrgUnit $finance;
+    private Entity $finance;
 
     private Employee $rahim;
 
@@ -36,12 +36,11 @@ class EmployeeProfileTest extends TestCase
 
         $this->tenant = $this->actingAsTenantUser()->tenant;
 
-        $head = OrgUnit::factory()->create(['name' => 'Head Office']);
-        $this->finance = OrgUnit::factory()->childOf($head)->create(['name' => 'Finance']);
-        $sales = OrgUnit::factory()->childOf($head)->create(['name' => 'Sales']);
+        $this->finance = Entity::factory()->create(['name' => 'Finance']);
+        $sales = Entity::factory()->create(['name' => 'Sales']);
 
-        $this->salma = Employee::factory()->inUnit($sales)->create(['code' => 'E-002', 'first_name' => 'Salma', 'last_name' => 'Begum']);
-        $this->rahim = Employee::factory()->inUnit($this->finance)->create([
+        $this->salma = Employee::factory()->inEntity($sales)->create(['code' => 'E-002', 'first_name' => 'Salma', 'last_name' => 'Begum']);
+        $this->rahim = Employee::factory()->inEntity($this->finance)->create([
             'code' => 'E-001', 'first_name' => 'Rahim', 'last_name' => 'Uddin', 'name_local' => 'রহিম',
             'designation_id' => Designation::factory()->create(['name' => 'Senior Officer'])->id,
             'national_id' => '1990123456789',
@@ -56,7 +55,7 @@ class EmployeeProfileTest extends TestCase
             ->assertSee('Rahim Uddin')
             ->assertSee('রহিম')
             ->assertSee('Senior Officer')
-            ->assertSee('Head Office › Finance')
+            ->assertSee('Finance (')
             ->assertSee('1990123456789');
     }
 
@@ -85,10 +84,10 @@ class EmployeeProfileTest extends TestCase
             ->assertSee(route('hrm.employees.show', $this->rahim), false);
     }
 
-    public function test_someone_outside_your_org_units_gives_404(): void
+    public function test_someone_outside_your_entities_gives_404(): void
     {
         $user = $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.employee.view']);
-        $user->role()->update(['org_unit_id' => $this->finance->id]);
+        $user->role()->update(['entity_id' => $this->finance->id]);
         app(Permissions::class)->flush();
 
         $this->get(route('hrm.employees.show', ['employee' => $this->rahim, 'tab' => 'job']))

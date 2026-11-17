@@ -160,7 +160,7 @@ class OvertimeRequest extends TenantModel implements Approvable, AsksApproverFor
     {
         return [
             'employee_id' => $this->employee_id,
-            'org_unit_id' => $this->employee?->org_unit_id,
+            'entity_ids' => $this->employee?->entityIds() ?? [],
             'employment_type_id' => $this->employee?->employment_type_id,
             'amount' => (float) $this->hours,   // a workflow can start from "more than 4 hours" (min_amount)
         ];

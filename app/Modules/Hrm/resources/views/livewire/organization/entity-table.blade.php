@@ -1,4 +1,4 @@
-{{-- OrgUnitTypeTable list. PHP side: App\Modules\Hrm\Livewire\Organization\OrgUnitTypeTable --}}
+{{-- EntityTable list. PHP side: App\Modules\Hrm\Livewire\Organization\EntityTable --}}
 <div class="glass overflow-hidden rounded-2xl">
 
     {{-- Toolbar --}}
@@ -7,7 +7,16 @@
             <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search…')" clearable />
         </div>
 
-        @if ($search !== '')
+        <div class="w-full sm:w-44">
+            <flux:select wire:model.live="entityTypeId" :aria-label="__('Type')">
+                <flux:select.option value="">{{ __('All') }}: {{ __('Type') }}</flux:select.option>
+                @foreach ($entityTypeIdOptions as $value => $label)
+                    <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
+                @endforeach
+            </flux:select>
+        </div>
+
+        @if ($search !== '' || $entityTypeId !== '')
             <flux:button wire:click="clearFilters" variant="ghost" size="sm" icon="x-mark">{{ __('Clear') }}</flux:button>
         @endif
 
@@ -22,17 +31,6 @@
             <thead>
                 <tr class="border-b border-white/50 text-left text-zinc-600 dark:border-white/10 dark:text-zinc-300">
                     <th class="px-4 py-3 font-medium whitespace-nowrap">
-                        <button type="button" wire:click="sort('sequence')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
-                            {{ __('Order') }}
-                            @if ($sortBy === 'sequence')
-                                <flux:icon :name="$sortDir === 'asc' ? 'chevron-up' : 'chevron-down'" variant="micro" />
-                            @else
-                                <flux:icon.chevron-up-down variant="micro" class="opacity-40" />
-                            @endif
-                        </button>
-                    </th>
-
-                    <th class="px-4 py-3 font-medium whitespace-nowrap">
                         <button type="button" wire:click="sort('name')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
                             {{ __('Name') }}
                             @if ($sortBy === 'name')
@@ -43,11 +41,24 @@
                         </button>
                     </th>
 
-                    <th class="px-4 py-3 font-medium">{{ __('Sits under') }}</th>
+                    <th class="px-4 py-3 font-medium">{{ __('Type') }}</th>
                     <th class="px-4 py-3 font-medium whitespace-nowrap">
-                        <button type="button" wire:click="sort('units_count')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
-                            {{ __('Units') }}
-                            @if ($sortBy === 'units_count')
+                        <button type="button" wire:click="sort('code')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
+                            {{ __('Code') }}
+                            @if ($sortBy === 'code')
+                                <flux:icon :name="$sortDir === 'asc' ? 'chevron-up' : 'chevron-down'" variant="micro" />
+                            @else
+                                <flux:icon.chevron-up-down variant="micro" class="opacity-40" />
+                            @endif
+                        </button>
+                    </th>
+
+                    <th class="px-4 py-3 font-medium">{{ __('Head') }}</th>
+                    <th class="px-4 py-3 font-medium">{{ __('Parent') }}</th>
+                    <th class="px-4 py-3 font-medium whitespace-nowrap">
+                        <button type="button" wire:click="sort('current_assignments_count')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
+                            {{ __('Employees') }}
+                            @if ($sortBy === 'current_assignments_count')
                                 <flux:icon :name="$sortDir === 'asc' ? 'chevron-up' : 'chevron-down'" variant="micro" />
                             @else
                                 <flux:icon.chevron-up-down variant="micro" class="opacity-40" />
@@ -70,19 +81,21 @@
             </thead>
 
             <tbody>
-                @foreach ($rows as $orgUnitType)
-                    <tr wire:key="org-unit-type-{{ $orgUnitType->getKey() }}" class="border-b border-white/40 text-zinc-800 last:border-0 hover:bg-white/40 dark:border-white/5 dark:text-zinc-100 dark:hover:bg-white/5">
-                        <td class="px-4 py-3">{{ $orgUnitType->sequence }}</td>
-                        {{-- Opens the edit form (it listens for "edit-org-unit-type"). --}}
+                @foreach ($rows as $entity)
+                    <tr wire:key="entity-{{ $entity->getKey() }}" class="border-b border-white/40 text-zinc-800 last:border-0 hover:bg-white/40 dark:border-white/5 dark:text-zinc-100 dark:hover:bg-white/5">
+                        {{-- Opens the edit form (it listens for "edit-entity"). --}}
                         <td class="px-4 py-3">
-                            <button type="button" x-on:click="$dispatch('edit-org-unit-type', { id: {{ $orgUnitType->getKey() }} })" class="text-left font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">
-                                {{ $orgUnitType->name }}
+                            <button type="button" x-on:click="$dispatch('edit-entity', { id: {{ $entity->getKey() }} })" class="text-left font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">
+                                {{ $entity->name }}
                             </button>
                         </td>
-                        <td class="px-4 py-3">{{ $orgUnitType->parentType->name ?? '-' }}</td>
-                        <td class="px-4 py-3">{{ $orgUnitType->units_count }}</td>
+                        <td class="px-4 py-3">{{ $entity->type->name }}</td>
+                        <td class="px-4 py-3">{{ $entity->code }}</td>
+                        <td class="px-4 py-3">{{ $entity->head->name ?? '-' }}</td>
+                        <td class="px-4 py-3">{{ $entity->parent ? $entity->parent->label() : '-' }}</td>
+                        <td class="px-4 py-3">{{ $entity->current_assignments_count }}</td>
                         <td class="px-4 py-3">
-                            @if ($orgUnitType->is_active)
+                            @if ($entity->is_active)
                                 <x-ui.badge color="success">{{ __('Active') }}</x-ui.badge>
                             @else
                                 <x-ui.badge>{{ __('Inactive') }}</x-ui.badge>

@@ -3,7 +3,6 @@
 namespace App\Modules\Payroll\Livewire\Attendance;
 
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Payroll\Services\AttendanceReprocessor;
 use Flux\Flux;
@@ -15,7 +14,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 /**
- * "Process again" on the Daily attendance tab: HR picks a date range and, if they like, one org unit
+ * "Process again" on the Daily attendance tab: HR picks a date range and, if they like, one entity
  * or one employee; one ProcessAttendance job per employee is queued.
  *
  * Only employees the user can see. Locked days (closed payroll) and future days are not changed.
@@ -31,7 +30,7 @@ class AttendanceReprocess extends Component
 
     public string $to = '';
 
-    public string $orgUnitId = '';
+    public string $entityId = '';
 
     public string $employeeId = '';
 
@@ -51,7 +50,7 @@ class AttendanceReprocess extends Component
         return [
             'from' => ['required', 'date_format:Y-m-d'],
             'to' => ['required', 'date_format:Y-m-d', 'after_or_equal:from', 'before_or_equal:'.$today],
-            'orgUnitId' => ['nullable', Rule::in(array_map('strval', array_keys($this->orgUnits())))],
+            'entityId' => ['nullable', Rule::in(array_map('strval', array_keys($this->entities())))],
             'employeeId' => ['nullable', Rule::in(array_map('strval', array_keys($this->employees())))],
         ];
     }
@@ -59,7 +58,7 @@ class AttendanceReprocess extends Component
     /** @return array<string, string> */
     protected function validationAttributes(): array
     {
-        return ['from' => __('from'), 'to' => __('to'), 'orgUnitId' => __('org unit'), 'employeeId' => __('employee')];
+        return ['from' => __('from'), 'to' => __('to'), 'entityId' => __('entity'), 'employeeId' => __('employee')];
     }
 
     public function run(AttendanceReprocessor $reprocessor): void
@@ -73,10 +72,9 @@ class AttendanceReprocess extends Component
         }
 
         // employedBetween() keeps the visibility scope: only employees this user may see.
-        $unitIds = $this->orgUnitId === '' ? null
-            : [(int) $this->orgUnitId, ...(OrgUnit::find((int) $this->orgUnitId)?->descendantIds() ?? [])];
+        $unitIds = $this->entityId === '' ? null : [(int) $this->entityId];
         $ids = $reprocessor->employedBetween($this->from, $this->to)
-            ->when($unitIds, fn ($q, $ids) => $q->whereIn('org_unit_id', $ids))
+            ->when($unitIds, fn ($q, $ids) => $q->inEntities($ids))
             ->when($this->employeeId !== '', fn ($q) => $q->whereKey((int) $this->employeeId))
             ->pluck('id');
 
@@ -92,10 +90,10 @@ class AttendanceReprocess extends Component
         });
     }
 
-    /** @return array<int, string> id => "Head Office › Finance" (units the user can see) */
-    private function orgUnits(): array
+    /** @return array<int, string> id => "Finance (Department)" (EmployeeVisibility::entityOptionsFor) */
+    private function entities(): array
     {
-        return app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user());
+        return app(EmployeeVisibility::class)->entityOptionsFor(Auth::user());
     }
 
     /** @return array<int, string> id => "E-0012 · Karim Ahmed" (employees the user can see, also those who left) */
@@ -108,7 +106,7 @@ class AttendanceReprocess extends Component
     public function render(): View
     {
         return view('payroll::livewire.attendance.attendance-reprocess', [
-            'units' => $this->orgUnits(),
+            'units' => $this->entities(),
             'employees' => $this->employees(),
             'today' => app(AttendanceReprocessor::class)->today(),
         ]);

@@ -21,9 +21,9 @@ return new class extends Migration
             $table->string('description')->nullable();
             // Administrator: passes every permission check. Set by the seeder, never from a form.
             $table->boolean('is_admin')->default(false);
-            // Data scope (legacy profiles.entity): users with this role only see this org unit's employees.
-            // No foreign key: org_units live in the HRM module's migrations.
-            $table->unsignedBigInteger('org_unit_id')->nullable()->index();
+            // Data scope (legacy profiles.entity): users with this role only see this entity's employees.
+            // No foreign key here: entities live in the HRM module's migrations (FK added there).
+            $table->unsignedBigInteger('entity_id')->nullable()->index();
             $table->timestamps();
         });
 

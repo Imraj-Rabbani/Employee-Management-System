@@ -38,7 +38,7 @@
                     </th>
 
                     <th class="px-4 py-3 font-medium">{{ __('Designation') }}</th>
-                    <th class="px-4 py-3 font-medium">{{ __('Org unit') }}</th>
+                    <th class="px-4 py-3 font-medium">{{ __('Entity') }}</th>
                     <th class="px-4 py-3 font-medium whitespace-nowrap">
                         <button type="button" wire:click="sort('type')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
                             {{ __('Type') }}
@@ -94,7 +94,7 @@
                             <a href="{{ route('hrm.recruitment.requests.show', $manpowerRequest->id) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $manpowerRequest->number() }}</a>
                         </td>
                         <td class="px-4 py-3">{{ $manpowerRequest->designation->name ?? '-' }}</td>
-                        <td class="px-4 py-3">{{ $manpowerRequest->orgUnit->name ?? '-' }}</td>
+                        <td class="px-4 py-3">{{ $manpowerRequest->entity->name ?? '-' }}</td>
                         <td class="px-4 py-3">{{ $manpowerRequest->type->label() }}</td>
                         <td class="px-4 py-3 text-right">{{ $manpowerRequest->headcount }}</td>
                         <td class="px-4 py-3">{{ $manpowerRequest->needed_by ? format_date($manpowerRequest->needed_by) : '-' }}</td>

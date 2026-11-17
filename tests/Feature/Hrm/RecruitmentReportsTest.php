@@ -14,9 +14,9 @@ use App\Modules\Hrm\Livewire\Recruitment\Reports\TimeToHireReport;
 use App\Modules\Hrm\Models\Applicant;
 use App\Modules\Hrm\Models\Application;
 use App\Modules\Hrm\Models\Designation;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\JobPosting;
 use App\Modules\Hrm\Models\ManpowerRequest;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Models\RejectionReason;
 use App\Modules\Hrm\Services\RecruitmentStats;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -34,21 +34,21 @@ class RecruitmentReportsTest extends TestCase
 
     private Tenant $tenant;
 
-    private OrgUnit $sales;
+    private Entity $sales;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->tenant = $this->actingAsTenantUser()->tenant;   // Administrator
-        $this->sales = OrgUnit::factory()->create(['name' => 'Sales']);
+        $this->sales = Entity::factory()->create(['name' => 'Sales']);
     }
 
     /** An approved request for $headcount people, $hired of them hired. */
     private function request(string $designation, int $headcount, int $hired = 0, array $attributes = []): ManpowerRequest
     {
         $request = ManpowerRequest::factory()->approved()->create([
-            'org_unit_id' => $this->sales->id,
+            'entity_id' => $this->sales->id,
             'designation_id' => Designation::factory()->create(['name' => $designation])->id,
             'headcount' => $headcount,
             ...$attributes,
@@ -102,14 +102,14 @@ class RecruitmentReportsTest extends TestCase
         $this->assertNotNull($late);
     }
 
-    public function test_only_the_users_org_units(): void
+    public function test_only_the_users_entities(): void
     {
         $this->request('Sales Officer', 1);
-        $finance = OrgUnit::factory()->create();
-        $this->request('Accountant', 1, attributes: ['org_unit_id' => $finance->id]);
+        $finance = Entity::factory()->create();
+        $this->request('Accountant', 1, attributes: ['entity_id' => $finance->id]);
 
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.recruitment.manage']);
-        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['org_unit_id' => $this->sales->id]);
+        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['entity_id' => $this->sales->id]);
 
         Livewire::test(OpenPositionsReport::class)->assertSee('Sales Officer')->assertDontSee('Accountant');
     }
@@ -224,14 +224,14 @@ class RecruitmentReportsTest extends TestCase
         Livewire::test(TimeToHireReport::class)->call('export')->assertFileDownloaded('time-to-hire-'.now()->format('Y-m-d').'.xlsx');
     }
 
-    public function test_hires_in_other_org_units_are_left_out(): void
+    public function test_hires_in_other_entities_are_left_out(): void
     {
-        $finance = OrgUnit::factory()->create();
-        $posting = JobPosting::factory()->for($this->request('Accountant', 1, attributes: ['org_unit_id' => $finance->id]))->open()->create();
+        $finance = Entity::factory()->create();
+        $posting = JobPosting::factory()->for($this->request('Accountant', 1, attributes: ['entity_id' => $finance->id]))->open()->create();
         $this->through($posting, [ApplicationStage::Offered, ApplicationStage::Hired]);
 
         $user = $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.recruitment.manage']);
-        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['org_unit_id' => $this->sales->id]);
+        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['entity_id' => $this->sales->id]);
 
         $this->assertTrue(app(RecruitmentStats::class)->hires($user)->isEmpty());
         Livewire::test(PipelineFunnelReport::class)->assertDontSee($posting->number());

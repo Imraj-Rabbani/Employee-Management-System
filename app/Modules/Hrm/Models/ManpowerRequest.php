@@ -31,7 +31,7 @@ use Illuminate\Support\Carbon;
  *     $request->openings()                 headcount still to fill
  *
  * @property int $id
- * @property int $org_unit_id
+ * @property int $entity_id
  * @property int $designation_id
  * @property int|null $position_id
  * @property int|null $grade_id
@@ -57,7 +57,7 @@ class ManpowerRequest extends TenantModel implements Approvable, ShowsApprovalDe
     use HasFactory;
 
     protected $fillable = [
-        'org_unit_id', 'designation_id', 'position_id', 'grade_id', 'employment_type_id', 'type',
+        'entity_id', 'designation_id', 'position_id', 'grade_id', 'employment_type_id', 'type',
         'replaces_employee_id', 'headcount', 'salary_min', 'salary_max', 'needed_by', 'justification',
         'requested_by_user_id',
     ];
@@ -80,10 +80,10 @@ class ManpowerRequest extends TenantModel implements Approvable, ShowsApprovalDe
 
     // ---- relations -------------------------------------------------------------------------
 
-    /** @return BelongsTo<OrgUnit, $this> */
-    public function orgUnit(): BelongsTo
+    /** @return BelongsTo<Entity, $this> */
+    public function entity(): BelongsTo
     {
-        return $this->belongsTo(OrgUnit::class);
+        return $this->belongsTo(Entity::class);
     }
 
     /** @return BelongsTo<Designation, $this> */
@@ -111,7 +111,7 @@ class ManpowerRequest extends TenantModel implements Approvable, ShowsApprovalDe
     }
 
     /**
-     * withoutGlobalScope: the person being replaced may be outside the viewer's org-unit access
+     * withoutGlobalScope: the person being replaced may be outside the viewer's entity access
      * (e.g. an approver higher up), but the request must still say who it is.
      *
      * @return BelongsTo<Employee, $this>
@@ -136,15 +136,15 @@ class ManpowerRequest extends TenantModel implements Approvable, ShowsApprovalDe
     }
 
     /**
-     * Requests of the org units this user may see (EmployeeVisibility: role's unit + units below it).
+     * Requests of the entities this user may see (EmployeeVisibility: the role's entity).
      *
      * @param  Builder<self>  $query
      */
     public function scopeVisibleTo(Builder $query, User $user): void
     {
-        $unitIds = app(EmployeeVisibility::class)->orgUnitIdsFor($user);
+        $unitIds = app(EmployeeVisibility::class)->entityIdsFor($user);
         if ($unitIds !== null) {
-            $query->whereIn('org_unit_id', $unitIds);
+            $query->whereIn('entity_id', $unitIds);
         }
     }
 
@@ -223,7 +223,7 @@ class ManpowerRequest extends TenantModel implements Approvable, ShowsApprovalDe
             'no' => $this->number(),
             'count' => $this->headcount,
             'designation' => $this->designation->name ?? '?',
-            'unit' => $this->orgUnit->name ?? '?',
+            'unit' => $this->entity->name ?? '?',
         ]);
     }
 
@@ -236,7 +236,7 @@ class ManpowerRequest extends TenantModel implements Approvable, ShowsApprovalDe
     {
         return [
             'employee_id' => $this->requesterEmployee()?->id,
-            'org_unit_id' => $this->org_unit_id,
+            'entity_ids' => [$this->entity_id],
             'employment_type_id' => $this->employment_type_id,
             'amount' => $this->salary_max === null ? null : (float) $this->salary_max * $this->headcount,
         ];

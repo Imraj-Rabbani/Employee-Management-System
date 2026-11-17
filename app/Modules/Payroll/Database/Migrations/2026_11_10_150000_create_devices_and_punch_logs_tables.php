@@ -24,8 +24,8 @@ return new class extends Migration
             $table->string('serial_number', 100)->nullable()->unique();
             $table->string('ip', 45);                                  // IPv4 or IPv6
             $table->unsignedInteger('port')->default(4370);            // ZKTeco default
-            // Where it hangs (information, and the default unit for reports). NULL = not tied to a unit.
-            $table->foreignId('org_unit_id')->nullable()->constrained()->restrictOnDelete();
+            // Where it hangs (information, e.g. Branch "Gulshan"). NULL = not tied to an entity.
+            $table->foreignId('entity_id')->nullable()->constrained()->restrictOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamp('last_synced_at')->nullable();
             $table->string('last_sync_error', 500)->nullable();        // NULL = last sync worked

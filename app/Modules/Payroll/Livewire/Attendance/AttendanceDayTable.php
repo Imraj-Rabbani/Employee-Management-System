@@ -3,7 +3,6 @@
 namespace App\Modules\Payroll\Livewire\Attendance;
 
 use App\Core\Exports\ArrayExport;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Payroll\Enums\AttendanceStatus;
 use App\Modules\Payroll\Models\AttendanceDay;
@@ -41,9 +40,9 @@ class AttendanceDayTable extends Component
     #[Url(as: 'status', except: '')]
     public string $status = '';
 
-    /** Filter "Org unit": '' = all */
-    #[Url(as: 'org_unit', except: '')]
-    public string $orgUnit = '';
+    /** Filter "Entity": '' = all */
+    #[Url(as: 'entity', except: '')]
+    public string $entity = '';
 
     #[Url(as: 'per_page', except: 10)]
     public int $perPage = 10;
@@ -67,7 +66,7 @@ class AttendanceDayTable extends Component
 
     public function clearFilters(): void
     {
-        $this->reset('month', 'status', 'orgUnit');
+        $this->reset('month', 'status', 'entity');
         $this->resetPage();
     }
 
@@ -97,7 +96,7 @@ class AttendanceDayTable extends Component
     /** Typing a search or picking a filter or page size starts again at page 1. */
     public function updated(string $property): void
     {
-        if (in_array($property, ['month', 'status', 'orgUnit', 'perPage'], true)) {
+        if (in_array($property, ['month', 'status', 'entity', 'perPage'], true)) {
             $this->resetPage();
         }
     }
@@ -129,10 +128,10 @@ class AttendanceDayTable extends Component
         return AttendanceStatus::options();
     }
 
-    /** @return array<int|string, string> choices of the "Org unit" filter */
-    private function orgUnitOptions(): array
+    /** @return array<int|string, string> choices of the "Entity" filter */
+    private function entityOptions(): array
     {
-        return app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user());
+        return app(EmployeeVisibility::class)->entityOptionsFor(Auth::user());
     }
 
     /** @return Builder<AttendanceDay> */
@@ -149,9 +148,8 @@ class AttendanceDayTable extends Component
             $query->where('status', $this->status);
         }
 
-        if ($this->orgUnit !== '' && array_key_exists($this->orgUnit, $this->orgUnitOptions())) {
-            $query->whereHas('employee', fn (Builder $e) => $e
-                ->whereIn('org_unit_id', [(int) $this->orgUnit, ...(OrgUnit::find((int) $this->orgUnit)?->descendantIds() ?? [])]));
+        if ($this->entity !== '' && array_key_exists($this->entity, $this->entityOptions())) {
+            $query->whereHas('employee', fn (Builder $e) => $e->inEntities([(int) $this->entity]));
         }
 
         if (in_array($this->sortBy, self::SORTABLE, true)) {
@@ -173,7 +171,7 @@ class AttendanceDayTable extends Component
             'rows' => $this->filteredQuery()->paginate($perPage),
             'monthOptions' => $this->monthOptions(),
             'statusOptions' => $this->statusOptions(),
-            'orgUnitOptions' => $this->orgUnitOptions(),
+            'entityOptions' => $this->entityOptions(),
         ]);
     }
 }

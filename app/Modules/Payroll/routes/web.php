@@ -20,12 +20,12 @@ Route::get('attendance', function () {
     abort(403);
 })->name('attendance');
 
-// Payroll → Attendance → Rosters: the list and one roster's page. Only rosters of the org units the user
+// Payroll → Attendance → Rosters: the list and one roster's page. Only rosters of the entities the user
 // can see (Roster::visibleTo): another unit's roster id in the URL gives 404.
 Route::middleware('can:payroll.roster.manage')->prefix('attendance/rosters')->name('attendance.rosters')->group(function () {
     Route::view('/', 'payroll::attendance.rosters');
     Route::get('{id}', fn (int $id) => view('payroll::attendance.roster-show', [
-        'roster' => Roster::query()->visibleTo(auth()->user())->with('orgUnit')->findOrFail($id),
+        'roster' => Roster::query()->visibleTo(auth()->user())->with('entity')->findOrFail($id),
     ]))->whereNumber('id')->name('.show');
     // The grid as Excel: also the template for "Import from Excel".
     Route::get('{id}/export', function (int $id) {

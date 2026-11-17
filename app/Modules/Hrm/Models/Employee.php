@@ -25,6 +25,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -37,7 +38,10 @@ use Illuminate\Validation\Rule;
  *     $employee->grade->name             org data through belongsTo relations
  *     $employee->supervisor              another Employee (self-referencing)
  *     $employee->subordinates            employees who report to this one
- *     $employee->orgAssignments          org unit history, newest first
+ *     $employee->entities                current entities: Department Finance, Branch Gulshan ...
+ *     $employee->entityAssignments       entity history (all types), newest first
+ *     $employee->entityOf($type)         the current entity of one type (Department → Finance)
+ *     Employee::inEntities([3, 7])       employees currently in any of these entities
  *     $employee->familyMembers / nominees   family and nominees
  *     $employee->educations / workHistories education and earlier jobs
  *     $employee->documents / bankAccounts   documents with expiry, bank accounts
@@ -75,13 +79,10 @@ use Illuminate\Validation\Rule;
  * @property Carbon|null $planned_confirmation_date
  * @property int|null $confirmation_status
  * @property Carbon|null $confirmation_date
- * @property int|null $org_unit_id
  * @property int|null $employment_type_id
  * @property int|null $designation_id
  * @property int|null $grade_id
  * @property int|null $position_id
- * @property int|null $branch_id
- * @property int|null $cost_center_id
  * @property int|null $supervisor_id
  * @property int|null $dotted_line_manager_id
  * @property int|null $shift_id
@@ -117,8 +118,8 @@ class Employee extends TenantModel
         'national_id', 'tin', 'passport_no',
         'mobile', 'personal_email', 'office_email', 'photo_path', 'signature_path',
         'join_date', 'planned_confirmation_date', 'confirmation_status', 'confirmation_date',
-        'org_unit_id', 'employment_type_id', 'designation_id', 'grade_id', 'position_id',
-        'branch_id', 'cost_center_id', 'supervisor_id', 'dotted_line_manager_id',
+        'employment_type_id', 'designation_id', 'grade_id', 'position_id',
+        'supervisor_id', 'dotted_line_manager_id',
         'shift_id', 'has_shifting', 'weekend_profile_id', 'holiday_profile_id', 'leave_profile_id',
         'salary_profile_id', 'salary_on_hold', 'bank_transfer_on_hold', 'salary_hold_reason', 'pay_scale_profile_id', 'tax_profile_id', 'payment_method',
         'status', 'separation_date',
@@ -138,22 +139,6 @@ class Employee extends TenantModel
         'status' => 1,              // EmployeeStatus::Active
         'has_shifting' => false,
     ];
-
-    /**
-     * Model events. booted() runs once per class; created() fires after every INSERT of an employee,
-     * however it is made (form, factory, import), so the org unit history always has a first row.
-     */
-    protected static function booted(): void
-    {
-        static::created(function (Employee $employee) {
-            if ($employee->org_unit_id !== null) {
-                $employee->orgAssignments()->create([
-                    'org_unit_id' => $employee->org_unit_id,
-                    'effective_from' => $employee->join_date,
-                ]);
-            }
-        });
-    }
 
     /** @return array<string, string> */
     protected function casts(): array
@@ -235,7 +220,7 @@ class Employee extends TenantModel
 
     /**
      * Would reporting to $supervisorId create a loop (A reports to B, B reports to ... A)?
-     * Walks up the supervisor chain. withoutGlobalScope: the chain may pass through units you cannot see.
+     * Walks up the supervisor chain. withoutGlobalScope: the chain may pass through people you cannot see.
      */
     public function wouldLoopUnder(int $supervisorId): bool
     {
@@ -254,20 +239,97 @@ class Employee extends TenantModel
         return false;
     }
 
-    /** @return BelongsTo<OrgUnit, $this> */
-    public function orgUnit(): BelongsTo
+    /**
+     * Entity history of every type, newest first. Change it only through ChangeEntity.
+     *
+     * @return HasMany<EmployeeEntity, $this>
+     */
+    public function entityAssignments(): HasMany
     {
-        return $this->belongsTo(OrgUnit::class);
+        return $this->hasMany(EmployeeEntity::class)->latestFirst();
     }
 
     /**
-     * Org unit history, newest first. Change it only through ChangeOrgUnit.
+     * The open rows: one per entity type the employee is in.
      *
-     * @return HasMany<EmployeeOrgAssignment, $this>
+     * @return HasMany<EmployeeEntity, $this>
      */
-    public function orgAssignments(): HasMany
+    public function currentEntityAssignments(): HasMany
     {
-        return $this->hasMany(EmployeeOrgAssignment::class)->latestFirst();
+        return $this->hasMany(EmployeeEntity::class)->whereNull('effective_to');
+    }
+
+    /**
+     * The entities the employee is in NOW (a many-to-many through employee_entities, open rows only).
+     *
+     * @return BelongsToMany<Entity, $this>
+     */
+    public function entities(): BelongsToMany
+    {
+        return $this->belongsToMany(Entity::class, 'employee_entities')
+            ->wherePivotNull('effective_to')
+            ->withPivot('entity_type_id', 'effective_from');
+    }
+
+    /**
+     * Ids of the current entities. Uses the loaded relation when there is one.
+     *
+     * @return list<int>
+     */
+    public function entityIds(): array
+    {
+        return $this->relationLoaded('currentEntityAssignments')
+            ? $this->currentEntityAssignments->pluck('entity_id')->map(fn ($id) => (int) $id)->values()->all()
+            : $this->currentEntityAssignments()->pluck('entity_id')->map(fn ($id) => (int) $id)->all();
+    }
+
+    /** The current entity of one type, e.g. entityOf($department) → Finance. Null = none of that type. */
+    public function entityOf(EntityType|int $type): ?Entity
+    {
+        $typeId = $type instanceof EntityType ? $type->id : $type;
+
+        return $this->entities()->wherePivot('entity_type_id', $typeId)->first();
+    }
+
+    /**
+     * "Finance (Department), Gulshan (Branch)": the current entities on one line, in type order.
+     * $withType false → "Finance, Gulshan" (lists). Eager load with('entities.type') in lists.
+     */
+    public function entitiesLabel(bool $withType = true): string
+    {
+        $this->loadMissing('entities.type');
+
+        return $this->entities
+            ->sortBy(fn (Entity $e) => [$e->type->sequence, $e->type->name])
+            ->map(fn (Entity $e) => $withType ? $e->label() : $e->name)
+            ->implode(', ');
+    }
+
+    /**
+     * Employees currently in ANY of these entities. A sub-query, so it works inside other where's:
+     * "employees.id IN (SELECT employee_id FROM employee_entities WHERE effective_to IS NULL AND entity_id IN (...))".
+     * An empty list matches nobody.
+     *
+     * @param  Builder<self>  $query
+     * @param  list<int>  $entityIds
+     */
+    public function scopeInEntities(Builder $query, array $entityIds): void
+    {
+        $query->whereIn($this->qualifyColumn('id'), self::idsInEntities($entityIds));
+    }
+
+    /**
+     * The sub-query behind inEntities(), for other tables that store an employee_id:
+     * $q->whereIn('leave_applications.employee_id', Employee::idsInEntities($ids)).
+     *
+     * @param  list<int>  $entityIds
+     */
+    public static function idsInEntities(array $entityIds): \Illuminate\Database\Query\Builder
+    {
+        return (new EmployeeEntity)->newQuery()->toBase()
+            ->select('employee_id')
+            ->whereNull('effective_to')
+            ->whereIn('entity_id', $entityIds);
     }
 
     /**
@@ -354,18 +416,6 @@ class Employee extends TenantModel
         return $this->belongsTo(Position::class);
     }
 
-    /** @return BelongsTo<Branch, $this> */
-    public function branch(): BelongsTo
-    {
-        return $this->belongsTo(Branch::class);
-    }
-
-    /** @return BelongsTo<CostCenter, $this> */
-    public function costCenter(): BelongsTo
-    {
-        return $this->belongsTo(CostCenter::class);
-    }
-
     /**
      * Own shift; NULL = the company's default shift (Shift::default()). Payroll module, 7.1.
      *
@@ -439,7 +489,7 @@ class Employee extends TenantModel
 
     /**
      * Everyone below this employee in the supervisor chain (direct reports, their reports, ...): a manager's team.
-     * withoutGlobalScope: a manager sees their team even without HR access to those org units.
+     * withoutGlobalScope: a manager sees their team even without HR access to those entities.
      *
      * @return list<int>
      */

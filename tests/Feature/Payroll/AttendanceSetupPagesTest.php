@@ -76,7 +76,7 @@ class AttendanceSetupPagesTest extends TestCase
         $shift = Shift::sole();
         $this->assertTrue($shift->is_overnight);
         $this->assertTrue($shift->is_default);
-        $this->assertNull($shift->org_unit_id);
+        $this->assertNull($shift->entity_id);
         $this->assertNull($shift->grace_limit_per_month);
 
         // The database gives 22:00:00; the form shows 22:00 so the H:i rule passes untouched.

@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * HRM → Job Postings: the list.
- * Only postings of org units the user can see (JobPosting::visibleTo). Click the number to open its page.
+ * Only postings of entities the user can see (JobPosting::visibleTo). Click the number to open its page.
  *
  * View: app/Modules/Hrm/resources/views/livewire/recruitment/job-posting-table.blade.php
  */
@@ -68,7 +68,7 @@ class JobPostingTable extends Component
         $rows = $this->filteredQuery()->get()->map(fn (JobPosting $jobPosting) => [
             $jobPosting->number(),
             $jobPosting->title,
-            $jobPosting->manpowerRequest->orgUnit->name ?? '-',
+            $jobPosting->manpowerRequest->entity->name ?? '-',
             $jobPosting->manpowerRequest->number(),
             $jobPosting->openings,
             format_date($jobPosting->open_date),
@@ -77,7 +77,7 @@ class JobPostingTable extends Component
         ])->all();
 
         return Excel::download(
-            new ArrayExport([__('No.'), __('Title'), __('Org unit'), __('Request'), __('Openings'), __('Opens'), __('Closes'), __('Status')], $rows),
+            new ArrayExport([__('No.'), __('Title'), __('Entity'), __('Request'), __('Openings'), __('Opens'), __('Closes'), __('Status')], $rows),
             'job-posting-table-'.now()->format('Y-m-d').'.xlsx',
         );
     }
@@ -93,10 +93,10 @@ class JobPostingTable extends Component
     /** @return Builder<JobPosting> */
     private function query(): Builder
     {
-        // "manpowerRequest.orgUnit": nested eager loading, the request AND its org unit in 2 queries.
+        // "manpowerRequest.entity": nested eager loading, the request AND its entity in 2 queries.
         return JobPosting::query()
             ->visibleTo(Auth::user())
-            ->with(['manpowerRequest.orgUnit']);
+            ->with(['manpowerRequest.entity']);
     }
 
     /** @return array<int|string, string> choices of the "Status" filter */

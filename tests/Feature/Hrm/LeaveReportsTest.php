@@ -8,9 +8,9 @@ use App\Modules\Hrm\Enums\LeaveEntryType;
 use App\Modules\Hrm\Livewire\Leave\LeaveBalanceTable;
 use App\Modules\Hrm\Livewire\Leave\LeaveCalendar;
 use App\Modules\Hrm\Models\Employee;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\LeaveApplication;
 use App\Modules\Hrm\Models\LeaveType;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Services\LeaveLedger;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -42,8 +42,8 @@ class LeaveReportsTest extends TestCase
         $this->actingAsTenantUser(tenant: $this->tenant);
 
         $this->casual = LeaveType::factory()->create(['code' => 'CL', 'name' => 'Casual leave']);
-        $this->karim = Employee::factory()->create(['code' => 'E001', 'first_name' => 'Karim', 'org_unit_id' => OrgUnit::factory()->create(['name' => 'Finance'])->id]);
-        $this->rina = Employee::factory()->create(['code' => 'E002', 'first_name' => 'Rina', 'org_unit_id' => OrgUnit::factory()->create(['name' => 'Sales'])->id]);
+        $this->karim = Employee::factory()->inEntity(Entity::factory()->create(['name' => 'Finance']))->create(['code' => 'E001', 'first_name' => 'Karim']);
+        $this->rina = Employee::factory()->inEntity(Entity::factory()->create(['name' => 'Sales']))->create(['code' => 'E002', 'first_name' => 'Rina']);
     }
 
     /** @param  array<string, float>  $days  'Y-m-d' => 1 or 0.5 */
@@ -76,8 +76,8 @@ class LeaveReportsTest extends TestCase
             ->assertSee('Waiting for approval');
         $this->assertSame(['2026-12-14' => 1.0, '2026-12-15' => 1.5], $calendar->viewData('perDay'));
 
-        // Org unit filter, and another month.
-        Livewire::test(LeaveCalendar::class)->set('orgUnitId', (string) $this->karim->org_unit_id)->assertSee('E001 · Karim')->assertDontSee('E002 · Rina');
+        // Entity filter, and another month.
+        Livewire::test(LeaveCalendar::class)->set('entityId', (string) $this->karim->entityIds()[0])->assertSee('E001 · Karim')->assertDontSee('E002 · Rina');
         Livewire::test(LeaveCalendar::class)->call('next')->assertSet('month', '2027-01')->assertSee('Nobody is on leave in January 2027');
     }
 

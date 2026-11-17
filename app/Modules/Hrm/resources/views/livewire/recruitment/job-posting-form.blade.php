@@ -8,7 +8,7 @@
                     <dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ([
                                 __('Manpower request') => $posting->manpowerRequest->number(),
-                                __('For') => $posting->manpowerRequest->headcount.' × '.($posting->manpowerRequest->designation->name ?? '?').' ('.($posting->manpowerRequest->orgUnit->name ?? '?').')',
+                                __('For') => $posting->manpowerRequest->headcount.' × '.($posting->manpowerRequest->designation->name ?? '?').' ('.($posting->manpowerRequest->entity->name ?? '?').')',
                                 __('Status') => $posting->status->label(),
                         ] as $detailLabel => $detailValue)
                             <div>

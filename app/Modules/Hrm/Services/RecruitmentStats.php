@@ -92,7 +92,7 @@ class RecruitmentStats
             ->where('to_stage', ApplicationStage::Hired)
             ->when($since, fn ($q) => $q->where('created_at', '>=', $since->copy()->startOfDay()))
             ->whereHas('application', fn ($q) => $q->visibleTo($user))
-            ->with(['application.applicant', 'application.hiredEmployee', 'application.jobPosting.manpowerRequest.orgUnit'])
+            ->with(['application.applicant', 'application.hiredEmployee', 'application.jobPosting.manpowerRequest.entity'])
             ->orderByDesc('created_at')
             ->get()
             ->map(function (ApplicationStageChange $change) {

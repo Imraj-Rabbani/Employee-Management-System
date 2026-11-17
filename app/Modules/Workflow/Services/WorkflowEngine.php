@@ -17,7 +17,7 @@ use App\Modules\Workflow\Models\ApprovalType;
 use App\Modules\Workflow\Models\Workflow;
 use App\Modules\Workflow\Models\WorkflowStep;
 use App\Modules\Workflow\Resolvers\EmployeeApprovers;
-use App\Modules\Workflow\Resolvers\OrgHeadApprovers;
+use App\Modules\Workflow\Resolvers\EntityHeadApprovers;
 use App\Modules\Workflow\Resolvers\RoleApprovers;
 use App\Modules\Workflow\Resolvers\SupervisorApprovers;
 use Illuminate\Database\Eloquent\Collection;
@@ -285,13 +285,15 @@ class WorkflowEngine
     }
 
     /**
-     * An empty scope column means "any". A filled one must equal the document's value.
+     * An empty scope column means "any". A filled one must equal the document's value
+     * (the entity: be one of the document's entity_ids).
      *
      * @param  array<string, mixed>  $context
      */
     private function matches(Workflow $workflow, array $context): bool
     {
-        if (! $this->sameId($workflow->scope_org_unit_id, $context['org_unit_id'] ?? null)) {
+        if ($workflow->scope_entity_id !== null
+            && ! in_array($workflow->scope_entity_id, array_map('intval', $context['entity_ids'] ?? []), true)) {
             return false;
         }
 
@@ -318,7 +320,7 @@ class WorkflowEngine
     /** How many scope columns are filled: 0 = catch-all workflow, 3 = very specific. */
     private function specificity(Workflow $workflow): int
     {
-        return (int) ($workflow->scope_org_unit_id !== null)
+        return (int) ($workflow->scope_entity_id !== null)
             + (int) ($workflow->scope_employment_type_id !== null)
             + (int) ($workflow->min_amount !== null);
     }
@@ -330,7 +332,7 @@ class WorkflowEngine
             ApproverType::Role => app(RoleApprovers::class),
             ApproverType::Employee => app(EmployeeApprovers::class),       // 5.8
             ApproverType::Supervisor => app(SupervisorApprovers::class),
-            ApproverType::OrgHead => app(OrgHeadApprovers::class),
+            ApproverType::EntityHead => app(EntityHeadApprovers::class),
         };
     }
 }

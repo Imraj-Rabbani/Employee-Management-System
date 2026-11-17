@@ -23,15 +23,14 @@
                 </flux:field>
             </div>
             <flux:field>
-                <flux:label>{{ __('Org unit') }}</flux:label>
-                <flux:description>{{ __('Also the units below it.') }}</flux:description>
-                <flux:select wire:model="orgUnitId">
+                <flux:label>{{ __('Entity') }}</flux:label>
+                <flux:select wire:model="entityId">
                     <flux:select.option value="">{{ __('All') }}</flux:select.option>
                     @foreach ($units as $optionValue => $optionLabel)
                         <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
                     @endforeach
                 </flux:select>
-                <flux:error name="orgUnitId" />
+                <flux:error name="entityId" />
             </flux:field>
 
             <flux:field>

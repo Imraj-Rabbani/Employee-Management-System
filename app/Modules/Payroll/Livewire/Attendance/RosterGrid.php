@@ -128,7 +128,7 @@ class RosterGrid extends Component
 
         $copy = $roster->getConnection()->transaction(function () use ($roster) {
             $copy = Roster::create([
-                'org_unit_id' => $roster->org_unit_id,
+                'entity_id' => $roster->entity_id,
                 'replaces_roster_id' => $roster->id,
                 'title' => mb_substr(__(':title (change)', ['title' => $roster->title]), 0, 150),
                 'from_date' => $roster->from_date,

@@ -52,7 +52,7 @@
                         </button>
                     </th>
 
-                    <th class="px-4 py-3 font-medium">{{ __('Org unit') }}</th>
+                    <th class="px-4 py-3 font-medium">{{ __('Entity') }}</th>
                     <th class="px-4 py-3 font-medium">{{ __('Request') }}</th>
                     <th class="px-4 py-3 font-medium whitespace-nowrap text-right">
                         <button type="button" wire:click="sort('openings')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
@@ -108,7 +108,7 @@
                             <a href="{{ route('hrm.recruitment.postings.show', $jobPosting->id) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $jobPosting->number() }}</a>
                         </td>
                         <td class="px-4 py-3">{{ $jobPosting->title }}</td>
-                        <td class="px-4 py-3">{{ $jobPosting->manpowerRequest->orgUnit->name ?? '-' }}</td>
+                        <td class="px-4 py-3">{{ $jobPosting->manpowerRequest->entity->name ?? '-' }}</td>
                         <td class="px-4 py-3">
                             <a href="{{ route('hrm.recruitment.requests.show', $jobPosting->manpowerRequest->id) }}" wire:navigate class="text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $jobPosting->manpowerRequest->number() }}</a>
                         </td>

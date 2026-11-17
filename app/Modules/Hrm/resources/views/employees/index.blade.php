@@ -2,7 +2,7 @@
 <x-layouts.app :title="__('Employees')">
     <div class="space-y-4">
         <div class="flex items-center justify-between gap-4">
-            <flux:subheading>{{ __('Everyone employed by the company. Filter by org unit, status, grade or type, choose columns and export to Excel.') }}</flux:subheading>
+            <flux:subheading>{{ __('Everyone employed by the company. Filter by entity, status, grade or type, choose columns and export to Excel.') }}</flux:subheading>
 
             @can('create', App\Modules\Hrm\Models\Employee::class)
                 <div class="flex shrink-0 gap-2">

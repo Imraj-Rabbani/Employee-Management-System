@@ -5,7 +5,6 @@ namespace App\Modules\Hrm\Livewire\Recruitment\Reports;
 use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Enums\JobPostingStatus;
 use App\Modules\Hrm\Models\JobPosting;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Hrm\Services\RecruitmentStats;
 use Illuminate\Contracts\View\View;
@@ -21,7 +20,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  *
  * Recruitment report: the pipeline funnel per job posting. How many applications EVER reached each
  * step, the % kept from "applied", and how many were rejected / withdrew. Numbers: RecruitmentStats::funnel().
- * Only postings of the user's org units. Not a DataTable (rows are worked out in PHP), so it has its own
+ * Only postings of the user's entities. Not a DataTable (rows are worked out in PHP), so it has its own
  * filters and export (ArrayExport).
  */
 class PipelineFunnelReport extends Component
@@ -29,18 +28,16 @@ class PipelineFunnelReport extends Component
     #[Url(as: 'status')]
     public string $status = '';
 
-    #[Url(as: 'unit')]
-    public string $orgUnit = '';
+    #[Url(as: 'entity')]
+    public string $entity = '';
 
     /** @return Collection<int, FunnelRow> */
     private function rows(RecruitmentStats $stats): Collection
     {
         $postings = JobPosting::query()->visibleTo(Auth::user())
             ->when(JobPostingStatus::tryFrom($this->status), fn ($q, $status) => $q->where('status', $status))
-            ->when($this->orgUnit !== '', fn ($q) => $q->whereHas('manpowerRequest', fn ($r) => $r->whereIn(
-                'org_unit_id', [(int) $this->orgUnit, ...(OrgUnit::find((int) $this->orgUnit)?->descendantIds() ?? [])],
-            )))
-            ->with('manpowerRequest.orgUnit')
+            ->when($this->entity !== '', fn ($q) => $q->whereHas('manpowerRequest', fn ($r) => $r->where('entity_id', (int) $this->entity)))
+            ->with('manpowerRequest.entity')
             ->orderByDesc('id')
             ->get();
 
@@ -65,14 +62,14 @@ class PipelineFunnelReport extends Component
 
     public function export(RecruitmentStats $stats): BinaryFileResponse
     {
-        $headings = [__('Posting'), __('Title'), __('Org unit'), __('Status')];
+        $headings = [__('Posting'), __('Title'), __('Entity'), __('Status')];
         foreach (RecruitmentStats::STEPS as $stage) {
             $headings[] = $stage->label();
         }
         $headings = [...$headings, __('Hired %'), __('Rejected'), __('Withdrawn')];
 
         $data = $this->rows($stats)->map(fn (array $row) => [
-            $row['posting']->number(), $row['posting']->title, $row['posting']->manpowerRequest->orgUnit->name ?? '', $row['posting']->status->label(),
+            $row['posting']->number(), $row['posting']->title, $row['posting']->manpowerRequest->entity->name ?? '', $row['posting']->status->label(),
             ...array_values($row['reached']),
             RecruitmentStats::percent($row['reached'][5], $row['reached'][1]), $row['rejected'], $row['withdrawn'],
         ])->all();
@@ -89,7 +86,7 @@ class PipelineFunnelReport extends Component
             'totals' => $this->totals($rows),
             'steps' => RecruitmentStats::STEPS,
             'statuses' => JobPostingStatus::options(),
-            'units' => app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user()),
+            'units' => app(EmployeeVisibility::class)->documentEntityOptionsFor(Auth::user()),
         ]);
     }
 }

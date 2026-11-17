@@ -7,7 +7,6 @@ use App\Modules\Hrm\Enums\EmployeeStatus;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\EmploymentType;
 use App\Modules\Hrm\Models\Grade;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,7 +24,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  * Only the employees the user may see are listed: the VisibleToCurrentUser global scope on Employee
  * filters every query, including the export, so this class does nothing extra for it.
  *
- * The org unit filter includes the units BELOW the chosen one: "Finance" also lists Accounts.
+ * The entity filter lists employees currently in that entity (any type: Department Finance, Branch Gulshan ...).
  *
  * View: app/Modules/Hrm/resources/views/livewire/employees/employee-table.blade.php
  */
@@ -42,9 +41,9 @@ class EmployeeTable extends Component
     #[Url(as: 'dir', except: 'asc')]
     public string $sortDir = 'asc';
 
-    /** Filter "Org unit": '' = all */
-    #[Url(as: 'org_unit', except: '')]
-    public string $orgUnit = '';
+    /** Filter "Entity": '' = all */
+    #[Url(as: 'entity', except: '')]
+    public string $entity = '';
 
     /** Filter "Status": '' = all */
     #[Url(as: 'status', except: '')]
@@ -65,13 +64,13 @@ class EmployeeTable extends Component
     private const SORTABLE = ['code', 'first_name', 'join_date', 'status'];
 
     /**
-     * Org units as "Head Office › Finance". A user limited to Finance only gets Finance and the units below.
+     * Entities as "Finance (Department)" (EmployeeVisibility::entityOptionsFor).
      *
-     * @return array<int, string> org unit id => path
+     * @return array<int, string> entity id => label
      */
-    private function orgUnitOptions(): array
+    private function entityOptions(): array
     {
-        return app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user());
+        return app(EmployeeVisibility::class)->entityOptionsFor(Auth::user());
     }
 
     public function sort(string $field): void
@@ -87,7 +86,7 @@ class EmployeeTable extends Component
 
     public function clearFilters(): void
     {
-        $this->reset('search', 'orgUnit', 'status', 'gradeId', 'employmentTypeId');
+        $this->reset('search', 'entity', 'status', 'gradeId', 'employmentTypeId');
         $this->resetPage();
     }
 
@@ -97,7 +96,7 @@ class EmployeeTable extends Component
             $employee->code,
             $employee->name,
             $employee->designation->name ?? '-',
-            $employee->orgUnit->name ?? '-',
+            $employee->entitiesLabel(withType: false) ?: '-',
             $employee->grade->name ?? '-',
             $employee->employmentType->name ?? '-',
             format_date($employee->join_date),
@@ -107,7 +106,7 @@ class EmployeeTable extends Component
         ])->all();
 
         return Excel::download(
-            new ArrayExport([__('Code'), __('Name'), __('Designation'), __('Org unit'), __('Grade'), __('Employment type'), __('Joined'), __('Mobile'), __('Office email'), __('Status')], $rows),
+            new ArrayExport([__('Code'), __('Name'), __('Designation'), __('Entities'), __('Grade'), __('Employment type'), __('Joined'), __('Mobile'), __('Office email'), __('Status')], $rows),
             'employee-table-'.now()->format('Y-m-d').'.xlsx',
         );
     }
@@ -115,7 +114,7 @@ class EmployeeTable extends Component
     /** Typing a search or picking a filter or page size starts again at page 1. */
     public function updated(string $property): void
     {
-        if (in_array($property, ['search', 'orgUnit', 'status', 'gradeId', 'employmentTypeId', 'perPage'], true)) {
+        if (in_array($property, ['search', 'entity', 'status', 'gradeId', 'employmentTypeId', 'perPage'], true)) {
             $this->resetPage();
         }
     }
@@ -124,7 +123,7 @@ class EmployeeTable extends Component
     private function query(): Builder
     {
         // with(): eager loading. 4 extra queries for the whole page instead of 4 per row ("N+1").
-        return Employee::query()->with(['designation', 'orgUnit', 'grade', 'employmentType']);
+        return Employee::query()->with(['designation', 'entities.type', 'grade', 'employmentType']);
     }
 
     /** @return array<int|string, string> choices of the "Status" filter */
@@ -156,11 +155,8 @@ class EmployeeTable extends Component
             $query->where(fn (Builder $q) => $q->where('code', 'like', $like)->orWhere('first_name', 'like', $like)->orWhere('last_name', 'like', $like)->orWhere('name_local', 'like', $like)->orWhere('mobile', 'like', $like)->orWhere('office_email', 'like', $like));
         }
 
-        if ($this->orgUnit !== '' && array_key_exists($this->orgUnit, $this->orgUnitOptions())) {
-            $query->whereIn(
-                'org_unit_id',
-                [(int) $this->orgUnit, ...(OrgUnit::find((int) $this->orgUnit)?->descendantIds() ?? [])],
-            );
+        if ($this->entity !== '' && array_key_exists($this->entity, $this->entityOptions())) {
+            $query->inEntities([(int) $this->entity]);
         }
 
         if ($this->status !== '' && array_key_exists($this->status, $this->statusOptions())) {
@@ -191,7 +187,7 @@ class EmployeeTable extends Component
 
         return view('hrm::livewire.employees.employee-table', [
             'rows' => $this->filteredQuery()->paginate($perPage),
-            'orgUnitOptions' => $this->orgUnitOptions(),
+            'entityOptions' => $this->entityOptions(),
             'statusOptions' => $this->statusOptions(),
             'gradeIdOptions' => $this->gradeIdOptions(),
             'employmentTypeIdOptions' => $this->employmentTypeIdOptions(),

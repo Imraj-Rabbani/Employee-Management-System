@@ -4,7 +4,7 @@ namespace App\Modules\Workflow\Models;
 
 use App\Core\Models\TenantModel;
 use App\Modules\Hrm\Models\EmploymentType;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property int $approval_type_id
  * @property string $name
- * @property int|null $scope_org_unit_id
+ * @property int|null $scope_entity_id
  * @property int|null $scope_employment_type_id
  * @property string|null $min_amount
  * @property bool $send_email
@@ -26,7 +26,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Workflow extends TenantModel
 {
     protected $fillable = [
-        'approval_type_id', 'name', 'scope_org_unit_id', 'scope_employment_type_id', 'min_amount',
+        'approval_type_id', 'name', 'scope_entity_id', 'scope_employment_type_id', 'min_amount',
         'send_email', 'allow_review', 'allow_reject', 'is_active',
     ];
 
@@ -36,7 +36,7 @@ class Workflow extends TenantModel
     protected function casts(): array
     {
         return [
-            'scope_org_unit_id' => 'integer',
+            'scope_entity_id' => 'integer',
             'scope_employment_type_id' => 'integer',
             'min_amount' => 'decimal:2',
             'send_email' => 'boolean',
@@ -52,10 +52,10 @@ class Workflow extends TenantModel
         return $this->belongsTo(ApprovalType::class);
     }
 
-    /** @return BelongsTo<OrgUnit, $this> */
-    public function scopeOrgUnit(): BelongsTo
+    /** @return BelongsTo<Entity, $this> */
+    public function scopeEntity(): BelongsTo
     {
-        return $this->belongsTo(OrgUnit::class, 'scope_org_unit_id');
+        return $this->belongsTo(Entity::class, 'scope_entity_id');
     }
 
     /** @return BelongsTo<EmploymentType, $this> */

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use App\Modules\Core\Models\Role;
 use App\Modules\Core\Models\UserRole;
+use App\Modules\Hrm\Actions\ChangeEntity;
 use App\Modules\Hrm\Actions\MoveApplication;
 use App\Modules\Hrm\Enums\ApplicationStage;
 use App\Modules\Hrm\Enums\EmployeeStatus;
@@ -16,19 +17,17 @@ use App\Modules\Hrm\Enums\ManpowerRequestType;
 use App\Modules\Hrm\Enums\PaymentMethod;
 use App\Modules\Hrm\Models\Applicant;
 use App\Modules\Hrm\Models\Application;
-use App\Modules\Hrm\Models\Branch;
-use App\Modules\Hrm\Models\CostCenter;
 use App\Modules\Hrm\Models\Designation;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\EmploymentType;
+use App\Modules\Hrm\Models\Entity;
+use App\Modules\Hrm\Models\EntityType;
 use App\Modules\Hrm\Models\Grade;
 use App\Modules\Hrm\Models\Interview;
 use App\Modules\Hrm\Models\InterviewFactor;
 use App\Modules\Hrm\Models\JobOffer;
 use App\Modules\Hrm\Models\JobPosting;
 use App\Modules\Hrm\Models\ManpowerRequest;
-use App\Modules\Hrm\Models\OrgUnit;
-use App\Modules\Hrm\Models\OrgUnitType;
 use App\Modules\Hrm\Models\Position;
 use App\Modules\Hrm\Models\RejectionReason;
 use Illuminate\Database\Seeder;
@@ -40,8 +39,8 @@ use Illuminate\Support\Facades\DB;
  *
  *     php artisan tenants:seed --tenant=demo --class=DemoDataSeeder
  *
- * Creates: cost centers, branches, employment types, grades, designations, an org tree
- * (Company → Divisions → Departments → Sections), positions, ~30 employees with supervisors,
+ * Creates: entities (Branches, Divisions, Departments with a Division as parent, with heads),
+ * employment types, grades, designations, positions, ~30 employees with supervisors,
  * interview factors, rejection reasons, manpower requests, job postings, applicants and
  * applications at every pipeline stage, interviews with scores, and one approved offer.
  *
@@ -70,7 +69,7 @@ class DemoDataSeeder extends Seeder
             return;
         }
 
-        $this->call(TenantDatabaseSeeder::class);   // roles, currency, org unit levels
+        $this->call(TenantDatabaseSeeder::class);   // roles, currency, entity levels
 
         DB::connection('tenant')->transaction(function () {
             $this->userId = $this->giveFirstLoginAdmin();
@@ -101,17 +100,17 @@ class DemoDataSeeder extends Seeder
     /** @return array<string, mixed> */
     private function organization(): array
     {
-        $cc = collect([
-            ['CC-100', 'Head Office', '5100'],
-            ['CC-200', 'Factory', '5200'],
-            ['CC-300', 'Sales & Distribution', '5300'],
-        ])->mapWithKeys(fn ($c) => [$c[0] => CostCenter::create(['code' => $c[0], 'name' => $c[1], 'account_code' => $c[2]])]);
+        // Entity types (seeded for every new company; firstOrCreate in case they were renamed).
+        $typeId = fn (string $name) => EntityType::firstOrCreate(['name' => $name])->id;
+        $entity = fn (string $code, string $name, string $type, ?Entity $parent = null) => Entity::create([
+            'code' => $code, 'name' => $name, 'entity_type_id' => $typeId($type), 'parent_id' => $parent?->id,
+        ]);
 
         $branches = collect([
-            ['Dhaka HQ', 'Gulshan-2, Dhaka'],
-            ['Chattogram', 'Agrabad C/A, Chattogram'],
-            ['Gazipur Factory', 'Board Bazar, Gazipur'],
-        ])->map(fn ($b) => Branch::create(['name' => $b[0], 'location' => $b[1]]))->values();
+            ['BR-DHK', 'Dhaka HQ'],
+            ['BR-CTG', 'Chattogram'],
+            ['BR-GZP', 'Gazipur Factory'],
+        ])->map(fn ($b) => $entity($b[0], $b[1], 'Branch'))->values();
 
         $types = collect(['Permanent', 'Contract', 'Probation', 'Intern'])
             ->mapWithKeys(fn ($n) => [$n => EmploymentType::create(['name' => $n])]);
@@ -131,28 +130,24 @@ class DemoDataSeeder extends Seeder
             'OFF' => 'Officer', 'ENG' => 'Software Engineer', 'ACC' => 'Accountant', 'INT' => 'Intern',
         ])->mapWithKeys(fn ($name, $code) => [$code => Designation::create(['code' => 'D-'.$code, 'name' => $name])]);
 
-        $type = OrgUnitType::orderBy('sequence')->pluck('id')->values();   // Company, Division, Department, Section
-        $unit = fn (string $code, string $name, int $level, ?OrgUnit $parent, string $cc) => OrgUnit::create([
-            'code' => $code, 'name' => $name, 'org_unit_type_id' => $type[$level] ?? $type->last(),
-            'parent_id' => $parent?->id, 'cost_center_id' => $cc,
-        ]);
-
-        $company = $unit('DC', 'Demo Company Ltd.', 0, null, $cc['CC-100']->id);
-        $ops = $unit('OPS', 'Operations', 1, $company, $cc['CC-200']->id);
-        $corp = $unit('CORP', 'Corporate Services', 1, $company, $cc['CC-100']->id);
+        // Divisions, and Departments with their Division as (optional) parent: when a Department has
+        // no head, "Head of Department" approvals go to the Division's head.
+        $ops = $entity('OPS', 'Operations', 'Division');
+        $corp = $entity('CORP', 'Corporate Services', 'Division');
         $units = [
-            'company' => $company, 'ops' => $ops, 'corp' => $corp,
-            'production' => $unit('PRD', 'Production', 2, $ops, $cc['CC-200']->id),
-            'supply' => $unit('SCM', 'Supply Chain', 2, $ops, $cc['CC-200']->id),
-            'sales' => $unit('SAL', 'Sales & Marketing', 2, $ops, $cc['CC-300']->id),
-            'finance' => $unit('FIN', 'Finance & Accounts', 2, $corp, $cc['CC-100']->id),
-            'hr' => $unit('HR', 'Human Resources', 2, $corp, $cc['CC-100']->id),
-            'it' => $unit('IT', 'Information Technology', 2, $corp, $cc['CC-100']->id),
+            'company' => $entity('EXE', 'Executive Office', 'Department'),
+            'ops' => $ops, 'corp' => $corp,
+            'production' => $entity('PRD', 'Production', 'Department', $ops),
+            'supply' => $entity('SCM', 'Supply Chain', 'Department', $ops),
+            'sales' => $entity('SAL', 'Sales & Marketing', 'Department', $ops),
+            'finance' => $entity('FIN', 'Finance & Accounts', 'Department', $corp),
+            'hr' => $entity('HR', 'Human Resources', 'Department', $corp),
+            'it' => $entity('IT', 'Information Technology', 'Department', $corp),
+            'assembly' => $entity('PRD-A', 'Assembly Line', 'Department', $ops),
+            'qc' => $entity('PRD-Q', 'Quality Control', 'Department', $ops),
         ];
-        $units['assembly'] = $unit('PRD-A', 'Assembly Line', 3, $units['production'], $cc['CC-200']->id);
-        $units['qc'] = $unit('PRD-Q', 'Quality Control', 3, $units['production'], $cc['CC-200']->id);
 
-        return compact('cc', 'branches', 'types', 'grades', 'designations', 'units');
+        return compact('branches', 'types', 'grades', 'designations', 'units');
     }
 
     /**
@@ -198,7 +193,7 @@ class DemoDataSeeder extends Seeder
             $unit = $u[$unitKey];
             $position = Position::create([
                 'code' => 'P-'.strtoupper($key), 'name' => $org['designations'][$desig]->name.' — '.$unit->name,
-                'org_unit_id' => $unit->id, 'grade_id' => $org['grades'][$grade]->id,
+                'entity_id' => $unit->id, 'grade_id' => $org['grades'][$grade]->id,
                 'parent_id' => $boss ? $positions[$boss]->id : null, 'is_vacant' => false,
             ]);
             $positions[$key] = $position;
@@ -212,7 +207,7 @@ class DemoDataSeeder extends Seeder
 
         // One vacant position, so the position tree shows a gap to fill.
         Position::create([
-            'code' => 'P-IT-SE', 'name' => 'Senior Software Engineer — Information Technology', 'org_unit_id' => $u['it']->id,
+            'code' => 'P-IT-SE', 'name' => 'Senior Software Engineer — Information Technology', 'entity_id' => $u['it']->id,
             'grade_id' => $org['grades']['G-4']->id, 'parent_id' => $positions['it_mgr']->id, 'is_vacant' => true,
         ]);
 
@@ -242,7 +237,7 @@ class DemoDataSeeder extends Seeder
     }
 
     /** @param  array<string, mixed>  $org */
-    private function employee(array $org, OrgUnit $unit, string $desig, string $grade, ?Employee $boss, Branch $branch, string $type, ?Position $position = null): Employee
+    private function employee(array $org, Entity $unit, string $desig, string $grade, ?Employee $boss, Entity $branch, string $type, ?Position $position = null): Employee
     {
         $male = fake()->boolean(60);
         $first = fake()->randomElement($male ? self::FIRST_MALE : self::FIRST_FEMALE);
@@ -251,7 +246,7 @@ class DemoDataSeeder extends Seeder
 
         $joined = Carbon::instance(fake()->dateTimeBetween($desig === 'INT' ? '-4 months' : '-9 years', '-3 months'));
 
-        return Employee::create([
+        $employee = Employee::create([
             'code' => $code,
             'first_name' => $first,
             'last_name' => $last,
@@ -262,17 +257,19 @@ class DemoDataSeeder extends Seeder
             'mobile' => '01'.fake()->randomElement(['7', '8', '9', '3', '5']).fake()->numerify('########'),
             'office_email' => strtolower($first.'.'.$last.'.'.$this->code).'@demo.test',
             'join_date' => $joined->toDateString(),
-            'org_unit_id' => $unit->id,
             'employment_type_id' => $org['types'][$type]->id,
             'designation_id' => $org['designations'][$desig]->id,
             'grade_id' => $org['grades'][$grade]->id,
             'position_id' => $position?->id,
-            'branch_id' => $branch->id,
-            'cost_center_id' => $unit->cost_center_id,
             'supervisor_id' => $boss?->id,
             'payment_method' => $type === 'Intern' ? PaymentMethod::Cash : PaymentMethod::Bank,
             'status' => EmployeeStatus::Active,
         ]);
+
+        // Department (or Division for the division heads), its Division, and the Branch.
+        app(ChangeEntity::class)->assignOnJoining($employee, [$unit->id, $unit->parent_id, $branch->id]);
+
+        return $employee;
     }
 
     /**
@@ -293,9 +290,9 @@ class DemoDataSeeder extends Seeder
         $reasons = collect(['Not enough experience', 'Salary expectation too high', 'Did not attend interview', 'Accepted another offer', 'Failed technical test'])
             ->mapWithKeys(fn ($n) => [$n => RejectionReason::create(['name' => $n])]);
 
-        $request = function (OrgUnit $unit, Designation $desig, Grade $grade, int $headcount, int $min, int $max, string $why, bool $approved, ?Employee $replaces = null) use ($org) {
+        $request = function (Entity $unit, Designation $desig, Grade $grade, int $headcount, int $min, int $max, string $why, bool $approved, ?Employee $replaces = null) use ($org) {
             $r = ManpowerRequest::create([
-                'org_unit_id' => $unit->id, 'designation_id' => $desig->id, 'grade_id' => $grade->id,
+                'entity_id' => $unit->id, 'designation_id' => $desig->id, 'grade_id' => $grade->id,
                 'employment_type_id' => $org['types']['Permanent']->id,
                 'type' => $replaces ? ManpowerRequestType::Replacement : ManpowerRequestType::New,
                 'replaces_employee_id' => $replaces?->id,
@@ -450,21 +447,21 @@ class DemoDataSeeder extends Seeder
     /** @param  array<string, mixed>  $org */
     private function hire(Applicant $applicant, array $org): Employee
     {
-        return Employee::create([
+        $employee = Employee::create([
             'code' => 'E-'.++$this->code,
             'first_name' => $applicant->first_name, 'last_name' => $applicant->last_name,
             'gender' => $applicant->gender, 'birth_date' => $applicant->birth_date,
             'mobile' => $applicant->phone, 'personal_email' => $applicant->email,
             'join_date' => now()->subWeeks(2)->toDateString(),
-            'org_unit_id' => $org['units']['qc']->id,
             'employment_type_id' => $org['types']['Probation']->id,
             'designation_id' => $org['designations']['EX']->id,
             'grade_id' => $org['grades']['G-5']->id,
-            'branch_id' => $org['branches'][2]->id,
-            'cost_center_id' => $org['units']['qc']->cost_center_id,
             'supervisor_id' => $org['units']['qc']->head_employee_id,
             'payment_method' => PaymentMethod::Bank,
             'status' => EmployeeStatus::Active,
         ]);
+        app(ChangeEntity::class)->assignOnJoining($employee, [$org['units']['qc']->id, $org['units']['qc']->parent_id, $org['branches'][2]->id]);
+
+        return $employee;
     }
 }

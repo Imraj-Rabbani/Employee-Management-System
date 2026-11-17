@@ -29,7 +29,7 @@ Route::view('employees', 'hrm::employees.index')
 Route::middleware('can:create,'.Employee::class)->group(function () {
     Route::view('employees/import', 'hrm::employees.import')->name('employees.import');
     Route::get('employees/import/template', fn (EmployeeVisibility $visibility) => Excel::download(
-        new EmployeeImportTemplate($visibility->orgUnitOptionsFor(auth()->user())),
+        new EmployeeImportTemplate($visibility->entityChoicesFor(auth()->user())),
         'employee-import-template.xlsx',
     ))->name('employees.import.template');
 });
@@ -77,9 +77,9 @@ Route::view('org/chart', 'hrm::org-chart')
     ->middleware('can:viewAny,'.Employee::class)
     ->name('org.chart');
 
-// HRM → Organization: one page view, one URL per section (hrm.org.units, hrm.org.grades ...).
+// HRM → Organization: one page view, one URL per section (hrm.org.entities, hrm.org.grades ...).
 Route::middleware('can:hrm.organization.manage')->prefix('org')->name('org.')->group(function () {
-    foreach (['units', 'positions', 'designations', 'grades', 'branches', 'cost-centers', 'employment-types', 'unit-levels'] as $section) {
+    foreach (['entity-types', 'entities', 'positions', 'designations', 'grades', 'employment-types'] as $section) {
         Route::view($section, 'hrm::organization', ['section' => $section])->name($section);
     }
 });
@@ -104,32 +104,32 @@ Route::get('employees/{employee}/attachments/{section}/{id}', function (Employee
 })->middleware('can:view,employee')->whereNumber('id')->name('employees.attachment');
 
 // HRM → Recruitment → Manpower requests: the start of the hiring process. Each user sees the
-// requests of the org units they can see (ManpowerRequest::visibleTo).
+// requests of the entities they can see (ManpowerRequest::visibleTo).
 Route::view('recruitment/requests', 'hrm::recruitment.requests')
     ->middleware('can:hrm.recruitment.request')
     ->name('recruitment.requests');
 
 // One request: details, approval timeline, Edit / Send for approval. HR (manage) may read it too
 // (view-requests, HrmServiceProvider); the buttons need hrm.recruitment.request. Looked up THROUGH visibleTo(), so a
-// request of an org unit the user cannot see gives 404 (not a plain ->find()).
+// request of an entity the user cannot see gives 404 (not a plain ->find()).
 Route::get('recruitment/requests/{id}', fn (int $id) => view('hrm::recruitment.request-show', [
     'request' => ManpowerRequest::query()->visibleTo(auth()->user())->findOrFail($id),
 ]))->middleware('can:hrm.recruitment.view-requests')->whereNumber('id')->name('recruitment.requests.show');
 
-// HRM → Job Postings: HR advertises approved manpower requests. Same org-unit limit as the
+// HRM → Job Postings: HR advertises approved manpower requests. Same entity limit as the
 // requests (JobPosting::visibleTo).
 Route::view('recruitment/postings', 'hrm::recruitment.postings')
     ->middleware('can:hrm.recruitment.manage')
     ->name('recruitment.postings');
 
-// One posting: details, Open / Close / Reopen, Edit. Looked up through visibleTo() (other org units → 404).
+// One posting: details, Open / Close / Reopen, Edit. Looked up through visibleTo() (other entities → 404).
 Route::get('recruitment/postings/{id}', fn (int $id) => view('hrm::recruitment.posting-show', [
     'posting' => JobPosting::query()->visibleTo(auth()->user())->findOrFail($id),
 ]))->middleware('can:hrm.recruitment.manage')->whereNumber('id')->name('recruitment.postings.show');
 
 // HRM → Applicants: the people HR entered, their profile (education, work history, CV) and
 // applications. The talent pool is company-wide: everyone with hrm.recruitment.manage sees all applicants,
-// but only the applications to postings of their org units (Application::visibleTo).
+// but only the applications to postings of their entities (Application::visibleTo).
 Route::middleware('can:hrm.recruitment.manage')->prefix('recruitment/applicants')->name('recruitment.applicants')->group(function () {
     Route::view('/', 'hrm::recruitment.applicants');
     Route::get('{applicant}', fn (Applicant $applicant) => view('hrm::recruitment.applicant-show', compact('applicant')))
@@ -160,7 +160,7 @@ Route::middleware('can:hrm.recruitment.manage')->prefix('recruitment/offers/{id}
     })->name('letter');
 });
 
-// HRM → Recruitment Reports: one URL per report, like Organization. Data limited to the user's org units.
+// HRM → Recruitment Reports: one URL per report, like Organization. Data limited to the user's entities.
 Route::middleware('can:hrm.recruitment.manage')->prefix('recruitment/reports')->name('recruitment.reports.')->group(function () {
     foreach (['open-positions', 'funnel', 'time-to-hire'] as $report) {
         Route::view($report, 'hrm::recruitment.reports', ['report' => $report])->name($report);

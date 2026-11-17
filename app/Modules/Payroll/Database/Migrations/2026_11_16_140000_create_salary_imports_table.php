@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Uploaded Excel files of employee salaries and what happened to them. Same shape as employee_imports.
- *   user_id   who uploaded it (central users.id, no FK): the job imports with that user's org-unit access
+ *   user_id   who uploaded it (central users.id, no FK): the job imports with that user's entity access
  *   errors    JSON list of {row, column, message}: the validation report
  */
 return new class extends Migration

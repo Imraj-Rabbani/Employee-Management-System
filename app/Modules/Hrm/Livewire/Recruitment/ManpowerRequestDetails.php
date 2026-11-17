@@ -55,11 +55,11 @@ class ManpowerRequestDetails extends Component
     #[On('manpower-request-saved')]
     public function refreshDetails(): void {}
 
-    /** Through visibleTo(): a request outside the user's org units gives 404, even here. */
+    /** Through visibleTo(): a request outside the user's entities gives 404, even here. */
     private function request(): ManpowerRequest
     {
         return ManpowerRequest::query()->visibleTo(Auth::user())
-            ->with(['orgUnit', 'designation', 'position', 'grade', 'employmentType', 'replacesEmployee', 'approvals'])
+            ->with(['entity', 'designation', 'position', 'grade', 'employmentType', 'replacesEmployee', 'approvals'])
             ->findOrFail($this->requestId);
     }
 

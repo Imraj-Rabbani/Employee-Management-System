@@ -2,8 +2,8 @@
 
 namespace App\Modules\Hrm\Database\Factories;
 
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\Grade;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Models\Position;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -21,7 +21,7 @@ class PositionFactory extends Factory
         return [
             'code' => 'P-'.fake()->unique()->numerify('#####'),
             'name' => fake()->jobTitle(),
-            'org_unit_id' => OrgUnit::factory(),
+            'entity_id' => Entity::factory(),
             'grade_id' => Grade::factory(),
             'is_vacant' => true,
         ];
@@ -30,6 +30,6 @@ class PositionFactory extends Factory
     /** Reports to $boss: Position::factory()->reportingTo($manager)->create(). */
     public function reportingTo(Position $boss): static
     {
-        return $this->state(['parent_id' => $boss->id, 'org_unit_id' => $boss->org_unit_id]);
+        return $this->state(['parent_id' => $boss->id, 'entity_id' => $boss->entity_id]);
     }
 }

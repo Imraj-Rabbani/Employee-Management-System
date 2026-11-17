@@ -7,9 +7,8 @@ use Illuminate\Support\Facades\Schema;
 /**
  * TENANT lookup tables of the organisation.
  *
- *   org_unit_types    legacy `entitytypes`: the company's own levels, e.g. Function → Department → Location
- *   cost_centers      legacy `costcenters`: where salary cost is booked (GL / accounting)
- *   branches          legacy `branches`
+ *   entity_types      legacy `entitytypes`: the company's own KINDS of entity, e.g. Department, Branch,
+ *                     Division, Location, Area. A flat list the company can add to.
  *   designations      legacy `designations`: job title on paper, e.g. "Senior Officer"
  *   grades            legacy `grades`: pay level, ordered by `sequence`
  *   employment_types  legacy `employmenttype`: Permanent, Contract, ...
@@ -18,30 +17,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('org_unit_types', function (Blueprint $table) {
+        Schema::create('entity_types', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100)->unique();
-            // Self-reference: a "Department" sits under a "Function". NULL = may be a top-level unit.
-            $table->foreignId('parent_type_id')->nullable()->constrained('org_unit_types')->nullOnDelete();
-            $table->unsignedInteger('sequence')->default(0);   // order in lists: top levels first
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
-
-        Schema::create('cost_centers', function (Blueprint $table) {
-            $table->id();
-            $table->string('code', 50)->unique();
-            $table->string('name', 100);
-            $table->string('function_code', 50)->nullable();
-            $table->string('account_code', 50)->nullable();   // GL account for the accounting export
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
-
-        Schema::create('branches', function (Blueprint $table) {
-            $table->id();
-            $table->string('name', 100)->unique();
-            $table->string('location')->nullable();
+            $table->unsignedInteger('sequence')->default(0);   // order in lists and forms
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -79,8 +58,6 @@ return new class extends Migration
         Schema::dropIfExists('employment_types');
         Schema::dropIfExists('grades');
         Schema::dropIfExists('designations');
-        Schema::dropIfExists('branches');
-        Schema::dropIfExists('cost_centers');
-        Schema::dropIfExists('org_unit_types');
+        Schema::dropIfExists('entity_types');
     }
 };

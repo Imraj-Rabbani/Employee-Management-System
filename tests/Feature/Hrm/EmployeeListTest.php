@@ -7,8 +7,9 @@ use App\Modules\Core\Services\Permissions;
 use App\Modules\Hrm\Livewire\Employees\EmployeeTable;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\EmploymentType;
+use App\Modules\Hrm\Models\Entity;
+use App\Modules\Hrm\Models\EntityType;
 use App\Modules\Hrm\Models\Grade;
-use App\Modules\Hrm\Models\OrgUnit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\Concerns\ActsAsTenantUser;
@@ -17,8 +18,8 @@ use Tests\TestCase;
 /**
  * HRM → Employees list.
  *
- * Structure used: Head Office › Finance › Accounts, and Head Office › Sales.
- * Employees: Rahim (Finance), Karim (Accounts, separated), Salma (Sales, Grade 5, Contract).
+ * Entities: Departments Finance and Sales, Branch Gulshan.
+ * Employees: Rahim (Finance), Karim (Finance + Gulshan, separated), Salma (Sales, Grade 5, Contract).
  */
 class EmployeeListTest extends TestCase
 {
@@ -27,9 +28,11 @@ class EmployeeListTest extends TestCase
 
     private Tenant $tenant;
 
-    private OrgUnit $finance;
+    private Entity $finance;
 
-    private OrgUnit $sales;
+    private Entity $sales;
+
+    private Entity $gulshan;
 
     private Grade $grade5;
 
@@ -42,16 +45,16 @@ class EmployeeListTest extends TestCase
         $admin = $this->actingAsTenantUser();
         $this->tenant = $admin->tenant;
 
-        $head = OrgUnit::factory()->create(['name' => 'Head Office']);
-        $this->finance = OrgUnit::factory()->childOf($head)->create(['name' => 'Finance']);
-        $accounts = OrgUnit::factory()->childOf($this->finance)->create(['name' => 'Accounts']);
-        $this->sales = OrgUnit::factory()->childOf($head)->create(['name' => 'Sales']);
+        $department = EntityType::firstWhere('name', 'Department');
+        $this->finance = Entity::factory()->ofType($department)->create(['name' => 'Finance']);
+        $this->sales = Entity::factory()->ofType($department)->create(['name' => 'Sales']);
+        $this->gulshan = Entity::factory()->ofType(EntityType::firstWhere('name', 'Branch'))->create(['name' => 'Gulshan']);
         $this->grade5 = Grade::factory()->create(['name' => 'Grade 5']);
         $this->contract = EmploymentType::factory()->create(['name' => 'Contract']);
 
-        Employee::factory()->inUnit($this->finance)->create(['code' => 'E-001', 'first_name' => 'Rahim', 'last_name' => 'Uddin']);
-        Employee::factory()->inUnit($accounts)->separated()->create(['code' => 'E-002', 'first_name' => 'Karim', 'last_name' => 'Hasan']);
-        Employee::factory()->inUnit($this->sales)->create([
+        Employee::factory()->inEntity($this->finance)->create(['code' => 'E-001', 'first_name' => 'Rahim', 'last_name' => 'Uddin']);
+        Employee::factory()->inEntity($this->finance, $this->gulshan)->separated()->create(['code' => 'E-002', 'first_name' => 'Karim', 'last_name' => 'Hasan']);
+        Employee::factory()->inEntity($this->sales)->create([
             'code' => 'E-003', 'first_name' => 'Salma', 'last_name' => 'Begum', 'name_local' => 'সালমা',
             'grade_id' => $this->grade5->id, 'employment_type_id' => $this->contract->id,
         ]);
@@ -73,10 +76,10 @@ class EmployeeListTest extends TestCase
         $this->get(route('hrm.employees.index'))->assertForbidden();
     }
 
-    public function test_a_user_limited_to_finance_only_sees_finance_and_below(): void
+    public function test_a_user_limited_to_finance_only_sees_finance(): void
     {
         $user = $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.employee.view']);
-        $user->role()->update(['org_unit_id' => $this->finance->id]);
+        $user->role()->update(['entity_id' => $this->finance->id]);
         app(Permissions::class)->flush();
 
         Livewire::test(EmployeeTable::class)
@@ -85,13 +88,17 @@ class EmployeeListTest extends TestCase
             ->assertDontSee('Salma Begum');
     }
 
-    public function test_the_org_unit_filter_includes_sub_units(): void
+    public function test_the_entity_filter_works_for_any_type_and_the_list_shows_all_entities(): void
     {
         Livewire::test(EmployeeTable::class)
-            ->set('orgUnit', (string) $this->finance->id)
+            ->assertSee('Finance, Gulshan')   // Karim's entities, in type order
+            ->set('entity', (string) $this->finance->id)
             ->assertSee('Rahim Uddin')
-            ->assertSee('Karim Hasan')     // in Accounts, under Finance
-            ->assertDontSee('Salma Begum');
+            ->assertSee('Karim Hasan')
+            ->assertDontSee('Salma Begum')
+            ->set('entity', (string) $this->gulshan->id)
+            ->assertSee('Karim Hasan')
+            ->assertDontSee('Rahim Uddin');
     }
 
     public function test_status_grade_and_type_filters(): void

@@ -1,7 +1,7 @@
 {{-- Profile → Job tab. "Edit" opens JobForm. --}}
 @php
     // Supervisor / dotted-line manager as a link to their own profile (plain name if you may not open it).
-    // withoutGlobalScope: the visibility scope would hide a supervisor from another unit and show "—" instead.
+    // withoutGlobalScope: the visibility scope would hide a supervisor from another entity and show "—" instead.
     $personLink = function ($relation) {
         $person = $relation->withoutGlobalScope(\App\Modules\Hrm\Scopes\VisibleToCurrentUser::class)->first();
         if (! $person) {
@@ -35,16 +35,24 @@
         </div>
 
         <div class="p-6">
+            @php
+                // One line per entity type (Department, Branch ...): the employee's current entity of that type.
+                // Changed on the History tab, so every move is dated.
+                $current = $employee->entities()->pluck('entities.name', 'employee_entities.entity_type_id');
+                $entityLines = App\Modules\Hrm\Models\EntityType::ordered()
+                    ->where(fn ($q) => $q->where('is_active', true)->orWhereIn('id', $current->keys()))
+                    ->pluck('name', 'id')
+                    ->mapWithKeys(fn ($typeName, $typeId) => [$typeName => $current[$typeId] ?? null])
+                    ->all();
+            @endphp
             <dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ([
                         __('Employee code') => $employee->code,
                         __('Attendance ID') => $employee->access_code,
-                        __('Org unit') => $employee->orgUnit?->path(),
+                        ...$entityLines,
                         __('Designation') => $employee->designation?->name,
                         __('Grade') => $employee->grade?->name,
                         __('Position') => $employee->position?->name,
-                        __('Branch') => $employee->branch?->name,
-                        __('Cost center') => $employee->costCenter?->name,
                         __('Employment type') => $employee->employmentType?->name,
                         __('Supervisor') => $personLink($employee->supervisor()),
                         __('Dotted-line manager') => $personLink($employee->dottedLineManager()),

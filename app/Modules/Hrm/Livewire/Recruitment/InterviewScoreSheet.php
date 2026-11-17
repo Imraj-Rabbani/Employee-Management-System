@@ -26,7 +26,7 @@ use Livewire\Component;
  *     $dispatch('open-score-sheet', { panelistId: 7 })
  *
  * Who may open it: the interviewer THEMSELF (their login is linked to the panelist's employee record:
- * Self Service → My Interviews), or HR (hrm.recruitment.manage + the posting's org unit) entering it on
+ * Self Service → My Interviews), or HR (hrm.recruitment.manage + the posting's entity) entering it on
  * their behalf, e.g. from a paper sheet. Anyone else: 403.
  *
  *   Save draft  keeps the scores, still editable

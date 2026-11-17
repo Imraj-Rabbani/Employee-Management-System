@@ -5,7 +5,8 @@ namespace Tests\Feature\Payroll;
 use App\Models\Tenant;
 use App\Modules\Core\Models\Role;
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\EmployeeEntity;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Payroll\Enums\AttendanceStatus;
 use App\Modules\Payroll\Enums\Weekday;
 use App\Modules\Payroll\Livewire\Attendance\EmployeeCalendar;
@@ -116,11 +117,14 @@ class AttendanceCalendarTest extends TestCase
         Livewire::test(TeamCalendar::class, ['mode' => 'hr'])->set('search', 'Worker')->assertSee('E-003')->assertDontSee('E-009');
         $this->get(route('payroll.attendance.calendar', ['employee' => $this->worker->id]))->assertOk()->assertSee('Back to the team')->assertSee('09:20');
 
-        // Limited to one org unit: others are not in the grid and cannot be opened.
-        $unit = OrgUnit::factory()->create();
-        $this->stranger->update(['org_unit_id' => $unit->id]);
+        // Limited to one entity: others are not in the grid and cannot be opened.
+        $unit = Entity::factory()->create();
+        EmployeeEntity::create([
+            'employee_id' => $this->stranger->id, 'entity_type_id' => $unit->entity_type_id,
+            'entity_id' => $unit->id, 'effective_from' => $this->stranger->join_date,
+        ]);
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['payroll.attendance.process']);
-        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['org_unit_id' => $unit->id]);
+        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['entity_id' => $unit->id]);
         $this->get(route('payroll.attendance.calendar'))->assertOk()->assertSee('E-009')->assertDontSee('E-003');
         $this->get(route('payroll.attendance.calendar', ['employee' => $this->worker->id]))->assertNotFound();
 

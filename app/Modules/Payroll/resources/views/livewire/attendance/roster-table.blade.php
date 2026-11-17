@@ -43,7 +43,7 @@
                         </button>
                     </th>
 
-                    <th class="px-4 py-3 font-medium">{{ __('Org unit') }}</th>
+                    <th class="px-4 py-3 font-medium">{{ __('Entity') }}</th>
                     <th class="px-4 py-3 font-medium whitespace-nowrap">
                         <button type="button" wire:click="sort('from_date')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
                             {{ __('From') }}
@@ -88,7 +88,7 @@
                             <a href="{{ route('payroll.attendance.rosters.show', $roster->id) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $roster->number() }}</a>
                         </td>
                         <td class="px-4 py-3">{{ $roster->title }}</td>
-                        <td class="px-4 py-3">{{ $roster->orgUnit->name ?? '-' }}</td>
+                        <td class="px-4 py-3">{{ $roster->entity->name ?? '-' }}</td>
                         <td class="px-4 py-3">{{ format_date($roster->from_date) }}</td>
                         <td class="px-4 py-3">{{ format_date($roster->to_date) }}</td>
                         <td class="px-4 py-3 text-right">{{ $roster->employees_count }}</td>

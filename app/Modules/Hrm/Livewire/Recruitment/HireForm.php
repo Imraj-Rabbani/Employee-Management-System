@@ -23,14 +23,14 @@ use Livewire\Component;
  *     $dispatch('hire', { offerId: 3 })
  *
  * Needs BOTH hrm.recruitment.manage (the page) and permission to add employees (EmployeePolicy::create).
- * Org units are limited to the ones the user can see, otherwise they would create someone they cannot open.
+ * Entities are limited to the ones the user can see, otherwise they would create someone they cannot open.
  */
 class HireForm extends Component
 {
     #[Locked]
     public ?int $offerId = null;
 
-    /** @var array<string, mixed> code, join_date, org_unit_id, position_id, office_email */
+    /** @var array<string, mixed> code, join_date, entity_id, position_id, office_email */
     public array $form = [];
 
     #[On('hire')]
@@ -41,10 +41,10 @@ class HireForm extends Component
 
         $this->offerId = $offer->id;
         $this->form = array_map(fn ($v) => $v ?? '', $hire->defaults($offer));
-        if (! array_key_exists((int) $this->form['org_unit_id'], $this->orgUnits())) {
-            // Safety net: normally unreachable (whoever can see the offer can see its request's unit),
-            // but if the two rules ever drift apart the user picks a unit instead of hiring outside their access.
-            $this->form['org_unit_id'] = '';
+        if (! array_key_exists((int) $this->form['entity_id'], $this->entities())) {
+            // Safety net: normally unreachable (whoever can see the offer can see its request's entity),
+            // but if the two rules ever drift apart the user picks an entity instead of hiring outside their access.
+            $this->form['entity_id'] = '';
             $this->form['position_id'] = '';
         }
         $this->resetValidation();
@@ -52,8 +52,8 @@ class HireForm extends Component
         Flux::modal('hire-form')->show();
     }
 
-    /** Another org unit: the position belonged to the old one. */
-    public function updatedFormOrgUnitId(): void
+    /** Another entity: the position belonged to the old one. */
+    public function updatedFormEntityId(): void
     {
         $this->form['position_id'] = '';
     }
@@ -62,17 +62,17 @@ class HireForm extends Component
     {
         Gate::authorize('create', Employee::class);
         $offer = $this->offer((int) $this->offerId);
-        $unitId = (int) ($this->form['org_unit_id'] ?: 0);
+        $unitId = (int) ($this->form['entity_id'] ?: 0);
 
         $values = $this->validate([
             'form.code' => ['required', 'string', 'max:50'],
             'form.join_date' => ['required', 'date'],
-            'form.org_unit_id' => ['required', Rule::in(array_keys($this->orgUnits()))],
-            'form.position_id' => ['nullable', Rule::exists(Position::class, 'id')->where('org_unit_id', $unitId)],
+            'form.entity_id' => ['required', Rule::in(array_keys($this->entities()))],
+            'form.position_id' => ['nullable', Rule::exists(Position::class, 'id')->where('entity_id', $unitId)],
             'form.office_email' => ['nullable', 'email', 'max:150'],
         ], [], [
             'form.code' => __('employee code'), 'form.join_date' => __('join date'),
-            'form.org_unit_id' => __('org unit'), 'form.position_id' => __('position'), 'form.office_email' => __('office email'),
+            'form.entity_id' => __('entity'), 'form.position_id' => __('position'), 'form.office_email' => __('office email'),
         ])['form'];
         $values = array_map(fn ($v) => $v === '' ? null : $v, $values);
 
@@ -95,21 +95,21 @@ class HireForm extends Component
     }
 
     /** @return array<int, string> */
-    private function orgUnits(): array
+    private function entities(): array
     {
-        return app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user());
+        return app(EmployeeVisibility::class)->documentEntityOptionsFor(Auth::user());
     }
 
     public function render(): View
     {
         $offer = $this->offerId ? $this->offer($this->offerId) : null;
-        $unitId = (int) ($this->form['org_unit_id'] ?? 0);
+        $unitId = (int) ($this->form['entity_id'] ?? 0);
 
         return view('hrm::livewire.recruitment.hire-form', [
             'offer' => $offer,
-            'units' => $this->orgUnits(),
-            // Free seats of the chosen unit (and the one already chosen).
-            'positions' => $unitId ? Position::where('org_unit_id', $unitId)->whereNull('employee_id')->orderBy('name')->pluck('name', 'id')->all() : [],
+            'units' => $this->entities(),
+            // Free seats of the chosen entity (and the one already chosen).
+            'positions' => $unitId ? Position::where('entity_id', $unitId)->whereNull('employee_id')->orderBy('name')->pluck('name', 'id')->all() : [],
         ]);
     }
 }

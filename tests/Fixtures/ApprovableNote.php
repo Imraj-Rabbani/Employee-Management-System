@@ -22,9 +22,9 @@ class ApprovableNote extends TenantModel implements Approvable
     protected $fillable = ['text'];
 
     /**
-     * What approvalContext() returns; tests set it, e.g. ['org_unit_id' => 2, 'amount' => 900].
+     * What approvalContext() returns; tests set it, e.g. ['entity_ids' => [2], 'amount' => 900].
      *
-     * @var array{employee_id?: int|null, org_unit_id?: int|null, employment_type_id?: int|null, amount?: float|int|string|null}
+     * @var array{employee_id?: int|null, entity_ids?: list<int>, employment_type_id?: int|null, amount?: float|int|string|null}
      */
     public array $context = [];
 

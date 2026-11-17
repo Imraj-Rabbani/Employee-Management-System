@@ -8,7 +8,7 @@ use App\Modules\Hrm\Livewire\Employees\Educations;
 use App\Modules\Hrm\Livewire\Employees\WorkHistories;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\EmployeeEducation;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
@@ -180,13 +180,13 @@ class EducationAndWorkHistoryTest extends TestCase
 
     public function test_someone_outside_your_scope_cannot_download(): void
     {
-        $finance = OrgUnit::factory()->create(['name' => 'Finance']);
+        $finance = Entity::factory()->create(['name' => 'Finance']);
         Livewire::test(Educations::class, ['employee' => $this->rahim])
             ->call('add')->set('form.degree', 'SSC')->set('upload', UploadedFile::fake()->image('ssc.jpg'))->call('save');
         $url = $this->fileUrl($this->rahim, 'educations', $this->rahim->educations()->sole()->id);
 
         $user = $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.employee.view']);
-        $user->role()->update(['org_unit_id' => $finance->id]);
+        $user->role()->update(['entity_id' => $finance->id]);
         app(Permissions::class)->flush();
 
         $this->get($url)->assertNotFound();

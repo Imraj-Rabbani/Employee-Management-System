@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
  * Columns made before `employees` existed get their real foreign keys now
  * (their columns were plain ids because the employees table did not exist yet).
  *
- *   org_units.head_employee_id, positions.employee_id   null on delete: the unit / seat simply
+ *   entities.head_employee_id, positions.employee_id    null on delete: the entity / seat simply
  *                                                       becomes headless / vacant.
  *   workflow_steps.approver_employee_id                 restrict: a workflow must not silently lose
  *                                                       its approver.
@@ -19,7 +19,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('org_units', function (Blueprint $table) {
+        Schema::table('entities', function (Blueprint $table) {
             $table->foreign('head_employee_id')->references('id')->on('employees')->nullOnDelete();
         });
 
@@ -52,7 +52,7 @@ return new class extends Migration
             $table->dropForeign(['employee_id']);
         });
 
-        Schema::table('org_units', function (Blueprint $table) {
+        Schema::table('entities', function (Blueprint $table) {
             $table->dropForeign(['head_employee_id']);
         });
     }

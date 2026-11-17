@@ -12,11 +12,11 @@ use App\Modules\Hrm\Enums\DocumentType;
 use App\Modules\Hrm\Enums\EmployeeStatus;
 use App\Modules\Hrm\Models\Applicant;
 use App\Modules\Hrm\Models\Employee;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\Grade;
 use App\Modules\Hrm\Models\JobOffer;
 use App\Modules\Hrm\Models\JobPosting;
 use App\Modules\Hrm\Models\ManpowerRequest;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Models\Position;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -47,9 +47,9 @@ class HireApplicantTest extends TestCase
         $this->actingAsTenantUser();
         $this->hire = app(HireApplicant::class);
 
-        $sales = OrgUnit::factory()->create(['name' => 'Sales']);
-        $this->seat = Position::factory()->create(['org_unit_id' => $sales->id, 'employee_id' => null]);
-        $this->request = ManpowerRequest::factory()->approved()->create(['org_unit_id' => $sales->id, 'position_id' => $this->seat->id, 'headcount' => 2]);
+        $sales = Entity::factory()->create(['name' => 'Sales']);
+        $this->seat = Position::factory()->create(['entity_id' => $sales->id, 'employee_id' => null]);
+        $this->request = ManpowerRequest::factory()->approved()->create(['entity_id' => $sales->id, 'position_id' => $this->seat->id, 'headcount' => 2]);
 
         $applicant = Applicant::factory()->create([
             'first_name' => 'Rahim', 'last_name' => 'Uddin', 'email' => 'rahim@mail.test', 'phone' => '01711000000', 'national_id' => '1990123456',
@@ -84,7 +84,7 @@ class HireApplicantTest extends TestCase
         $defaults = $this->hire->defaults($this->offer);
 
         $this->assertSame(today()->addWeek()->toDateString(), $defaults['join_date']);
-        $this->assertSame($this->request->org_unit_id, $defaults['org_unit_id']);
+        $this->assertSame($this->request->entity_id, $defaults['entity_id']);
         $this->assertSame($this->seat->id, $defaults['position_id']);   // free seat of the request
     }
 
@@ -101,7 +101,7 @@ class HireApplicantTest extends TestCase
         $this->assertSame(EmployeeStatus::Active, $employee->fresh()->status);
         $this->assertSame($this->offer->designation_id, $employee->designation_id);
         $this->assertSame($this->offer->grade_id, $employee->grade_id);
-        $this->assertSame(1, $employee->orgAssignments()->count());   // the normal first history row
+        $this->assertSame(1, $employee->entityAssignments()->count());   // the normal first history row
 
         // Education, work history and the CV came along; the CV is a COPY.
         $this->assertSame(['BBA'], $employee->educations()->pluck('degree')->all());

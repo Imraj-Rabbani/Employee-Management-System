@@ -74,7 +74,7 @@ class RosterSheetReader
             }
             $employee = $employees->get(mb_strtolower($code));
             if ($employee === null) {
-                $problems[] = __('Row :row: employee ":code" is not in this roster\'s org unit.', ['row' => $line, 'code' => $code]);
+                $problems[] = __('Row :row: employee ":code" is not in this roster\'s entity.', ['row' => $line, 'code' => $code]);
 
                 continue;
             }

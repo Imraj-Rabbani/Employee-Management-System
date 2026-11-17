@@ -22,7 +22,7 @@ class HrmServiceProvider extends ModuleServiceProvider
 
     public function register(): void
     {
-        // One per request or job ("scoped"), like Permissions: never carries one user's org units into the next job.
+        // One per request or job ("scoped"), like Permissions: never carries one user's entities into the next job.
         $this->app->scoped(EmployeeVisibility::class);
 
         // Days off for leave counting. bindIf: the Payroll module binds the real one (attendance setup),

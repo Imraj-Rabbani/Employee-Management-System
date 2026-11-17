@@ -4,7 +4,7 @@ namespace App\Modules\Payroll\Models;
 
 use App\Core\Models\TenantModel;
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Payroll\Database\Factories\ShiftFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property string $code
  * @property string $name
- * @property int|null $org_unit_id
+ * @property int|null $entity_id
  * @property string $start_time
  * @property string $end_time
  * @property string $hours
@@ -45,7 +45,7 @@ class Shift extends TenantModel
     use HasFactory;
 
     protected $fillable = [
-        'code', 'name', 'org_unit_id',
+        'code', 'name', 'entity_id',
         'start_time', 'end_time', 'hours',
         'grace_minutes', 'grace_limit_per_month', 'flexibility_minutes',
         'half_day_hours', 'half_day_after',
@@ -112,10 +112,10 @@ class Shift extends TenantModel
         return $this->name.' · '.$this->timesLabel();
     }
 
-    /** @return BelongsTo<OrgUnit, $this> */
-    public function orgUnit(): BelongsTo
+    /** @return BelongsTo<Entity, $this> */
+    public function entity(): BelongsTo
     {
-        return $this->belongsTo(OrgUnit::class);
+        return $this->belongsTo(Entity::class);
     }
 
     /** @return HasMany<Employee, $this> */

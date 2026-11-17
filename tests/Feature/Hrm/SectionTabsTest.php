@@ -43,13 +43,13 @@ class SectionTabsTest extends TestCase
     public function test_organization_opens_the_org_chart_for_someone_who_only_views_employees(): void
     {
         $this->actingAsTenantUser(tenant: $this->tenant);
-        $this->get('/hrm/organization')->assertRedirect(route('hrm.org.units'));
+        $this->get('/hrm/organization')->assertRedirect(route('hrm.org.entity-types'));
 
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.employee.view']);
         $this->get('/hrm/organization')->assertRedirect(route('hrm.org.chart'));
         $this->get('/hrm/org/chart')->assertOk()
             ->assertSee(route('hrm.org.chart'))
-            ->assertDontSee(route('hrm.org.units'));   // no organization.manage → no Org units tab
+            ->assertDontSee(route('hrm.org.entity-types'));   // no organization.manage → no Entities tab
     }
 
     public function test_tabs_without_permission_are_left_out(): void

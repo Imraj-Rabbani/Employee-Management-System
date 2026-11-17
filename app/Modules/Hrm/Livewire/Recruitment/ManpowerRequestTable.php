@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * HRM → Recruitment → Manpower requests: the list.
- * Only requests of the org units the user can see (ManpowerRequest::visibleTo). Click the number to open its page.
+ * Only requests of the entities the user can see (ManpowerRequest::visibleTo). Click the number to open its page.
  *
  * View: app/Modules/Hrm/resources/views/livewire/recruitment/manpower-request-table.blade.php
  */
@@ -65,7 +65,7 @@ class ManpowerRequestTable extends Component
         $rows = $this->filteredQuery()->get()->map(fn (ManpowerRequest $manpowerRequest) => [
             $manpowerRequest->number(),
             $manpowerRequest->designation->name ?? '-',
-            $manpowerRequest->orgUnit->name ?? '-',
+            $manpowerRequest->entity->name ?? '-',
             $manpowerRequest->type->label(),
             $manpowerRequest->headcount,
             $manpowerRequest->needed_by ? format_date($manpowerRequest->needed_by) : '-',
@@ -74,7 +74,7 @@ class ManpowerRequestTable extends Component
         ])->all();
 
         return Excel::download(
-            new ArrayExport([__('No.'), __('Designation'), __('Org unit'), __('Type'), __('Headcount'), __('Needed by'), __('Status'), __('Created')], $rows),
+            new ArrayExport([__('No.'), __('Designation'), __('Entity'), __('Type'), __('Headcount'), __('Needed by'), __('Status'), __('Created')], $rows),
             'manpower-request-table-'.now()->format('Y-m-d').'.xlsx',
         );
     }
@@ -93,7 +93,7 @@ class ManpowerRequestTable extends Component
         // 'approvals' eager loaded: the Status column calls approvalStatus() on every row.
         return ManpowerRequest::query()
             ->visibleTo(Auth::user())
-            ->with(['designation', 'orgUnit', 'approvals']);
+            ->with(['designation', 'entity', 'approvals']);
     }
 
     /** @return array<int|string, string> choices of the "Type" filter */

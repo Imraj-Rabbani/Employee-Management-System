@@ -266,7 +266,7 @@ class LeaveApplicationForm extends Component
             'employees' => $this->self ? [] : Employee::query()->active()->orderBy('code')->get(['id', 'code', 'first_name', 'last_name'])
                 ->mapWithKeys(fn (Employee $e) => [$e->id => $e->code.' · '.$e->name])->all(),
             'types' => $employee ? $this->typeOptions($employee) : [],
-            // Anyone active may cover my work, also outside the org units I can see.
+            // Anyone active may cover my work, also outside the entities I can see.
             'delegatees' => Employee::query()->withoutGlobalScope(VisibleToCurrentUser::class)->active()
                 ->whereKeyNot($employee?->id)->orderBy('first_name')->get(['id', 'code', 'first_name', 'last_name'])
                 ->mapWithKeys(fn (Employee $e) => [$e->id => $e->name.' ('.$e->code.')'])->all(),

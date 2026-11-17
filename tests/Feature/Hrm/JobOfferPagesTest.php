@@ -14,11 +14,11 @@ use App\Modules\Hrm\Livewire\Recruitment\OfferForm;
 use App\Modules\Hrm\Models\Applicant;
 use App\Modules\Hrm\Models\Application;
 use App\Modules\Hrm\Models\Designation;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\Grade;
 use App\Modules\Hrm\Models\JobOffer;
 use App\Modules\Hrm\Models\JobPosting;
 use App\Modules\Hrm\Models\ManpowerRequest;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Models\RejectionReason;
 use App\Modules\Hrm\Notifications\OfferLetterSent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -158,12 +158,12 @@ class JobOfferPagesTest extends TestCase
         $this->assertNull($offer->fresh()->letter_sent_at);
     }
 
-    public function test_offers_of_other_org_units_give_404(): void
+    public function test_offers_of_other_entities_give_404(): void
     {
         $offer = JobOffer::factory()->for($this->application)->create(['designation_id' => $this->application->jobPosting->manpowerRequest->designation_id]);
 
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.recruitment.manage']);
-        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['org_unit_id' => OrgUnit::factory()->create()->id]);
+        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['entity_id' => Entity::factory()->create()->id]);
 
         $this->get(route('hrm.recruitment.offers.show', $offer->id))->assertNotFound();
         Livewire::test(OfferForm::class)->dispatch('create-offer', applicationId: $this->application->id)->assertNotFound();

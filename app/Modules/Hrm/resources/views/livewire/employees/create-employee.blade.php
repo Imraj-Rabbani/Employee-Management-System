@@ -55,16 +55,24 @@
                     <flux:error name="form.join_date" />
                 </flux:field>
 
-                <flux:field>
-                    <flux:label>{{ __('Org unit') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                    <flux:select aria-required="true" wire:model="form.org_unit_id">
-                        <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
-                        @foreach ($units as $optionValue => $optionLabel)
-                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                    <flux:error name="form.org_unit_id" />
-                </flux:field>
+                {{-- One dropdown per entity type (Department, Branch ...). --}}
+                @foreach ($choices as $typeId => $choice)
+                    <flux:field wire:key="entity-type-{{ $typeId }}">
+                        <flux:label>
+                            {{ $choice['name'] }}
+                            @if ($choice['required'])
+                                <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span>
+                            @endif
+                        </flux:label>
+                        <flux:select :aria-required="$choice['required'] ? 'true' : 'false'" wire:model="form.entities.{{ $typeId }}">
+                            <flux:select.option value="">{{ __('None') }}</flux:select.option>
+                            @foreach ($choice['options'] as $optionValue => $optionLabel)
+                                <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="form.entities.{{ $typeId }}" />
+                    </flux:field>
+                @endforeach
 
                 <flux:field>
                     <flux:label>{{ __('Designation') }}</flux:label>

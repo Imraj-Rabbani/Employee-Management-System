@@ -17,7 +17,7 @@
         @foreach ([
                 __('Applicant') => $application->applicant->name,
                 __('Job') => $application->jobPosting->number().' · '.$application->jobPosting->title,
-                __('Org unit') => $application->jobPosting->manpowerRequest->orgUnit?->name,
+                __('Entity') => $application->jobPosting->manpowerRequest->entity?->name,
                 __('Designation') => $document->designation?->name,
                 __('Grade') => $document->grade?->name,
                 __('Employment type') => $document->employmentType?->name,

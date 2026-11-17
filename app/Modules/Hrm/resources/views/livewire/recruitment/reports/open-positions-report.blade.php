@@ -4,9 +4,9 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center gap-3 border-b border-white/50 p-4 dark:border-white/10">
         <div class="w-full sm:w-44">
-            <flux:select wire:model.live="orgUnit" :aria-label="__('Org unit')">
-                <flux:select.option value="">{{ __('All') }}: {{ __('Org unit') }}</flux:select.option>
-                @foreach ($orgUnitOptions as $value => $label)
+            <flux:select wire:model.live="entity" :aria-label="__('Entity')">
+                <flux:select.option value="">{{ __('All') }}: {{ __('Entity') }}</flux:select.option>
+                @foreach ($entityOptions as $value => $label)
                     <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
                 @endforeach
             </flux:select>
@@ -30,7 +30,7 @@
             </flux:select>
         </div>
 
-        @if ($orgUnit !== '' || $timing !== '' || $advertised !== '')
+        @if ($entity !== '' || $timing !== '' || $advertised !== '')
             <flux:button wire:click="clearFilters" variant="ghost" size="sm" icon="x-mark">{{ __('Clear') }}</flux:button>
         @endif
 
@@ -56,7 +56,7 @@
                     </th>
 
                     <th class="px-4 py-3 font-medium">{{ __('Designation') }}</th>
-                    <th class="px-4 py-3 font-medium">{{ __('Org unit') }}</th>
+                    <th class="px-4 py-3 font-medium">{{ __('Entity') }}</th>
                     <th class="px-4 py-3 font-medium">{{ __('Type') }}</th>
                     <th class="px-4 py-3 font-medium whitespace-nowrap text-right">
                         <button type="button" wire:click="sort('headcount')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
@@ -134,7 +134,7 @@
                             <a href="{{ route('hrm.recruitment.requests.show', $manpowerRequest->id) }}" wire:navigate class="font-medium text-brand-800 hover:underline dark:text-brand-200">{{ $manpowerRequest->number() }}</a>
                         </td>
                         <td class="px-4 py-3">{{ $manpowerRequest->designation->name ?? '-' }}</td>
-                        <td class="px-4 py-3">{{ $manpowerRequest->orgUnit->name ?? '-' }}</td>
+                        <td class="px-4 py-3">{{ $manpowerRequest->entity->name ?? '-' }}</td>
                         <td class="px-4 py-3">{{ $manpowerRequest->type->label() }}</td>
                         <td class="px-4 py-3 text-right">{{ $manpowerRequest->headcount }}</td>
                         <td class="px-4 py-3 text-right">{{ $manpowerRequest->hired_count }}</td>

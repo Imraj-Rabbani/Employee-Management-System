@@ -49,7 +49,7 @@
 
         <div class="glass rounded-2xl p-5">
             <div class="flex items-center justify-between gap-4">
-                <flux:text class="font-medium">{{ __('Org units') }}</flux:text>
+                <flux:text class="font-medium">{{ __('Entities') }}</flux:text>
                 <div class="flex size-9 items-center justify-center rounded-xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
                     <flux:icon name="building-office" variant="mini" />
                 </div>
@@ -76,14 +76,14 @@
         <div class="glass overflow-hidden rounded-2xl">
             <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
                 <div>
-                    <flux:heading size="lg">{{ __('Per org unit') }}</flux:heading>
+                    <flux:heading size="lg">{{ __('Per entity') }}</flux:heading>
                 </div>
             </div>
 
             <table class="w-full text-sm">
                 <thead class="text-left text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                     <tr class="border-b border-white/50 dark:border-white/10">
-                        <th class="px-6 py-3 font-medium">{{ __('Org unit') }}</th>
+                        <th class="px-6 py-3 font-medium">{{ __('Entity') }}</th>
                         <th class="px-4 py-3 text-right font-medium">{{ __('Hires') }}</th>
                         <th class="px-4 py-3 text-right font-medium">{{ __('Time to hire') }}</th>
                         <th class="px-4 py-3 text-right font-medium">{{ __('Time to fill') }}</th>
@@ -135,7 +135,7 @@
                                 </td>
                                 <td class="px-4 py-3">
                                     {{ $application->jobPosting->title }}
-                                    <div class="text-xs text-zinc-500">{{ $application->jobPosting->number() }} · {{ $application->jobPosting->manpowerRequest->orgUnit?->name }}</div>
+                                    <div class="text-xs text-zinc-500">{{ $application->jobPosting->number() }} · {{ $application->jobPosting->manpowerRequest->entity?->name }}</div>
                                 </td>
                                 <td class="px-4 py-3 tabular-nums">{{ format_date($application->applied_on) }}</td>
                                 <td class="px-4 py-3 tabular-nums">{{ format_date($hire['hired_at']) }}</td>

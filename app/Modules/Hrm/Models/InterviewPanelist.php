@@ -35,7 +35,7 @@ class InterviewPanelist extends TenantModel
     }
 
     /**
-     * withoutGlobalScope: HR must see who is on the panel even when the interviewer works in an org unit
+     * withoutGlobalScope: HR must see who is on the panel even when the interviewer works in an entity
      * outside HR's own access (e.g. a department head from another division).
      *
      * @return BelongsTo<Employee, $this>

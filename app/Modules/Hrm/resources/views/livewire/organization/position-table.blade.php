@@ -61,7 +61,7 @@
                         </button>
                     </th>
 
-                    <th class="px-4 py-3 font-medium">{{ __('Org unit') }}</th>
+                    <th class="px-4 py-3 font-medium">{{ __('Entity') }}</th>
                     <th class="px-4 py-3 font-medium">{{ __('Grade') }}</th>
                     <th class="px-4 py-3 font-medium">{{ __('Reports to') }}</th>
                     <th class="px-4 py-3 font-medium whitespace-nowrap">
@@ -99,7 +99,7 @@
                             </button>
                         </td>
                         <td class="px-4 py-3">{{ $position->code }}</td>
-                        <td class="px-4 py-3">{{ $position->orgUnit->name }}</td>
+                        <td class="px-4 py-3">{{ $position->entity->name }}</td>
                         <td class="px-4 py-3">{{ $position->grade->name ?? '-' }}</td>
                         <td class="px-4 py-3">{{ $position->reportsTo->name ?? '-' }}</td>
                         <td class="px-4 py-3">

@@ -12,9 +12,9 @@ use App\Modules\Hrm\Livewire\Recruitment\JobPostingTable;
 use App\Modules\Hrm\Livewire\Recruitment\ManpowerRequestDetails;
 use App\Modules\Hrm\Livewire\Recruitment\ManpowerRequestForm;
 use App\Modules\Hrm\Models\Designation;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\JobPosting;
 use App\Modules\Hrm\Models\ManpowerRequest;
-use App\Modules\Hrm\Models\OrgUnit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\Concerns\ActsAsTenantUser;
@@ -30,7 +30,7 @@ class JobPostingPagesTest extends TestCase
 
     private Tenant $tenant;
 
-    private OrgUnit $sales;
+    private Entity $sales;
 
     private ManpowerRequest $approved;
 
@@ -40,20 +40,20 @@ class JobPostingPagesTest extends TestCase
 
         $this->tenant = $this->actingAsTenantUser()->tenant;   // Administrator
 
-        $this->sales = OrgUnit::factory()->create(['name' => 'Sales']);
+        $this->sales = Entity::factory()->create(['name' => 'Sales']);
         $this->approved = ManpowerRequest::factory()->approved()->create([
-            'org_unit_id' => $this->sales->id,
+            'entity_id' => $this->sales->id,
             'designation_id' => Designation::factory()->create(['name' => 'Sales Officer'])->id,
             'headcount' => 3,
         ]);
     }
 
-    /** HR: may manage postings, nothing else. Optionally limited to one org unit. */
-    private function hrUser(?OrgUnit $limitedTo = null): User
+    /** HR: may manage postings, nothing else. Optionally limited to one entity. */
+    private function hrUser(?Entity $limitedTo = null): User
     {
         $user = $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.recruitment.manage']);
         if ($limitedTo) {
-            Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['org_unit_id' => $limitedTo->id]);
+            Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['entity_id' => $limitedTo->id]);
         }
 
         return $user;
@@ -73,7 +73,7 @@ class JobPostingPagesTest extends TestCase
 
     public function test_picking_an_approved_request_prefills_title_and_openings(): void
     {
-        ManpowerRequest::factory()->create(['org_unit_id' => $this->sales->id]);   // a draft: not offered
+        ManpowerRequest::factory()->create(['entity_id' => $this->sales->id]);   // a draft: not offered
 
         Livewire::test(JobPostingForm::class)
             ->dispatch('create-job-posting')
@@ -95,7 +95,7 @@ class JobPostingPagesTest extends TestCase
 
     public function test_only_approved_visible_requests_with_openings_can_be_used(): void
     {
-        $draft = ManpowerRequest::factory()->create(['org_unit_id' => $this->sales->id]);
+        $draft = ManpowerRequest::factory()->create(['entity_id' => $this->sales->id]);
         $full = ManpowerRequest::factory()->approved()->create(['headcount' => 1]);
         JobPosting::factory()->for($full)->create(['openings' => 1]);
 
@@ -109,7 +109,7 @@ class JobPostingPagesTest extends TestCase
         }
 
         // HR limited to another unit does not get the Sales request.
-        $this->hrUser(limitedTo: OrgUnit::factory()->create());
+        $this->hrUser(limitedTo: Entity::factory()->create());
         Livewire::test(JobPostingForm::class)
             ->dispatch('create-job-posting')
             ->assertDontSee($this->approved->number())
@@ -138,7 +138,7 @@ class JobPostingPagesTest extends TestCase
     public function test_editing_keeps_the_request_and_counts_its_own_openings(): void
     {
         $posting = JobPosting::factory()->for($this->approved)->open()->create(['openings' => 3]);
-        $other = ManpowerRequest::factory()->approved()->create(['org_unit_id' => $this->sales->id]);
+        $other = ManpowerRequest::factory()->approved()->create(['entity_id' => $this->sales->id]);
 
         Livewire::test(JobPostingForm::class)
             ->dispatch('edit-job-posting', id: $posting->id)
@@ -172,7 +172,7 @@ class JobPostingPagesTest extends TestCase
     public function test_the_list_shows_only_visible_postings(): void
     {
         $mine = JobPosting::factory()->for($this->approved)->create(['title' => 'Sales Officer']);
-        $theirs = JobPosting::factory()->create(['title' => 'Accountant']);   // another (new) org unit
+        $theirs = JobPosting::factory()->create(['title' => 'Accountant']);   // another (new) entity
 
         $this->hrUser(limitedTo: $this->sales);
 

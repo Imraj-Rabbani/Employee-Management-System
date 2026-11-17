@@ -16,7 +16,7 @@ use LogicException;
  *
  *     app(CreateEmployeeForUser::class)->handle($user, ['code' => 'EMP-001', 'first_name' => 'Rahim', ...]);
  *
- * Must run inside the user's company (its database is the current one). Org unit, designation etc.
+ * Must run inside the user's company (its database is the current one). Entity, designation etc.
  * stay empty: HR fills them in later on the employee's profile. The join date is today.
  */
 class CreateEmployeeForUser

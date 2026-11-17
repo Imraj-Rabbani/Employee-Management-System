@@ -16,11 +16,11 @@ use Livewire\Component;
 /**
  * HRM → Org Chart: who reports to whom (people) or the position tree (positions).
  *
- * - ONE query per render; the tree is built in PHP (like the org unit tree, 4.3).
+ * - ONE query per render; the tree is built in PHP.
  * - Only OPENED branches are drawn ($open), so a company with thousands of people stays fast.
  * - People: only employees you may see (VisibleToCurrentUser), separated ones left out. Someone whose
  *   supervisor you cannot see is shown at the top.
- * - Positions: active positions in your org units; the holder's name only if you may see them.
+ * - Positions: active positions in your entities; the holder's name only if you may see them.
  * - ?focus=12 opens the chain down to employee 12 and highlights them (profile → "Show in org chart").
  */
 class OrgChart extends Component
@@ -140,13 +140,13 @@ class OrgChart extends Component
     /** @return array{nodes: array<int, array<string, mixed>>, parents: array<int, int>, byParent: array<int, list<int>>} */
     private function positionTree(): array
     {
-        $units = ($user = Auth::user()) ? app(EmployeeVisibility::class)->orgUnitIdsFor($user) : null;
+        $units = ($user = Auth::user()) ? app(EmployeeVisibility::class)->entityIdsFor($user) : null;
 
         $positions = Position::query()
             ->where('is_active', true)
-            ->when($units !== null, fn ($q) => $q->whereIn('org_unit_id', $units))
+            ->when($units !== null, fn ($q) => $q->whereIn('entity_id', $units))
             ->orderBy('name')
-            ->get(['id', 'name', 'parent_id', 'employee_id', 'org_unit_id']);
+            ->get(['id', 'name', 'parent_id', 'employee_id', 'entity_id']);
 
         // Holders: names only for people you may see (the global scope on Employee decides).
         $holders = Employee::query()->whereIn('id', $positions->pluck('employee_id')->filter())->get(['id', 'first_name', 'last_name', 'photo_path']);

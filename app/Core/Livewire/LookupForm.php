@@ -15,7 +15,7 @@ use Livewire\Component;
  * (branches, grades, designations ...). A child class only declares WHAT differs:
  *
  *     key()          'branch' → events "create-branch" / "edit-branch" / "branch-saved", modal "branch-form"
- *     model()        Branch::class
+ *     model()        Designation::class
  *     defaults()     the fields and their values for a new record: ['name' => '', 'is_active' => true]
  *     fieldRules()   validation per field: ['name' => ['required', ...]]
  *     view()         the Blade view with the inputs (wire:model="form.name")
@@ -80,7 +80,7 @@ abstract class LookupForm extends Component
     }
 
     /**
-     * @param  array<string, mixed>  $preset  start values, e.g. $dispatch('create-org-unit', { preset: { parent_id: 5 } })
+     * @param  array<string, mixed>  $preset  start values, e.g. $dispatch('create-entity', { preset: { parent_id: 5 } })
      */
     public function create(array $preset = []): void
     {

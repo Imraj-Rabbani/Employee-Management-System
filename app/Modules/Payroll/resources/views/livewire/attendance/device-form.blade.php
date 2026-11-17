@@ -30,14 +30,14 @@
                 </flux:field>
             </div>
             <flux:field>
-                <flux:label>{{ __('Org unit') }}</flux:label>
-                <flux:select wire:model="form.org_unit_id">
-                    <flux:select.option value="">{{ __('Not tied to a unit') }}</flux:select.option>
+                <flux:label>{{ __('Entity') }}</flux:label>
+                <flux:select wire:model="form.entity_id">
+                    <flux:select.option value="">{{ __('Not tied to an entity') }}</flux:select.option>
                     @foreach ($units as $optionValue => $optionLabel)
                         <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
                     @endforeach
                 </flux:select>
-                <flux:error name="form.org_unit_id" />
+                <flux:error name="form.entity_id" />
             </flux:field>
 
             <flux:switch wire:model="form.is_active" :label="__('Active')" :description="__('Only active devices are synced.')" />

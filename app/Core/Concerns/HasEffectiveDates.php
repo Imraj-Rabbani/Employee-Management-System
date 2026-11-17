@@ -11,10 +11,10 @@ use Illuminate\Support\Carbon;
  * included); `effective_to` NULL = still valid. Changing something never overwrites the old row: the old
  * row is CLOSED and a new one starts, so the full history stays. (Architecture §9.3)
  *
- *     class EmployeeOrgAssignment extends TenantModel { use HasEffectiveDates; }
+ *     class EmployeeEntity extends TenantModel { use HasEffectiveDates; }
  *
- *     $employee->orgAssignments()->effectiveOn('2026-03-01')->first()   the row valid on that day
- *     $employee->orgAssignments()->current()->first()                    the row valid today
+ *     $employee->entityAssignments()->effectiveOn('2026-03-01')->first()   the row valid on that day
+ *     $employee->entityAssignments()->current()->first()                    the row valid today
  *     $row->close($newStart->copy()->subDay())                           ends it the day before the next one
  *     $row->isOpen()                                                     effective_to is NULL
  *

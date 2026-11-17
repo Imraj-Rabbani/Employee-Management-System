@@ -3,7 +3,8 @@
 namespace App\Modules\Hrm\Livewire\Organization;
 
 use App\Core\Exports\ArrayExport;
-use App\Modules\Hrm\Models\CostCenter;
+use App\Modules\Hrm\Models\Entity;
+use App\Modules\Hrm\Models\EntityType;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Url;
@@ -12,8 +13,8 @@ use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-/** List of cost centers. Click a row's name to edit it. */
-class CostCenterTable extends Component
+/** List of entities (all types, or one: ?type=3). Click a row's name to edit it. */
+class EntityTable extends Component
 {
     use WithPagination;
 
@@ -26,14 +27,18 @@ class CostCenterTable extends Component
     #[Url(as: 'dir', except: 'asc')]
     public string $sortDir = 'asc';
 
+    /** Filter "Type": '' = all. The Entity types tab links here with ?type=… */
+    #[Url(as: 'type', except: '')]
+    public string $entityTypeId = '';
+
     #[Url(as: 'per_page', except: 10)]
     public int $perPage = 10;
 
     /** Columns the user may sort by. Anything else sent from the browser is ignored. */
-    private const SORTABLE = ['code', 'name', 'is_active'];
+    private const SORTABLE = ['name', 'code', 'current_assignments_count', 'is_active'];
 
     /** @var array<string, string> refresh the list when its form saved something */
-    protected $listeners = ['cost-center-saved' => '$refresh'];
+    protected $listeners = ['entity-saved' => '$refresh'];
 
     public function sort(string $field): void
     {
@@ -48,41 +53,51 @@ class CostCenterTable extends Component
 
     public function clearFilters(): void
     {
-        $this->reset('search');
+        $this->reset('search', 'entityTypeId');
         $this->resetPage();
     }
 
     public function export(): BinaryFileResponse
     {
-        $rows = $this->filteredQuery()->get()->map(fn (CostCenter $costCenter) => [
-            $costCenter->code,
-            $costCenter->name,
-            $costCenter->function_code,
-            $costCenter->account_code,
-            $costCenter->is_active ? __('Active') : __('Inactive'),
+        $rows = $this->filteredQuery()->get()->map(fn (Entity $entity) => [
+            $entity->name,
+            $entity->type->name,
+            $entity->code,
+            $entity->head->name ?? '-',
+            $entity->parent ? $entity->parent->label() : '-',
+            $entity->current_assignments_count,
+            $entity->is_active ? __('Active') : __('Inactive'),
         ])->all();
 
         return Excel::download(
-            new ArrayExport([__('Code'), __('Name'), __('Function code'), __('GL account'), __('Active')], $rows),
-            'cost-center-table-'.now()->format('Y-m-d').'.xlsx',
+            new ArrayExport([__('Name'), __('Type'), __('Code'), __('Head'), __('Parent'), __('Employees'), __('Active')], $rows),
+            'entity-table-'.now()->format('Y-m-d').'.xlsx',
         );
     }
 
     /** Typing a search or picking a filter or page size starts again at page 1. */
     public function updated(string $property): void
     {
-        if (in_array($property, ['search', 'perPage'], true)) {
+        if (in_array($property, ['search', 'entityTypeId', 'perPage'], true)) {
             $this->resetPage();
         }
     }
 
-    /** @return Builder<CostCenter> */
+    /** @return Builder<Entity> */
     private function query(): Builder
     {
-        return CostCenter::query();
+        // current_assignments_count: people currently in the entity (open employee_entities rows).
+        return Entity::query()->with(['type', 'head', 'parent.type'])->withCount('currentAssignments');
     }
 
-    /** @return Builder<CostCenter> */
+    /** @return array<int|string, string> choices of the "Type" filter */
+    private function entityTypeIdOptions(): array
+    {
+        return EntityType::ordered()->pluck('name', 'id')
+            ->mapWithKeys(fn ($name, $id) => [(string) $id => $name])->all();
+    }
+
+    /** @return Builder<Entity> */
     private function filteredQuery(): Builder
     {
         $query = $this->query();
@@ -90,13 +105,17 @@ class CostCenterTable extends Component
         if (trim($this->search) !== '') {
             // addcslashes: a search for "50%" means the text "50%", not "50 followed by anything".
             $like = '%'.addcslashes(trim($this->search), '%_\\').'%';
-            $query->where(fn (Builder $q) => $q->where('code', 'like', $like)->orWhere('name', 'like', $like)->orWhere('function_code', 'like', $like)->orWhere('account_code', 'like', $like));
+            $query->where(fn (Builder $q) => $q->where('name', 'like', $like)->orWhere('code', 'like', $like));
+        }
+
+        if ($this->entityTypeId !== '' && array_key_exists($this->entityTypeId, $this->entityTypeIdOptions())) {
+            $query->where('entity_type_id', $this->entityTypeId);
         }
 
         if (in_array($this->sortBy, self::SORTABLE, true)) {
             $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
         } else {
-            $query->orderBy('code', 'asc');
+            $query->orderBy('name', 'asc');
         }
 
         return $query;
@@ -107,8 +126,9 @@ class CostCenterTable extends Component
         // A page size typed into the URL that is not offered falls back to 10.
         $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
 
-        return view('hrm::livewire.organization.cost-center-table', [
+        return view('hrm::livewire.organization.entity-table', [
             'rows' => $this->filteredQuery()->paginate($perPage),
+            'entityTypeIdOptions' => $this->entityTypeIdOptions(),
         ]);
     }
 }

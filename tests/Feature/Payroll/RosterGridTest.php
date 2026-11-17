@@ -8,7 +8,7 @@ use App\Modules\Core\Models\Activity;
 use App\Modules\Core\Models\Role;
 use App\Modules\Hrm\Exports\TemplateSheet;
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Payroll\Enums\Weekday;
 use App\Modules\Payroll\Exports\RosterExport;
 use App\Modules\Payroll\Livewire\Attendance\RosterGrid;
@@ -38,7 +38,7 @@ use Tests\TestCase;
 /**
  * Roster grid (save, fill), send for approval, plan a change, Excel export / import.
  *
- * Roster: Factory (and its sub-unit Line 1), 1–7 December 2026 (Tue … Mon; 4 Dec = Friday, 5 Dec = Saturday).
+ * Roster: Factory (Salma is also in Line 1, an entity of another type), 1–7 December 2026 (Tue … Mon; 4 Dec = Friday, 5 Dec = Saturday).
  */
 class RosterGridTest extends TestCase
 {
@@ -51,7 +51,7 @@ class RosterGridTest extends TestCase
 
     private Employee $karim;   // Factory
 
-    private Employee $salma;   // Line 1 (below Factory)
+    private Employee $salma;   // Factory + Line 1
 
     private Employee $outsider;   // Office
 
@@ -67,18 +67,18 @@ class RosterGridTest extends TestCase
         $this->tenant = $this->createMigratedTenant();
         $this->actingAsTenantUser(tenant: $this->tenant);   // Administrator
 
-        $factory = OrgUnit::factory()->create(['name' => 'Factory']);
-        $line = OrgUnit::factory()->childOf($factory)->create(['name' => 'Line 1']);
-        $office = OrgUnit::factory()->create(['name' => 'Office']);
+        $factory = Entity::factory()->create(['name' => 'Factory']);
+        $line = Entity::factory()->create(['name' => 'Line 1']);
+        $office = Entity::factory()->create(['name' => 'Office']);
 
-        $this->karim = Employee::factory()->inUnit($factory)->create(['code' => 'E-001', 'first_name' => 'Karim']);
-        $this->salma = Employee::factory()->inUnit($line)->create(['code' => 'E-002', 'first_name' => 'Salma']);
-        $this->outsider = Employee::factory()->inUnit($office)->create(['code' => 'E-003', 'first_name' => 'Rafi']);
+        $this->karim = Employee::factory()->inEntity($factory)->create(['code' => 'E-001', 'first_name' => 'Karim']);
+        $this->salma = Employee::factory()->inEntity($factory, $line)->create(['code' => 'E-002', 'first_name' => 'Salma']);
+        $this->outsider = Employee::factory()->inEntity($office)->create(['code' => 'E-003', 'first_name' => 'Rafi']);
 
         $this->morning = Shift::factory()->create(['code' => 'M', 'name' => 'Morning', 'start_time' => '06:00', 'end_time' => '14:00']);
         $this->night = Shift::factory()->overnight()->create(['code' => 'N']);
 
-        $this->roster = Roster::factory()->create(['org_unit_id' => $factory->id, 'from_date' => '2026-12-01', 'to_date' => '2026-12-07']);
+        $this->roster = Roster::factory()->create(['entity_id' => $factory->id, 'from_date' => '2026-12-01', 'to_date' => '2026-12-07']);
     }
 
     /** @return array<int, array<string, string>> */

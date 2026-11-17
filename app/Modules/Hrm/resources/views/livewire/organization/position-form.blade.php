@@ -18,14 +18,14 @@
 
             <div class="grid gap-4 sm:grid-cols-2">
                 <flux:field>
-                    <flux:label>{{ __('Org unit') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                    <flux:select aria-required="true" wire:model="form.org_unit_id">
+                    <flux:label>{{ __('Entity') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:select aria-required="true" wire:model="form.entity_id">
                         <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
                         @foreach ($units as $optionValue => $optionLabel)
                             <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
                         @endforeach
                     </flux:select>
-                    <flux:error name="form.org_unit_id" />
+                    <flux:error name="form.entity_id" />
                 </flux:field>
 
                 <flux:field>
@@ -48,17 +48,6 @@
                         @endforeach
                     </flux:select>
                     <flux:error name="form.parent_id" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>{{ __('Cost center') }}</flux:label>
-                    <flux:select wire:model="form.cost_center_id">
-                        <flux:select.option value="">{{ __('Same as the unit') }}</flux:select.option>
-                        @foreach ($costCenters as $optionValue => $optionLabel)
-                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                    <flux:error name="form.cost_center_id" />
                 </flux:field>
 
                 <flux:field>

@@ -62,7 +62,7 @@ class ProfileUpdateRequest extends TenantModel implements Approvable, ShowsAppro
 
     /**
      * withoutGlobalScope: the approver (e.g. a supervisor without an HR role) must see the employee
-     * the request is about, even outside their own org-unit access.
+     * the request is about, even outside their own entity access.
      *
      * @return BelongsTo<Employee, $this>
      */
@@ -115,7 +115,7 @@ class ProfileUpdateRequest extends TenantModel implements Approvable, ShowsAppro
     {
         return [
             'employee_id' => $this->employee_id,
-            'org_unit_id' => $this->employee?->org_unit_id,
+            'entity_ids' => $this->employee?->entityIds() ?? [],
             'employment_type_id' => $this->employee?->employment_type_id,
         ];
     }

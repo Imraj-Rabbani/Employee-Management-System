@@ -18,7 +18,7 @@ class OfferLetter
 {
     public function content(JobOffer $offer): string
     {
-        $offer->loadMissing(['application.applicant', 'application.jobPosting.manpowerRequest.orgUnit', 'designation', 'grade', 'employmentType']);
+        $offer->loadMissing(['application.applicant', 'application.jobPosting.manpowerRequest.entity', 'designation', 'grade', 'employmentType']);
 
         return Pdf::loadView('hrm::letters.offer', [
             'offer' => $offer,

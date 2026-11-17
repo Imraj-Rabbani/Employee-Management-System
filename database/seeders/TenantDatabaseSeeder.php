@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Modules\Core\Database\Seeders\CurrencySeeder;
 use App\Modules\Core\Database\Seeders\RolesSeeder;
-use App\Modules\Hrm\Database\Seeders\OrgUnitTypesSeeder;
+use App\Modules\Hrm\Database\Seeders\EntityTypesSeeder;
 use Illuminate\Database\Seeder;
 
 /**
@@ -22,7 +22,7 @@ class TenantDatabaseSeeder extends Seeder
         $this->call([
             RolesSeeder::class,
             CurrencySeeder::class,
-            OrgUnitTypesSeeder::class,
+            EntityTypesSeeder::class,
             // Added as the modules are built, e.g.:
             // \App\Modules\Hrm\Database\Seeders\LeaveTypeSeeder::class,
         ]);

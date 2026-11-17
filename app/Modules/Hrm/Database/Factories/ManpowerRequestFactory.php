@@ -5,8 +5,8 @@ namespace App\Modules\Hrm\Database\Factories;
 use App\Modules\Hrm\Enums\ManpowerRequestType;
 use App\Modules\Hrm\Models\Designation;
 use App\Modules\Hrm\Models\Employee;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\ManpowerRequest;
-use App\Modules\Hrm\Models\OrgUnit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -27,7 +27,7 @@ class ManpowerRequestFactory extends Factory
         $min = fake()->randomElement([25000, 40000, 60000]);
 
         return [
-            'org_unit_id' => OrgUnit::factory(),
+            'entity_id' => Entity::factory(),
             'designation_id' => Designation::factory(),
             'type' => ManpowerRequestType::New,
             'headcount' => fake()->numberBetween(1, 3),
@@ -38,12 +38,13 @@ class ManpowerRequestFactory extends Factory
         ];
     }
 
+    /** A replacement for $employee, in one of their current entities (the first one). */
     public function replacing(Employee $employee): static
     {
-        return $this->state([
+        return $this->state(fn () => [
             'type' => ManpowerRequestType::Replacement,
             'replaces_employee_id' => $employee->id,
-            'org_unit_id' => $employee->org_unit_id,
+            'entity_id' => $employee->entityIds()[0] ?? Entity::factory(),
             'headcount' => 1,
         ]);
     }

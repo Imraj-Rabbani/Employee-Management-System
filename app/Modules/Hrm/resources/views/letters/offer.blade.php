@@ -41,7 +41,7 @@
 
     <table>
         <tr><td class="label">{{ __('Designation') }}</td><td>{{ $offer->designation->name }}</td></tr>
-        <tr><td class="label">{{ __('Department') }}</td><td>{{ $offer->application->jobPosting->manpowerRequest->orgUnit?->name }}</td></tr>
+        <tr><td class="label">{{ __('Department') }}</td><td>{{ $offer->application->jobPosting->manpowerRequest->entity?->name }}</td></tr>
         @if ($offer->grade)
             <tr><td class="label">{{ __('Grade') }}</td><td>{{ $offer->grade->name }}</td></tr>
         @endif

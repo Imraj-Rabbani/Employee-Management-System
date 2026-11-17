@@ -33,7 +33,7 @@
                     </th>
 
                     <th class="px-4 py-3 font-medium">{{ __('Address') }}</th>
-                    <th class="px-4 py-3 font-medium">{{ __('Org unit') }}</th>
+                    <th class="px-4 py-3 font-medium">{{ __('Entity') }}</th>
                     <th class="px-4 py-3 font-medium whitespace-nowrap">
                         <button type="button" wire:click="sort('last_synced_at')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
                             {{ __('Last sync') }}
@@ -69,7 +69,7 @@
                             </button>
                         </td>
                         <td class="px-4 py-3">{{ $device->ip.':'.$device->port }}</td>
-                        <td class="px-4 py-3">{{ $device->orgUnit->name ?? '—' }}</td>
+                        <td class="px-4 py-3">{{ $device->entity->name ?? '—' }}</td>
                         <td class="px-4 py-3">
                             @if ($device->last_sync_error)
                                 <x-ui.badge color="danger" :title="$device->last_sync_error">{{ __('Failed') }}</x-ui.badge>

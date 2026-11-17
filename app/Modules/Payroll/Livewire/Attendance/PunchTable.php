@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 /**
  * Payroll → Attendance → Punches: every punch, newest first.
  * Punches of employees the user can see; unmatched punches (no employee has that code) only for users
- * without an org-unit limit, since nobody can tell whose they are.
+ * without an entity limit, since nobody can tell whose they are.
  *
  * View: app/Modules/Payroll/resources/views/livewire/attendance/punch-table.blade.php
  */
@@ -97,7 +97,7 @@ class PunchTable extends Component
     /** @return Builder<PunchLog> */
     private function query(): Builder
     {
-        $seesAll = app(EmployeeVisibility::class)->orgUnitIdsFor(Auth::user()) === null;
+        $seesAll = app(EmployeeVisibility::class)->entityIdsFor(Auth::user()) === null;
 
         // whereHas('employee') goes through Employee's visibility scope: only employees this user may see.
         return PunchLog::query()

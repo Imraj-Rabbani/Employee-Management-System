@@ -135,7 +135,7 @@ class AttendanceCorrection extends TenantModel implements Approvable, ShowsAppro
     {
         return [
             'employee_id' => $this->employee_id,
-            'org_unit_id' => $this->employee?->org_unit_id,
+            'entity_ids' => $this->employee?->entityIds() ?? [],
             'employment_type_id' => $this->employee?->employment_type_id,
         ];
     }

@@ -8,9 +8,9 @@
         </div>
 
         <div class="w-full sm:w-44">
-            <flux:select wire:model.live="orgUnit" :aria-label="__('Org unit')">
-                <flux:select.option value="">{{ __('All') }}: {{ __('Org unit') }}</flux:select.option>
-                @foreach ($orgUnitOptions as $value => $label)
+            <flux:select wire:model.live="entity" :aria-label="__('Entity')">
+                <flux:select.option value="">{{ __('All') }}: {{ __('Entity') }}</flux:select.option>
+                @foreach ($entityOptions as $value => $label)
                     <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
                 @endforeach
             </flux:select>
@@ -43,7 +43,7 @@
             </flux:select>
         </div>
 
-        @if ($search !== '' || $orgUnit !== '' || $status !== '' || $gradeId !== '' || $employmentTypeId !== '')
+        @if ($search !== '' || $entity !== '' || $status !== '' || $gradeId !== '' || $employmentTypeId !== '')
             <flux:button wire:click="clearFilters" variant="ghost" size="sm" icon="x-mark">{{ __('Clear') }}</flux:button>
         @endif
 
@@ -80,7 +80,7 @@
                     </th>
 
                     <th class="px-4 py-3 font-medium">{{ __('Designation') }}</th>
-                    <th class="px-4 py-3 font-medium">{{ __('Org unit') }}</th>
+                    <th class="px-4 py-3 font-medium">{{ __('Entities') }}</th>
                     <th class="px-4 py-3 font-medium">{{ __('Grade') }}</th>
                     <th class="px-4 py-3 font-medium">{{ __('Employment type') }}</th>
                     <th class="px-4 py-3 font-medium whitespace-nowrap">
@@ -118,7 +118,7 @@
                             <a href="{{ route('hrm.employees.show', $employee) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $employee->name }}</a>
                         </td>
                         <td class="px-4 py-3">{{ $employee->designation->name ?? '-' }}</td>
-                        <td class="px-4 py-3">{{ $employee->orgUnit->name ?? '-' }}</td>
+                        <td class="px-4 py-3">{{ $employee->entitiesLabel(withType: false) ?: '-' }}</td>
                         <td class="px-4 py-3">{{ $employee->grade->name ?? '-' }}</td>
                         <td class="px-4 py-3">{{ $employee->employmentType->name ?? '-' }}</td>
                         <td class="px-4 py-3">{{ format_date($employee->join_date) }}</td>

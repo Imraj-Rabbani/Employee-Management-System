@@ -25,7 +25,7 @@ return new class extends Migration
     {
         Schema::create('manpower_requests', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('org_unit_id')->constrained()->restrictOnDelete();
+            $table->foreignId('entity_id')->constrained()->restrictOnDelete();
             $table->foreignId('designation_id')->constrained()->restrictOnDelete();
             $table->foreignId('position_id')->nullable()->constrained()->nullOnDelete();   // the seat, if positions are used
             $table->foreignId('grade_id')->nullable()->constrained()->restrictOnDelete();

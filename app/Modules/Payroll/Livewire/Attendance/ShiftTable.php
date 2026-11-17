@@ -61,7 +61,7 @@ class ShiftTable extends Component
             $shift->timesLabel(),
             $shift->hours,
             $shift->grace_minutes ? __(':n min', ['n' => $shift->grace_minutes]) : '—',
-            $shift->orgUnit->name ?? __('Whole company'),
+            $shift->entity->name ?? __('Whole company'),
             $shift->employees_count,
             $shift->getAttribute('is_default') ? __('Default') : '',
             $shift->is_active ? __('Active') : __('Inactive'),
@@ -85,7 +85,7 @@ class ShiftTable extends Component
     private function query(): Builder
     {
         // Employees counted company-wide (not only those this user may see): it says whether the shift is in use.
-        return Shift::query()->with('orgUnit')
+        return Shift::query()->with('entity')
             ->withCount(['employees' => fn (Builder $q) => $q->withoutGlobalScope(VisibleToCurrentUser::class)]);
     }
 

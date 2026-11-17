@@ -38,19 +38,19 @@
                 </flux:field>
 
                 <flux:field>
-                    <flux:label>{{ __('Org unit') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                    <flux:select aria-required="true" wire:model.live="form.org_unit_id">
+                    <flux:label>{{ __('Entity') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                    <flux:select aria-required="true" wire:model.live="form.entity_id">
                         <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
                         @foreach ($units as $optionValue => $optionLabel)
                             <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
                         @endforeach
                     </flux:select>
-                    <flux:error name="form.org_unit_id" />
+                    <flux:error name="form.entity_id" />
                 </flux:field>
 
                 <flux:field>
                     <flux:label>{{ __('Position') }}</flux:label>
-                    <flux:description>{{ __('Free seats of the org unit') }}</flux:description>
+                    <flux:description>{{ __('Free seats of the entity') }}</flux:description>
                     <flux:select wire:model="form.position_id">
                         <flux:select.option value="">{{ __('None') }}</flux:select.option>
                         @foreach ($positions as $optionValue => $optionLabel)

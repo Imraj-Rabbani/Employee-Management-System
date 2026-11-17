@@ -18,9 +18,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $code
  * @property string $name
  * @property int|null $parent_id
- * @property int $org_unit_id
+ * @property int $entity_id
  * @property int|null $grade_id
- * @property int|null $cost_center_id
  * @property int|null $employee_id
  * @property bool $is_vacant
  * @property Carbon|null $effective_from
@@ -33,7 +32,7 @@ class Position extends TenantModel
     use HasFactory;
 
     protected $fillable = [
-        'code', 'name', 'parent_id', 'org_unit_id', 'grade_id', 'cost_center_id',
+        'code', 'name', 'parent_id', 'entity_id', 'grade_id',
         'employee_id', 'is_vacant', 'effective_from', 'is_active',
     ];
 
@@ -86,21 +85,15 @@ class Position extends TenantModel
         return false;
     }
 
-    /** @return BelongsTo<OrgUnit, $this> */
-    public function orgUnit(): BelongsTo
+    /** @return BelongsTo<Entity, $this> */
+    public function entity(): BelongsTo
     {
-        return $this->belongsTo(OrgUnit::class);
+        return $this->belongsTo(Entity::class);
     }
 
     /** @return BelongsTo<Grade, $this> */
     public function grade(): BelongsTo
     {
         return $this->belongsTo(Grade::class);
-    }
-
-    /** @return BelongsTo<CostCenter, $this> */
-    public function costCenter(): BelongsTo
-    {
-        return $this->belongsTo(CostCenter::class);
     }
 }

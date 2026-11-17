@@ -3,8 +3,6 @@
 namespace App\Modules\Hrm\Livewire\Employees;
 
 use App\Modules\Hrm\Enums\PaymentMethod;
-use App\Modules\Hrm\Models\Branch;
-use App\Modules\Hrm\Models\CostCenter;
 use App\Modules\Hrm\Models\Designation;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\EmploymentType;
@@ -21,8 +19,8 @@ use Illuminate\Validation\Rule;
  * Profile → Job → Edit: code, placement, reporting lines, dates, payment method,
  * attendance: shift, weekend profile, holiday calendar, and the leave profile.
  *
- * Not here on purpose: status and separation (Lifecycle), and the org unit: that is changed on
- * the History tab (OrgHistory → ChangeOrgUnit) so every move is dated and kept.
+ * Not here on purpose: status and separation (Lifecycle), and the entities (Department, Branch ...):
+ * those are changed on the History tab (EntityHistory → ChangeEntity) so every move is dated and kept.
  *
  * Extra rules:
  *   - supervisor / dotted-line manager: not the employee themself, and no loop (A → B → A)
@@ -43,8 +41,6 @@ class JobForm extends EmployeeSectionForm
             'designation_id' => ['nullable', Rule::exists(Designation::class, 'id')],
             'grade_id' => ['nullable', Rule::exists(Grade::class, 'id')],
             'position_id' => ['nullable', Rule::exists(Position::class, 'id')],
-            'branch_id' => ['nullable', Rule::exists(Branch::class, 'id')],
-            'cost_center_id' => ['nullable', Rule::exists(CostCenter::class, 'id')],
             'employment_type_id' => ['nullable', Rule::exists(EmploymentType::class, 'id')],
             'supervisor_id' => ['nullable', 'integer', 'different:form.dotted_line_manager_id', Rule::exists(Employee::class, 'id')],
             'dotted_line_manager_id' => ['nullable', 'integer', Rule::exists(Employee::class, 'id')],
@@ -64,7 +60,7 @@ class JobForm extends EmployeeSectionForm
     {
         return [
             'code' => __('employee code'), 'access_code' => __('attendance ID'),
-            'position_id' => __('position'), 'cost_center_id' => __('cost center'), 'employment_type_id' => __('employment type'),
+            'position_id' => __('position'), 'employment_type_id' => __('employment type'),
             'supervisor_id' => __('supervisor'), 'dotted_line_manager_id' => __('dotted-line manager'),
             'join_date' => __('join date'), 'planned_confirmation_date' => __('planned confirmation'),
             'confirmation_date' => __('confirmation date'), 'payment_method' => __('payment method'),
@@ -120,8 +116,6 @@ class JobForm extends EmployeeSectionForm
             'positions' => Position::where('is_active', true)->orderBy('name')->get()
                 ->mapWithKeys(fn (Position $p) => [$p->id => $p->name.($p->employee_id && $p->employee_id !== $this->employeeId ? ' · '.__('filled') : '')])
                 ->all(),
-            'branches' => Branch::orderBy('name')->pluck('name', 'id')->all(),
-            'costCenters' => CostCenter::orderBy('code')->get()->mapWithKeys(fn (CostCenter $c) => [$c->id => "{$c->code} · {$c->name}"])->all(),
             'types' => EmploymentType::orderBy('name')->pluck('name', 'id')->all(),
             'people' => $this->peopleOptions(),
             'paymentMethods' => PaymentMethod::options(),

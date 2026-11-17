@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Payroll → Attendance → Rosters: the list, newest first.
- * Only rosters of the org units the user can see (Roster::visibleTo). Click the number to open the roster.
+ * Only rosters of the entities the user can see (Roster::visibleTo). Click the number to open the roster.
  *
  * View: app/Modules/Payroll/resources/views/livewire/attendance/roster-table.blade.php
  */
@@ -64,7 +64,7 @@ class RosterTable extends Component
         $rows = $this->filteredQuery()->get()->map(fn (Roster $roster) => [
             $roster->number(),
             $roster->title,
-            $roster->orgUnit->name ?? '-',
+            $roster->entity->name ?? '-',
             format_date($roster->from_date),
             format_date($roster->to_date),
             $roster->getAttribute('employees_count'),
@@ -72,7 +72,7 @@ class RosterTable extends Component
         ])->all();
 
         return Excel::download(
-            new ArrayExport([__('No.'), __('Title'), __('Org unit'), __('From'), __('To'), __('Employees'), __('Status')], $rows),
+            new ArrayExport([__('No.'), __('Title'), __('Entity'), __('From'), __('To'), __('Employees'), __('Status')], $rows),
             'roster-table-'.now()->format('Y-m-d').'.xlsx',
         );
     }
@@ -91,7 +91,7 @@ class RosterTable extends Component
         // 'approvals' eager loaded: the Status column calls approvalStatus() on every row.
         return Roster::query()
             ->visibleTo(Auth::user())
-            ->with(['orgUnit', 'approvals'])
+            ->with(['entity', 'approvals'])
             ->withCount(['items as employees_count' => fn (Builder $q) => $q->select(DB::raw('count(distinct employee_id)'))]);
     }
 

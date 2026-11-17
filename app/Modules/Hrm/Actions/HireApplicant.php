@@ -25,8 +25,9 @@ use Throwable;
  *
  * handle(), in ONE transaction (all or nothing):
  *   1. the employee: personal details from the applicant, the job from the offer (designation, grade,
- *      employment type, joining date), the org unit / position from the manpower request, Active.
- *      (Employee::created() adds the first org-unit history row, as for any new employee.)
+ *      employment type, joining date), the entity / position from the manpower request, Active.
+ *      The employee is put in the request's entity from the join date (ChangeEntity::assignOnJoining);
+ *      other entity types (Branch ...) are set afterwards on the profile's History tab.
  *   2. copies education + work history; the CV becomes a document "CV" (a copy of the file)
  *   3. the position seat, if any, is filled
  *   4. the application → Hired (history row) and remembers the employee (hired_employee_id)
@@ -40,7 +41,7 @@ class HireApplicant
 {
     public function __construct(private MoveApplication $move, private TenantUploads $uploads) {}
 
-    /** @return array{code: string, join_date: string, org_unit_id: int, position_id: int|null, office_email: string|null} */
+    /** @return array{code: string, join_date: string, entity_id: int, position_id: int|null, office_email: string|null} */
     public function defaults(JobOffer $offer): array
     {
         $request = $offer->application->jobPosting->manpowerRequest;
@@ -49,14 +50,14 @@ class HireApplicant
         return [
             'code' => '',
             'join_date' => $offer->joining_date->toDateString(),
-            'org_unit_id' => $request->org_unit_id,
+            'entity_id' => $request->entity_id,
             'position_id' => $seat && $seat->employee_id === null ? $seat->id : null,   // only when still free
             'office_email' => null,
         ];
     }
 
     /**
-     * @param  array<string, mixed>  $values  code, join_date, org_unit_id, position_id, office_email
+     * @param  array<string, mixed>  $values  code, join_date, entity_id, position_id, office_email
      * @return array{field: string, message: string}|null
      */
     public function problem(JobOffer $offer, array $values): ?array
@@ -120,12 +121,12 @@ class HireApplicant
                     'personal_email' => $applicant->email,
                     'office_email' => ($values['office_email'] ?? '') ?: null,
                     'join_date' => $values['join_date'] ?? $offer->joining_date,
-                    'org_unit_id' => $values['org_unit_id'],
                     'position_id' => ($values['position_id'] ?? '') ?: null,
                     'designation_id' => $offer->designation_id,
                     'grade_id' => $offer->grade_id,
                     'employment_type_id' => $offer->employment_type_id,
                 ]);
+                app(ChangeEntity::class)->assignOnJoining($employee, [$values['entity_id']]);
 
                 foreach ($applicant->educations as $education) {
                     $employee->educations()->create($education->only(['degree', 'institution', 'subject', 'score', 'out_of', 'passing_year']));

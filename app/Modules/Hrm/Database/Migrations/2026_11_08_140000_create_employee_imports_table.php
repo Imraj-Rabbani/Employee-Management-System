@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
  * One row per uploaded Excel file of employees.
  *
  *   user_id      who uploaded it (central users.id, no FK: other database). The job imports with that
- *                user's org-unit access.
+ *                user's entity access.
  *   errors       JSON list of {row, column, message}: the validation report.
  */
 return new class extends Migration

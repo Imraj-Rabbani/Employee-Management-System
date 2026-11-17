@@ -4,14 +4,15 @@ namespace App\Modules\Hrm\Imports;
 
 use App\Core\Support\TenantUploads;
 use App\Models\User;
+use App\Modules\Hrm\Actions\ChangeEntity;
 use App\Modules\Hrm\Enums\Gender;
 use App\Modules\Hrm\Enums\ImportStatus;
 use App\Modules\Hrm\Models\Designation;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\EmployeeImport;
 use App\Modules\Hrm\Models\EmploymentType;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\Grade;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use Illuminate\Database\Eloquent\Model;
@@ -34,18 +35,21 @@ use Throwable;
  * lists every problem as {row, column, message}. The user fixes the file and uploads it again; no half
  * imports, no duplicates on the second try.
  *
- * Lookups (org unit, designation, grade, type) accept the CODE or the NAME, any upper/lower case.
+ * Lookups (entities, designation, grade, type) accept the CODE or the NAME, any upper/lower case.
+ * Entities: one column per entity type ("Entity: Department", "Entity: Branch" ...), see columns().
  * Dates may be real Excel dates or text like 2024-01-31 / 31/01/2024.
  * The supervisor may be an existing employee or one further down in the same file.
- * Org units are limited to what the uploader may see (their role's org-unit scope).
+ * Entities are limited to what the uploader may pick (EmployeeVisibility::entityChoicesFor): a user limited
+ * to Department Finance must put every row in Finance (that column is then required).
  */
 class EmployeeImporter
 {
     public const MAX_ROWS = 5000;
 
     /**
-     * The template's columns: key => [heading, help]. The heading row is read back as the key
+     * The fixed columns: key => [heading, help]. The heading row is read back as the key
      * (maatwebsite turns "Employee code *" into "employee_code"). * = required.
+     * The entity columns are added per company by columns().
      */
     public const COLUMNS = [
         'employee_code' => ['Employee code *', 'Unique, e.g. E-0101'],
@@ -56,7 +60,6 @@ class EmployeeImporter
         'gender' => ['Gender', 'Male or Female'],
         'birth_date' => ['Birth date', 'YYYY-MM-DD'],
         'join_date' => ['Join date *', 'YYYY-MM-DD'],
-        'org_unit' => ['Org unit *', 'Code or name, see the Lists sheet'],
         'designation' => ['Designation', 'Code or name'],
         'grade' => ['Grade', 'Code or name'],
         'employment_type' => ['Employment type', 'Name'],
@@ -71,12 +74,39 @@ class EmployeeImporter
     /** @var list<array{row: int, column: string, message: string}> */
     private array $errors = [];
 
+    /**
+     * All columns for this company and user: COLUMNS with one "Entity: <type>" column per active entity
+     * type after the join date. * when the user must fill it (EmployeeVisibility::entityChoicesFor).
+     *
+     * @param  array<int, array{name: string, options: array<int, string>, required: bool}>  $choices
+     * @return array<string, array{0: string, 1: string}>
+     */
+    public static function columns(array $choices): array
+    {
+        $entityColumns = [];
+        foreach ($choices as $choice) {
+            $entityColumns[self::entityColumn($choice['name'])] = [
+                'Entity: '.$choice['name'].($choice['required'] ? ' *' : ''), 'Code or name, see the Lists sheet',
+            ];
+        }
+
+        $at = array_search('join_date', array_keys(self::COLUMNS), true) + 1;
+
+        return array_slice(self::COLUMNS, 0, $at, true) + $entityColumns + array_slice(self::COLUMNS, $at, null, true);
+    }
+
+    /** The key maatwebsite reads back for "Entity: Department *": "entity_department". */
+    public static function entityColumn(string $typeName): string
+    {
+        return Str::slug('Entity '.$typeName, '_');
+    }
+
     /** Runs a whole import and records the result on $import. Never throws for bad data. */
     public function run(EmployeeImport $import): void
     {
         $import->update(['status' => ImportStatus::Processing, 'started_at' => now(), 'errors' => null]);
 
-        // No uploader = no way to know their org-unit access. Refuse rather than allow everything.
+        // No uploader = no way to know their entity access. Refuse rather than allow everything.
         if ($import->user === null) {
             $import->update([
                 'status' => ImportStatus::Failed,
@@ -156,18 +186,24 @@ class EmployeeImporter
 
             return [];
         }
-        $missing = array_diff(['employee_code', 'first_name', 'join_date', 'org_unit'], array_keys(reset($rows)));
+        $choices = $uploader ? app(EmployeeVisibility::class)->entityChoicesFor($uploader) : [];
+        $requiredEntityColumns = array_values(array_map(
+            fn (array $c) => self::entityColumn($c['name']),
+            array_filter($choices, fn (array $c) => $c['required']),
+        ));
+        $missing = array_diff(['employee_code', 'first_name', 'join_date', ...$requiredEntityColumns], array_keys(reset($rows)));
         if ($missing !== []) {
             $this->error(1, '', __('Missing columns: :list. Use the template.', ['list' => implode(', ', $missing)]));
 
             return [];
         }
 
-        $units = $this->lookup(OrgUnit::query()->get(['id', 'code', 'name']));
+        // Per type: code / name => ids, among ALL entities of the type (so "not allowed" can be told apart from "not found").
+        $entitiesByType = Entity::query()->get(['id', 'entity_type_id', 'code', 'name'])->groupBy('entity_type_id')
+            ->map(fn ($group) => $this->lookup($group))->all();
         $designations = $this->lookup(Designation::query()->get(['id', 'code', 'name']));
         $grades = $this->lookup(Grade::query()->get(['id', 'code', 'name']));
         $types = $this->lookup(EmploymentType::query()->get(['id', 'name']));
-        $allowedUnits = $uploader ? app(EmployeeVisibility::class)->orgUnitIdsFor($uploader) : null;
 
         // Every existing code, also of employees the uploader cannot see: codes are unique company-wide.
         $existing = Employee::withoutGlobalScope(VisibleToCurrentUser::class)->pluck('id', 'code')
@@ -197,7 +233,6 @@ class EmployeeImporter
                 'gender' => $this->gender($n, $text('gender')),
                 'birth_date' => $this->date($n, 'birth_date', $row['birth_date'] ?? null),
                 'join_date' => $this->date($n, 'join_date', $row['join_date'] ?? null),
-                'org_unit_id' => $this->find($n, 'org_unit', $text('org_unit'), $units),
                 'designation_id' => $this->find($n, 'designation', $text('designation'), $designations),
                 'grade_id' => $this->find($n, 'grade', $text('grade'), $grades),
                 'employment_type_id' => $this->find($n, 'employment_type', $text('employment_type'), $types),
@@ -223,11 +258,18 @@ class EmployeeImporter
             if ($values['join_date'] === null && $this->hasNoError($n, 'join_date')) {
                 $this->error($n, 'join_date', __('Join date is required.'));
             }
-            if ($values['org_unit_id'] === null && $this->hasNoError($n, 'org_unit')) {
-                $this->error($n, 'org_unit', __('Org unit is required.'));
-            }
-            if ($values['org_unit_id'] !== null && $allowedUnits !== null && ! in_array($values['org_unit_id'], $allowedUnits, true)) {
-                $this->error($n, 'org_unit', __('You may not add employees to this org unit.'));
+            // One entity per type column.
+            $entityIds = [];
+            foreach ($choices as $typeId => $choice) {
+                $column = self::entityColumn($choice['name']);
+                $id = $this->find($n, $column, $text($column), $entitiesByType[$typeId] ?? []);
+                if ($id === null && $choice['required'] && $this->hasNoError($n, $column)) {
+                    $this->error($n, $column, __(':type is required.', ['type' => $choice['name']]));
+                } elseif ($id !== null && ! isset($choice['options'][$id])) {
+                    $this->error($n, $column, __('You may not add employees to this entity.'));
+                } elseif ($id !== null) {
+                    $entityIds[] = $id;
+                }
             }
 
             if ($code !== null) {
@@ -250,7 +292,7 @@ class EmployeeImporter
                 }
             }
 
-            $prepared[$n] = [...$values, 'supervisor_code' => $supervisor];
+            $prepared[$n] = [...$values, 'supervisor_code' => $supervisor, 'entities' => $entityIds];
         }
 
         // Supervisor loops inside the file (A → B → A). Existing employees cannot report to new ones,
@@ -303,7 +345,7 @@ class EmployeeImporter
 
     /**
      * Creates the employees in one transaction, then links supervisors (they may be new themselves).
-     * Each Employee::create also makes the first org-unit history row (Employee::created, 5.4).
+     * Each employee is put in its entities from the join date (ChangeEntity::assignOnJoining).
      *
      * @param  array<int, array<string, mixed>>  $prepared
      */
@@ -315,8 +357,11 @@ class EmployeeImporter
             $created = [];
             foreach ($prepared as $values) {
                 $supervisor = $values['supervisor_code'];
-                unset($values['supervisor_code']);
-                $created[] = [Employee::create($values), $supervisor];
+                $entityIds = $values['entities'];
+                unset($values['supervisor_code'], $values['entities']);
+                $employee = Employee::create($values);
+                app(ChangeEntity::class)->assignOnJoining($employee, $entityIds);
+                $created[] = [$employee, $supervisor];
             }
 
             $ids = Employee::withoutGlobalScope(VisibleToCurrentUser::class)->pluck('id', 'code')

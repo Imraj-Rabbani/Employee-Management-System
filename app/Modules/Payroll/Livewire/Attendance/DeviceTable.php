@@ -57,13 +57,13 @@ class DeviceTable extends Component
         $rows = $this->filteredQuery()->get()->map(fn (Device $device) => [
             $device->name,
             $device->ip.':'.$device->port,
-            $device->orgUnit->name ?? '—',
+            $device->entity->name ?? '—',
             $device->last_sync_error ? __('Failed').': '.$device->last_sync_error : ($device->last_synced_at ? format_datetime($device->last_synced_at) : __('Never')),
             $device->is_active ? __('Active') : __('Inactive'),
         ])->all();
 
         return Excel::download(
-            new ArrayExport([__('Name'), __('Address'), __('Org unit'), __('Last sync'), __('Active')], $rows),
+            new ArrayExport([__('Name'), __('Address'), __('Entity'), __('Last sync'), __('Active')], $rows),
             'device-table-'.now()->format('Y-m-d').'.xlsx',
         );
     }
@@ -79,7 +79,7 @@ class DeviceTable extends Component
     /** @return Builder<Device> */
     private function query(): Builder
     {
-        return Device::query()->with('orgUnit');
+        return Device::query()->with('entity');
     }
 
     /** @return Builder<Device> */

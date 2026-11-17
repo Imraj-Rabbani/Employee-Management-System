@@ -10,8 +10,8 @@ use App\Modules\Hrm\Enums\ApplicationStage;
 use App\Modules\Hrm\Livewire\Recruitment\ApplicationPipeline;
 use App\Modules\Hrm\Models\Applicant;
 use App\Modules\Hrm\Models\Application;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\JobPosting;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Models\RejectionReason;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -126,9 +126,9 @@ class ApplicationPipelineTest extends TestCase
             ->call('startMove', $other->id)
             ->assertNotFound();
 
-        // HR limited to another org unit cannot open this posting's pipeline at all.
+        // HR limited to another entity cannot open this posting's pipeline at all.
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.recruitment.manage']);
-        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['org_unit_id' => OrgUnit::factory()->create()->id]);
+        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['entity_id' => Entity::factory()->create()->id]);
         Livewire::test(ApplicationPipeline::class, ['postingId' => $this->posting->id])->assertNotFound();
     }
 

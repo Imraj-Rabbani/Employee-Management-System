@@ -41,14 +41,14 @@
             </flux:field>
 
             <flux:field>
-                <flux:label>{{ __('Org unit') }}</flux:label>
-                <flux:select wire:model.live="orgUnit">
+                <flux:label>{{ __('Entity') }}</flux:label>
+                <flux:select wire:model.live="entity">
                     <flux:select.option value="">{{ __('All') }}</flux:select.option>
                     @foreach ($units as $optionValue => $optionLabel)
                         <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
                     @endforeach
                 </flux:select>
-                <flux:error name="orgUnit" />
+                <flux:error name="entity" />
             </flux:field>
         </div>
         <flux:button icon="arrow-down-tray" wire:click="export">{{ __('Export') }}</flux:button>
@@ -80,7 +80,7 @@
                             <tr class="border-b border-white/50 last:border-0 dark:border-white/10" wire:key="funnel-{{ $row['posting']->id }}">
                                 <td class="px-6 py-3">
                                     <a href="{{ route('hrm.recruitment.postings.show', $row['posting']->id) }}" wire:navigate class="font-medium text-brand-800 hover:underline dark:text-brand-200">{{ $row['posting']->title }}</a>
-                                    <div class="text-xs text-zinc-500">{{ $row['posting']->number() }} · {{ $row['posting']->manpowerRequest->orgUnit?->name }} · {{ $row['posting']->status->label() }}</div>
+                                    <div class="text-xs text-zinc-500">{{ $row['posting']->number() }} · {{ $row['posting']->manpowerRequest->entity?->name }} · {{ $row['posting']->status->label() }}</div>
                                 </td>
                                 @foreach ($row['reached'] as $step => $count)
                                     <td class="px-4 py-3 text-right tabular-nums">

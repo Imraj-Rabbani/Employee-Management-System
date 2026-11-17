@@ -16,15 +16,15 @@
                 </flux:field>
             </div>
             <flux:field>
-                <flux:label>{{ __('Org unit') }}</flux:label>
+                <flux:label>{{ __('Entity') }}</flux:label>
                 <flux:description>{{ __('Leave empty to offer this shift everywhere.') }}</flux:description>
-                <flux:select wire:model="form.org_unit_id">
+                <flux:select wire:model="form.entity_id">
                     <flux:select.option value="">{{ __('Whole company') }}</flux:select.option>
                     @foreach ($units as $optionValue => $optionLabel)
                         <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
                     @endforeach
                 </flux:select>
-                <flux:error name="form.org_unit_id" />
+                <flux:error name="form.entity_id" />
             </flux:field>
 
             <flux:separator :text="__('Working hours')" />

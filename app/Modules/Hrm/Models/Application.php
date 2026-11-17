@@ -92,7 +92,7 @@ class Application extends TenantModel
 
     /**
      * The employee this application became. withoutGlobalScope: HR may see the hiring history even
-     * when the new employee sits in a unit outside their access.
+     * when the new employee sits in an entity outside their access.
      *
      * @return BelongsTo<Employee, $this>
      */
@@ -108,7 +108,7 @@ class Application extends TenantModel
     }
 
     /**
-     * Applications to postings the user can see (same org-unit limit as postings and requests).
+     * Applications to postings the user can see (same entity limit as postings and requests).
      *
      * @param  Builder<self>  $query
      */

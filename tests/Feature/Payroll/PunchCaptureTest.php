@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Modules\Core\Models\Role;
 use App\Modules\Hrm\Exports\TemplateSheet;
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Payroll\Contracts\PunchDeviceClient;
 use App\Modules\Payroll\Enums\PunchSource;
 use App\Modules\Payroll\Exceptions\DeviceException;
@@ -221,16 +221,16 @@ class PunchCaptureTest extends TestCase
 
     public function test_the_punch_list_shows_only_visible_employees(): void
     {
-        $factory = OrgUnit::factory()->create();
-        $office = OrgUnit::factory()->create();
-        PunchLog::factory()->for(Employee::factory()->inUnit($factory)->create(['code' => 'E-FAC']))->create();
-        PunchLog::factory()->for(Employee::factory()->inUnit($office)->create(['code' => 'E-OFF']))->create();
+        $factory = Entity::factory()->create();
+        $office = Entity::factory()->create();
+        PunchLog::factory()->for(Employee::factory()->inEntity($factory)->create(['code' => 'E-FAC']))->create();
+        PunchLog::factory()->for(Employee::factory()->inEntity($office)->create(['code' => 'E-OFF']))->create();
         PunchLog::factory()->create(['employee_id' => null, 'access_code' => 'X-UNMATCHED']);
 
         $this->get('/payroll/attendance/punches')->assertOk()->assertSee('E-FAC')->assertSee('E-OFF')->assertSee('X-UNMATCHED');
 
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['payroll.punch.manage']);
-        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['org_unit_id' => $factory->id]);
+        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['entity_id' => $factory->id]);
         $this->get('/payroll/attendance/punches')->assertOk()->assertSee('E-FAC')->assertDontSee('E-OFF')->assertDontSee('X-UNMATCHED');
     }
 

@@ -5,11 +5,13 @@ namespace Tests\Feature\Hrm;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Core\Services\Permissions;
+use App\Modules\Hrm\Actions\ChangeEntity;
 use App\Modules\Hrm\Enums\EmployeeStatus;
 use App\Modules\Hrm\Enums\Gender;
 use App\Modules\Hrm\Models\Employee;
+use App\Modules\Hrm\Models\Entity;
+use App\Modules\Hrm\Models\EntityType;
 use App\Modules\Hrm\Models\Grade;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,37 +23,39 @@ use Tests\TestCase;
 /**
  * Employees table, model, factory, policy and the VisibleToCurrentUser global scope.
  *
- * Structure used: Head Office › Finance › Accounts, and Head Office › Sales.
+ * Entities used: Departments Finance and Sales, Branch Gulshan (and Head Office, unused by employees).
+ * Employees: InFinance (Finance), InGulshan (Gulshan only), InSales (Sales).
  */
 class EmployeeTest extends TestCase
 {
     use ActsAsTenantUser;
     use RefreshDatabase;
 
-    private OrgUnit $head;
+    private Entity $head;
 
-    private OrgUnit $finance;
+    private Entity $finance;
 
-    private OrgUnit $accounts;
+    private Entity $gulshan;
 
-    private OrgUnit $sales;
+    private Entity $sales;
 
     /** The company of the first login, reused by later logins in the same test. */
     private ?Tenant $tenant = null;
 
     private function buildTree(): void
     {
-        $this->head = OrgUnit::factory()->create(['name' => 'Head Office']);
-        $this->finance = OrgUnit::factory()->childOf($this->head)->create(['name' => 'Finance']);
-        $this->accounts = OrgUnit::factory()->childOf($this->finance)->create(['name' => 'Accounts']);
-        $this->sales = OrgUnit::factory()->childOf($this->head)->create(['name' => 'Sales']);
+        $department = EntityType::firstWhere('name', 'Department');
+        $this->head = Entity::factory()->ofType(EntityType::firstWhere('name', 'Division'))->create(['name' => 'Head Office']);
+        $this->finance = Entity::factory()->ofType($department)->create(['name' => 'Finance', 'parent_id' => $this->head->id]);
+        $this->gulshan = Entity::factory()->ofType(EntityType::firstWhere('name', 'Branch'))->create(['name' => 'Gulshan']);
+        $this->sales = Entity::factory()->ofType($department)->create(['name' => 'Sales']);
     }
 
     /** Logs in a user whose role has $permissions and is limited to $unit (null = no limit). */
-    private function actingAsScopedUser(?OrgUnit $unit, array $permissions = ['hrm.employee.view']): User
+    private function actingAsScopedUser(?Entity $unit, array $permissions = ['hrm.employee.view']): User
     {
         $user = $this->actingAsTenantUser(tenant: $this->tenant, permissions: $permissions);
-        $user->role()->update(['org_unit_id' => $unit?->id]);
+        $user->role()->update(['entity_id' => $unit?->id]);
         app(Permissions::class)->flush();
 
         return $user;
@@ -76,16 +80,18 @@ class EmployeeTest extends TestCase
     {
         $this->actingAsTenantUser();
 
+        $entity = Entity::factory()->create();
         $boss = Employee::factory()->create();
-        $employee = Employee::factory()->withJob()->create(['supervisor_id' => $boss->id]);
+        $employee = Employee::factory()->withJob()->inEntity($entity)->create(['supervisor_id' => $boss->id]);
 
         $this->assertNotNull($employee->grade);
         $this->assertNotNull($employee->designation);
         $this->assertNotNull($employee->employmentType);
-        $this->assertTrue($employee->orgUnit->is(OrgUnit::find($employee->org_unit_id)));
+        $this->assertTrue($employee->entities->sole()->is($entity));
         $this->assertTrue($employee->supervisor->is($boss));
         $this->assertTrue($boss->subordinates->first()->is($employee));
-        $this->assertCount(1, $employee->orgUnit->employees);
+        $this->assertCount(1, $entity->currentAssignments);
+        $this->assertSame([$employee->id], Employee::inEntities([$entity->id])->pluck('id')->all());
     }
 
     public function test_a_grade_in_use_cannot_be_deleted(): void
@@ -113,23 +119,39 @@ class EmployeeTest extends TestCase
     {
         $this->actingAsTenantUser();
         $this->buildTree();
-        Employee::factory()->inUnit($this->finance)->create();
-        Employee::factory()->inUnit($this->sales)->create();
+        Employee::factory()->inEntity($this->finance)->create();
+        Employee::factory()->inEntity($this->sales)->create();
 
         $this->assertSame(2, Employee::count());
     }
 
-    public function test_a_role_limited_to_an_org_unit_sees_that_unit_and_the_units_below_it(): void
+    public function test_a_role_limited_to_an_entity_sees_only_employees_currently_in_it(): void
     {
         $this->buildTreeAsAdminThen(fn () => $this->actingAsScopedUser($this->finance));
 
-        $names = Employee::orderBy('first_name')->pluck('first_name')->all();
-
-        $this->assertSame(['InAccounts', 'InFinance'], $names);
+        $this->assertSame(['InFinance'], Employee::orderBy('first_name')->pluck('first_name')->all());
         $this->assertNull(Employee::where('first_name', 'InSales')->first());
     }
 
-    public function test_a_role_without_an_org_unit_sees_everyone(): void
+    public function test_a_role_limited_to_a_parent_entity_does_not_see_the_children(): void
+    {
+        // Entities are flat: Finance's (optional) parent Head Office does not include Finance's people.
+        $this->buildTreeAsAdminThen(fn () => $this->actingAsScopedUser($this->head));
+
+        $this->assertSame(0, Employee::count());
+    }
+
+    public function test_a_transfer_out_of_the_entity_hides_the_employee(): void
+    {
+        $this->buildTreeAsAdminThen(fn () => $this->actingAsScopedUser($this->finance));
+        $inFinance = Employee::where('first_name', 'InFinance')->sole();
+
+        app(ChangeEntity::class)->handle($inFinance, $this->sales->id, today());
+
+        $this->assertSame(0, Employee::count());
+    }
+
+    public function test_a_role_without_an_entity_sees_everyone(): void
     {
         $this->buildTreeAsAdminThen(fn () => $this->actingAsScopedUser(null));
 
@@ -190,16 +212,16 @@ class EmployeeTest extends TestCase
     }
 
     /**
-     * As an Administrator: build the tree and one employee in Finance, Accounts and Sales.
+     * As an Administrator: build the entities and one employee in Finance, Gulshan and Sales.
      * Then log in as the user made by $login (same company).
      */
     private function buildTreeAsAdminThen(callable $login): void
     {
         $admin = $this->actingAsTenantUser();
         $this->buildTree();
-        Employee::factory()->inUnit($this->finance)->create(['first_name' => 'InFinance']);
-        Employee::factory()->inUnit($this->accounts)->create(['first_name' => 'InAccounts']);
-        Employee::factory()->inUnit($this->sales)->create(['first_name' => 'InSales']);
+        Employee::factory()->inEntity($this->finance)->create(['first_name' => 'InFinance']);
+        Employee::factory()->inEntity($this->gulshan)->create(['first_name' => 'InGulshan']);
+        Employee::factory()->inEntity($this->sales)->create(['first_name' => 'InSales']);
 
         // Without a tenant, actingAsTenantUser would create a new company; log in to this one.
         $this->tenant = $admin->tenant;

@@ -6,7 +6,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Core\Models\Role;
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Payroll\Actions\StorePunches;
 use App\Modules\Payroll\Enums\AttendanceStatus;
 use App\Modules\Payroll\Enums\PunchSource;
@@ -92,8 +92,8 @@ class AttendanceReprocessTest extends TestCase
     public function test_process_again_queues_one_job_per_visible_employee_employed_in_the_range(): void
     {
         Queue::fake();
-        $factory = OrgUnit::factory()->create(['name' => 'Factory']);
-        $rahim = Employee::factory()->create(['join_date' => '2026-01-01', 'org_unit_id' => $factory->id]);
+        $factory = Entity::factory()->create(['name' => 'Factory']);
+        $rahim = Employee::factory()->inEntity($factory)->create(['join_date' => '2026-01-01']);
         Employee::factory()->create(['join_date' => '2026-12-09']);                                   // joined after the range
         Employee::factory()->create(['join_date' => '2025-01-01', 'separation_date' => '2026-10-31']);   // left before it
 
@@ -105,15 +105,15 @@ class AttendanceReprocessTest extends TestCase
             ->assertDispatched('attendance-days-saved');
         $this->assertSame([$this->karim->id => [['2026-12-01', '2026-12-05']], $rahim->id => [['2026-12-01', '2026-12-05']]], $this->queued());
 
-        // One org unit only.
+        // One entity only.
         Queue::fake();
-        Livewire::test(AttendanceReprocess::class)->set('orgUnitId', (string) $factory->id)->call('run');
+        Livewire::test(AttendanceReprocess::class)->set('entityId', (string) $factory->id)->call('run');
         $this->assertSame([$rahim->id], array_keys($this->queued()));
 
         // A user limited to the Factory cannot process Karim, even by choosing him.
         Queue::fake();
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['payroll.attendance.process']);
-        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['org_unit_id' => $factory->id]);
+        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['entity_id' => $factory->id]);
         Livewire::test(AttendanceReprocess::class)->set('employeeId', (string) $this->karim->id)->call('run')->assertHasErrors('employeeId');
         Livewire::test(AttendanceReprocess::class)->call('run')->assertHasNoErrors();
         $this->assertSame([$rahim->id], array_keys($this->queued()));

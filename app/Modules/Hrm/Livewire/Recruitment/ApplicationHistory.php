@@ -17,7 +17,7 @@ use Livewire\Component;
  *
  *     $dispatch('show-application-history', { id: 12 })     from the pipeline or the applicant's profile
  *
- * Looked up through Application::visibleTo(): an application to a posting outside your org units gives 404.
+ * Looked up through Application::visibleTo(): an application to a posting outside your entities gives 404.
  */
 class ApplicationHistory extends Component
 {

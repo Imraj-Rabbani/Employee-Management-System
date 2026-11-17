@@ -14,7 +14,7 @@
     <dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
         @foreach ([
                 __('Roster') => $document->number().' · '.$document->title,
-                __('Org unit') => $document->orgUnit?->path(),
+                __('Entity') => $document->entity?->label(),
                 __('Period') => format_date($document->from_date).' – '.format_date($document->to_date),
                 __('Change of') => $document->replaces?->number(),
                 __('Employees planned') => count($plannedRows),

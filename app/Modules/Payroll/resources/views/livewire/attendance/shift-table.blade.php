@@ -126,7 +126,7 @@
                         <td class="px-4 py-3">{{ $shift->timesLabel() }}</td>
                         <td class="px-4 py-3 text-right">{{ $shift->hours }}</td>
                         <td class="px-4 py-3 text-right">{{ $shift->grace_minutes ? __(':n min', ['n' => $shift->grace_minutes]) : '—' }}</td>
-                        <td class="px-4 py-3">{{ $shift->orgUnit->name ?? __('Whole company') }}</td>
+                        <td class="px-4 py-3">{{ $shift->entity->name ?? __('Whole company') }}</td>
                         <td class="px-4 py-3 text-right">{{ $shift->employees_count }}</td>
                         <td class="px-4 py-3">
                             @if ($shift->getAttribute('is_default'))

@@ -15,7 +15,7 @@ use App\Modules\Hrm\Services\EmployeeVisibility;
  *     ->can('viewAny', Employee::class)               routes
  *
  * Each rule = the permission key from permissions.php AND the employee is inside the user's
- * org-unit scope (the same rule as the VisibleToCurrentUser global scope, checked again here
+ * entity scope (the same rule as the VisibleToCurrentUser global scope, checked again here
  * in case a record was loaded withoutGlobalScope).
  *
  * Gate::before (CoreServiceProvider) returns null for these ability names, so the policy decides.
@@ -60,11 +60,11 @@ class EmployeePolicy
         return $user->can('hrm.employee.login') && $this->inScope($user, $employee);
     }
 
-    /** In the user's org units. Unlike view(), being the employee yourself does NOT count. */
+    /** In the user's entities. Unlike view(), being the employee yourself does NOT count. */
     private function inScope(User $user, Employee $employee): bool
     {
-        $ids = $this->visibility->orgUnitIdsFor($user);
+        $ids = $this->visibility->entityIdsFor($user);
 
-        return $ids === null || in_array($employee->org_unit_id, $ids, true);
+        return $ids === null || array_intersect($employee->entityIds(), $ids) !== [];
     }
 }

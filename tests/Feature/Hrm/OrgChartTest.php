@@ -6,7 +6,7 @@ use App\Models\Tenant;
 use App\Modules\Core\Services\Permissions;
 use App\Modules\Hrm\Livewire\OrgChart;
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\Position;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -30,7 +30,7 @@ class OrgChartTest extends TestCase
 
     private Tenant $tenant;
 
-    private OrgUnit $finance;
+    private Entity $finance;
 
     /** @var array<string, Employee> */
     private array $e = [];
@@ -40,11 +40,11 @@ class OrgChartTest extends TestCase
         parent::setUp();
 
         $this->tenant = $this->actingAsTenantUser()->tenant;
-        $head = OrgUnit::factory()->create(['name' => 'Head Office']);
-        $this->finance = OrgUnit::factory()->childOf($head)->create(['name' => 'Finance']);
-        $sales = OrgUnit::factory()->childOf($head)->create(['name' => 'Sales']);
+        $head = Entity::factory()->create(['name' => 'Head Office']);
+        $this->finance = Entity::factory()->create(['name' => 'Finance']);
+        $sales = Entity::factory()->create(['name' => 'Sales']);
 
-        $make = fn (string $name, OrgUnit $unit, ?string $boss = null, array $extra = []) => $this->e[$name] = Employee::factory()->inUnit($unit)->create([
+        $make = fn (string $name, Entity $unit, ?string $boss = null, array $extra = []) => $this->e[$name] = Employee::factory()->inEntity($unit)->create([
             'first_name' => $name, 'last_name' => 'X', 'supervisor_id' => $boss ? $this->e[$boss]->id : null, ...$extra,
         ]);
         $make('Ceo', $head);
@@ -99,7 +99,7 @@ class OrgChartTest extends TestCase
     public function test_someone_whose_supervisor_you_cannot_see_is_shown_at_the_top(): void
     {
         $user = $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.employee.view']);
-        $user->role()->update(['org_unit_id' => $this->finance->id]);
+        $user->role()->update(['entity_id' => $this->finance->id]);
         app(Permissions::class)->flush();
 
         Livewire::test(OrgChart::class)
@@ -111,8 +111,8 @@ class OrgChartTest extends TestCase
 
     public function test_the_positions_view_shows_holders_and_vacancies(): void
     {
-        $cfo = Position::factory()->create(['name' => 'CFO', 'org_unit_id' => $this->finance->id, 'employee_id' => $this->e['Fatima']->id, 'is_vacant' => false]);
-        Position::factory()->create(['name' => 'Accountant', 'org_unit_id' => $this->finance->id, 'parent_id' => $cfo->id]);
+        $cfo = Position::factory()->create(['name' => 'CFO', 'entity_id' => $this->finance->id, 'employee_id' => $this->e['Fatima']->id, 'is_vacant' => false]);
+        Position::factory()->create(['name' => 'Accountant', 'entity_id' => $this->finance->id, 'parent_id' => $cfo->id]);
 
         Livewire::withQueryParams(['view' => 'positions'])
             ->test(OrgChart::class)
@@ -121,12 +121,12 @@ class OrgChartTest extends TestCase
 
     public function test_a_holder_you_may_not_see_is_shown_as_filled(): void
     {
-        $sales = OrgUnit::where('name', 'Sales')->sole();
-        Position::factory()->create(['name' => 'Analyst', 'org_unit_id' => $this->finance->id, 'employee_id' => $this->e['Selim']->id, 'is_vacant' => false]);
-        Position::factory()->create(['name' => 'Sales Lead', 'org_unit_id' => $sales->id]);
+        $sales = Entity::where('name', 'Sales')->sole();
+        Position::factory()->create(['name' => 'Analyst', 'entity_id' => $this->finance->id, 'employee_id' => $this->e['Selim']->id, 'is_vacant' => false]);
+        Position::factory()->create(['name' => 'Sales Lead', 'entity_id' => $sales->id]);
 
         $user = $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.employee.view']);
-        $user->role()->update(['org_unit_id' => $this->finance->id]);
+        $user->role()->update(['entity_id' => $this->finance->id]);
         app(Permissions::class)->flush();
 
         Livewire::withQueryParams(['view' => 'positions'])

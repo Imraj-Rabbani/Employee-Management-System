@@ -3,7 +3,7 @@
 namespace App\Modules\Hrm\Livewire\Organization;
 
 use App\Core\Exports\ArrayExport;
-use App\Modules\Hrm\Models\Branch;
+use App\Modules\Hrm\Models\EntityType;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Url;
@@ -12,8 +12,8 @@ use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-/** List of branches. Click a row's name to edit it. */
-class BranchTable extends Component
+/** List of entity types. Click a row's name to edit it. */
+class EntityTypeTable extends Component
 {
     use WithPagination;
 
@@ -30,10 +30,10 @@ class BranchTable extends Component
     public int $perPage = 10;
 
     /** Columns the user may sort by. Anything else sent from the browser is ignored. */
-    private const SORTABLE = ['name', 'is_active'];
+    private const SORTABLE = ['sequence', 'name', 'entities_count', 'is_active'];
 
     /** @var array<string, string> refresh the list when its form saved something */
-    protected $listeners = ['branch-saved' => '$refresh'];
+    protected $listeners = ['entity-type-saved' => '$refresh'];
 
     public function sort(string $field): void
     {
@@ -54,15 +54,16 @@ class BranchTable extends Component
 
     public function export(): BinaryFileResponse
     {
-        $rows = $this->filteredQuery()->get()->map(fn (Branch $branch) => [
-            $branch->name,
-            $branch->location,
-            $branch->is_active ? __('Active') : __('Inactive'),
+        $rows = $this->filteredQuery()->get()->map(fn (EntityType $entityType) => [
+            $entityType->sequence,
+            $entityType->name,
+            $entityType->entities_count,
+            $entityType->is_active ? __('Active') : __('Inactive'),
         ])->all();
 
         return Excel::download(
-            new ArrayExport([__('Name'), __('Location'), __('Active')], $rows),
-            'branch-table-'.now()->format('Y-m-d').'.xlsx',
+            new ArrayExport([__('Order'), __('Name'), __('Entities'), __('Active')], $rows),
+            'entity-type-table-'.now()->format('Y-m-d').'.xlsx',
         );
     }
 
@@ -74,13 +75,13 @@ class BranchTable extends Component
         }
     }
 
-    /** @return Builder<Branch> */
+    /** @return Builder<EntityType> */
     private function query(): Builder
     {
-        return Branch::query();
+        return EntityType::query()->withCount('entities');
     }
 
-    /** @return Builder<Branch> */
+    /** @return Builder<EntityType> */
     private function filteredQuery(): Builder
     {
         $query = $this->query();
@@ -88,12 +89,13 @@ class BranchTable extends Component
         if (trim($this->search) !== '') {
             // addcslashes: a search for "50%" means the text "50%", not "50 followed by anything".
             $like = '%'.addcslashes(trim($this->search), '%_\\').'%';
-            $query->where(fn (Builder $q) => $q->where('name', 'like', $like)->orWhere('location', 'like', $like));
+            $query->where(fn (Builder $q) => $q->where('name', 'like', $like));
         }
 
         if (in_array($this->sortBy, self::SORTABLE, true)) {
             $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
         } else {
+            $query->orderBy('sequence', 'asc');
             $query->orderBy('name', 'asc');
         }
 
@@ -105,7 +107,7 @@ class BranchTable extends Component
         // A page size typed into the URL that is not offered falls back to 10.
         $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
 
-        return view('hrm::livewire.organization.branch-table', [
+        return view('hrm::livewire.organization.entity-type-table', [
             'rows' => $this->filteredQuery()->paginate($perPage),
         ]);
     }

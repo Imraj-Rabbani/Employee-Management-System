@@ -58,7 +58,7 @@ class JobPostingDetails extends Component
     private function posting(): JobPosting
     {
         return JobPosting::query()->visibleTo(Auth::user())
-            ->with(['manpowerRequest.orgUnit', 'manpowerRequest.designation', 'manpowerRequest.grade'])
+            ->with(['manpowerRequest.entity', 'manpowerRequest.designation', 'manpowerRequest.grade'])
             ->findOrFail($this->postingId);
     }
 

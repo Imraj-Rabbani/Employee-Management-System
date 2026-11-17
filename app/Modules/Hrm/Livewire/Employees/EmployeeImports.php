@@ -8,6 +8,7 @@ use App\Modules\Hrm\Imports\EmployeeImporter;
 use App\Modules\Hrm\Jobs\ImportEmployees;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\EmployeeImport;
+use App\Modules\Hrm\Services\EmployeeVisibility;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -53,7 +54,7 @@ class EmployeeImports extends Component
             'imports' => $imports,
             // Keep polling while something is still waiting or running.
             'busy' => $imports->contains(fn (EmployeeImport $i) => ! $i->status->isFinished()),
-            'headings' => array_map(fn (array $c) => rtrim($c[0], ' *'), EmployeeImporter::COLUMNS),
+            'headings' => array_map(fn (array $c) => rtrim($c[0], ' *'), EmployeeImporter::columns(app(EmployeeVisibility::class)->entityChoicesFor(Auth::user()))),
             'pending' => ImportStatus::Pending,
         ]);
     }

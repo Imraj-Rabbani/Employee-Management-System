@@ -2,14 +2,14 @@
     <x-ui.modal name="roster-form" :heading="$roster ? __('Edit roster :no', ['no' => $roster->number()]) : __('New roster')">
         <form wire:submit="save" id="roster-form" class="space-y-6">
             <flux:field>
-                <flux:label>{{ __('Org unit') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                <flux:description>{{ __('The employees of this unit (and the units below it) appear in the grid.') }}</flux:description>
-                <flux:select aria-required="true" wire:model="form.org_unit_id">
+                <flux:label>{{ __('Entity') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                <flux:description>{{ __('The employees currently in this entity appear in the grid.') }}</flux:description>
+                <flux:select aria-required="true" wire:model="form.entity_id">
                     @foreach ($units as $optionValue => $optionLabel)
                         <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
                     @endforeach
                 </flux:select>
-                <flux:error name="form.org_unit_id" />
+                <flux:error name="form.entity_id" />
             </flux:field>
 
             <flux:field>

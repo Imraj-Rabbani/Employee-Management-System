@@ -18,7 +18,7 @@ use Illuminate\Support\Carbon;
  *
  *     $posting->manpowerRequest              the approved request it hires for
  *     $posting->isAcceptingApplications()    Open AND today between open_date and close_date
- *     JobPosting::visibleTo($user)->get()    postings of the org units the user can see (via the request)
+ *     JobPosting::visibleTo($user)->get()    postings of the entities the user can see (via the request)
  *
  * @property int $id
  * @property int $manpower_request_id
@@ -69,7 +69,7 @@ class JobPosting extends TenantModel
     }
 
     /**
-     * The same org-unit limit as manpower requests: whereHas() keeps only postings whose request
+     * The same entity limit as manpower requests: whereHas() keeps only postings whose request
      * passes ManpowerRequest::visibleTo().
      *
      * @param  Builder<self>  $query

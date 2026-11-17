@@ -6,7 +6,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Core\Models\Role;
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Payroll\Actions\RequestCorrection;
 use App\Modules\Payroll\Enums\AttendanceStatus;
 use App\Modules\Payroll\Jobs\ProcessAttendance;
@@ -126,8 +126,8 @@ class AttendanceCorrectionTest extends TestCase
 
     public function test_the_tab_needs_its_permission_and_only_shows_visible_employees(): void
     {
-        $factory = OrgUnit::factory()->create();
-        $rahim = Employee::factory()->create(['join_date' => '2026-01-01', 'org_unit_id' => $factory->id]);
+        $factory = Entity::factory()->create();
+        $rahim = Employee::factory()->inEntity($factory)->create(['join_date' => '2026-01-01']);
         AttendanceCorrection::factory()->for($this->karim)->create(['reason' => 'Karim reason']);
         AttendanceCorrection::factory()->for($rahim)->create(['reason' => 'Rahim reason']);
 
@@ -136,10 +136,10 @@ class AttendanceCorrectionTest extends TestCase
         Livewire::test(CorrectionForm::class)->call('create')->assertForbidden();
 
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['payroll.correction.manage']);
-        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['org_unit_id' => $factory->id]);
+        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['entity_id' => $factory->id]);
         $this->get(route('payroll.attendance.corrections'))->assertOk()->assertDontSee('Limits for employees');
         Livewire::test(CorrectionTable::class)->assertSee('Rahim reason')->assertDontSee('Karim reason');
-        $this->ask()->assertHasErrors('employeeId');   // Karim is outside this user's org unit
+        $this->ask()->assertHasErrors('employeeId');   // Karim is outside this user's entity
     }
 
     public function test_without_a_workflow_nothing_is_kept(): void

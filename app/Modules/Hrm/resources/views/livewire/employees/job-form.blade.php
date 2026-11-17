@@ -17,7 +17,7 @@
             </div>
 
             <flux:separator :text="__('Placement')" />
-            <flux:text class="text-sm">{{ __('The org unit is changed on the History tab, so every move is kept with its date.') }}</flux:text>
+            <flux:text class="text-sm">{{ __('The entity is changed on the History tab, so every move is kept with its date.') }}</flux:text>
             <div class="grid gap-4 sm:grid-cols-2">
                 <flux:field>
                     <flux:label>{{ __('Designation') }}</flux:label>
@@ -50,28 +50,6 @@
                         @endforeach
                     </flux:select>
                     <flux:error name="form.position_id" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>{{ __('Branch') }}</flux:label>
-                    <flux:select wire:model="form.branch_id">
-                        <flux:select.option value="">{{ __('None') }}</flux:select.option>
-                        @foreach ($branches as $optionValue => $optionLabel)
-                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                    <flux:error name="form.branch_id" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>{{ __('Cost center') }}</flux:label>
-                    <flux:select wire:model="form.cost_center_id">
-                        <flux:select.option value="">{{ __('Same as the unit') }}</flux:select.option>
-                        @foreach ($costCenters as $optionValue => $optionLabel)
-                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                    <flux:error name="form.cost_center_id" />
                 </flux:field>
 
                 <flux:field>

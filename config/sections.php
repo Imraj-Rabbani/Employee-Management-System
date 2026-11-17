@@ -29,15 +29,13 @@ return [
         'organization' => [
             'label' => 'Organization',
             'tabs' => [
-                ['label' => 'Org units', 'route' => 'hrm.org.units', 'can' => 'hrm.organization.manage'],
+                ['label' => 'Entity types', 'route' => 'hrm.org.entity-types', 'can' => 'hrm.organization.manage'],
+                ['label' => 'Entities', 'route' => 'hrm.org.entities', 'can' => 'hrm.organization.manage'],
                 ['label' => 'Org chart', 'route' => 'hrm.org.chart', 'can' => 'hrm.employee.view'],
                 ['label' => 'Positions', 'route' => 'hrm.org.positions', 'can' => 'hrm.organization.manage'],
                 ['label' => 'Designations', 'route' => 'hrm.org.designations', 'can' => 'hrm.organization.manage'],
                 ['label' => 'Grades', 'route' => 'hrm.org.grades', 'can' => 'hrm.organization.manage'],
-                ['label' => 'Branches', 'route' => 'hrm.org.branches', 'can' => 'hrm.organization.manage'],
-                ['label' => 'Cost centers', 'route' => 'hrm.org.cost-centers', 'can' => 'hrm.organization.manage'],
                 ['label' => 'Employment types', 'route' => 'hrm.org.employment-types', 'can' => 'hrm.organization.manage'],
-                ['label' => 'Unit levels', 'route' => 'hrm.org.unit-levels', 'can' => 'hrm.organization.manage'],
             ],
         ],
 

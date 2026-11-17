@@ -13,8 +13,8 @@ use App\Modules\Hrm\Livewire\Recruitment\ApplicationHistory;
 use App\Modules\Hrm\Livewire\Recruitment\ApplicationPipeline;
 use App\Modules\Hrm\Models\Applicant;
 use App\Modules\Hrm\Models\Application;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\JobPosting;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Models\RejectionReason;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -74,10 +74,10 @@ class ApplicationHistoryTest extends TestCase
             ->assertSeeHtml('show-application-history');
     }
 
-    public function test_an_application_outside_your_org_units_gives_404(): void
+    public function test_an_application_outside_your_entities_gives_404(): void
     {
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.recruitment.manage']);
-        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['org_unit_id' => OrgUnit::factory()->create()->id]);
+        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['entity_id' => Entity::factory()->create()->id]);
 
         Livewire::test(ApplicationHistory::class)
             ->dispatch('show-application-history', id: $this->application->id)

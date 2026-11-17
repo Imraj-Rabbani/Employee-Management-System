@@ -5,7 +5,6 @@ namespace App\Modules\Hrm\Livewire\Recruitment\Reports;
 use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Enums\JobPostingStatus;
 use App\Modules\Hrm\Models\ManpowerRequest;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,7 +22,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  *
  * One query for the whole page: "open_count" is worked out by MySQL (headcount − hired_count) and
  * "advertised" with withSum() (Draft / Open postings), so both can be sorted and exported.
- * Only the org units the user can see (ManpowerRequest::visibleTo). Excel export comes from DataTable.
+ * Only the entities the user can see (ManpowerRequest::visibleTo). Excel export comes from DataTable.
  *
  * View: app/Modules/Hrm/resources/views/livewire/recruitment/reports/open-positions-report.blade.php
  */
@@ -37,9 +36,9 @@ class OpenPositionsReport extends Component
     #[Url(as: 'dir', except: 'asc')]
     public string $sortDir = 'asc';
 
-    /** Filter "Org unit": '' = all */
-    #[Url(as: 'org_unit', except: '')]
-    public string $orgUnit = '';
+    /** Filter "Entity": '' = all */
+    #[Url(as: 'entity', except: '')]
+    public string $entity = '';
 
     /** Filter "Needed by": '' = all */
     #[Url(as: 'timing', except: '')]
@@ -68,7 +67,7 @@ class OpenPositionsReport extends Component
 
     public function clearFilters(): void
     {
-        $this->reset('orgUnit', 'timing', 'advertised');
+        $this->reset('entity', 'timing', 'advertised');
         $this->resetPage();
     }
 
@@ -77,7 +76,7 @@ class OpenPositionsReport extends Component
         $rows = $this->filteredQuery()->get()->map(fn (ManpowerRequest $manpowerRequest) => [
             $manpowerRequest->number(),
             $manpowerRequest->designation->name ?? '-',
-            $manpowerRequest->orgUnit->name ?? '-',
+            $manpowerRequest->entity->name ?? '-',
             $manpowerRequest->type->label(),
             $manpowerRequest->headcount,
             $manpowerRequest->hired_count,
@@ -88,7 +87,7 @@ class OpenPositionsReport extends Component
         ])->all();
 
         return Excel::download(
-            new ArrayExport([__('Request'), __('Designation'), __('Org unit'), __('Type'), __('Wanted'), __('Hired'), __('Open'), __('Advertised'), __('Needed by'), __('Open for')], $rows),
+            new ArrayExport([__('Request'), __('Designation'), __('Entity'), __('Type'), __('Wanted'), __('Hired'), __('Open'), __('Advertised'), __('Needed by'), __('Open for')], $rows),
             'open-positions-report-'.now()->format('Y-m-d').'.xlsx',
         );
     }
@@ -96,7 +95,7 @@ class OpenPositionsReport extends Component
     /** Typing a search or picking a filter or page size starts again at page 1. */
     public function updated(string $property): void
     {
-        if (in_array($property, ['orgUnit', 'timing', 'advertised', 'perPage'], true)) {
+        if (in_array($property, ['entity', 'timing', 'advertised', 'perPage'], true)) {
             $this->resetPage();
         }
     }
@@ -110,13 +109,13 @@ class OpenPositionsReport extends Component
             ->whereColumn('hired_count', '<', 'headcount')
             ->select('manpower_requests.*', DB::raw('headcount - hired_count as open_count'))
             ->withSum(['jobPostings as advertised' => fn ($q) => $q->whereIn('status', [JobPostingStatus::Draft, JobPostingStatus::Open])], 'openings')
-            ->with(['designation', 'orgUnit']);
+            ->with(['designation', 'entity']);
     }
 
-    /** @return array<int|string, string> choices of the "Org unit" filter */
-    private function orgUnitOptions(): array
+    /** @return array<int|string, string> choices of the "Entity" filter */
+    private function entityOptions(): array
     {
-        $units = app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user());
+        $units = app(EmployeeVisibility::class)->documentEntityOptionsFor(Auth::user());
 
         return $units;
     }
@@ -138,8 +137,8 @@ class OpenPositionsReport extends Component
     {
         $query = $this->query();
 
-        if ($this->orgUnit !== '' && array_key_exists($this->orgUnit, $this->orgUnitOptions())) {
-            $query->whereIn('org_unit_id', [(int) $this->orgUnit, ...(OrgUnit::find((int) $this->orgUnit)?->descendantIds() ?? [])]);
+        if ($this->entity !== '' && array_key_exists($this->entity, $this->entityOptions())) {
+            $query->where('entity_id', (int) $this->entity);
         }
 
         if ($this->timing !== '' && array_key_exists($this->timing, $this->timingOptions())) {
@@ -172,7 +171,7 @@ class OpenPositionsReport extends Component
 
         return view('hrm::livewire.recruitment.reports.open-positions-report', [
             'rows' => $this->filteredQuery()->paginate($perPage),
-            'orgUnitOptions' => $this->orgUnitOptions(),
+            'entityOptions' => $this->entityOptions(),
             'timingOptions' => $this->timingOptions(),
             'advertisedOptions' => $this->advertisedOptions(),
         ]);

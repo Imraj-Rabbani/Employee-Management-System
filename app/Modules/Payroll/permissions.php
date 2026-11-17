@@ -8,7 +8,7 @@
 return [
     'Attendance' => [
         'payroll.attendance.setup' => 'Manage attendance setup (shifts, weekends, holidays)',
-        'payroll.roster.manage' => 'Plan rosters (for the org units they can see)',
+        'payroll.roster.manage' => 'Plan rosters (for the entities they can see)',
         'payroll.punch.manage' => 'View and upload punches (for the employees they can see)',
         'payroll.correction.manage' => 'Ask attendance corrections for the employees they can see',
         'payroll.overtime.manage' => 'Ask overtime for the employees they can see',

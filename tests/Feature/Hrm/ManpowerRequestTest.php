@@ -6,8 +6,8 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Hrm\Enums\ManpowerRequestType;
 use App\Modules\Hrm\Models\Employee;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\ManpowerRequest;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Workflow\Enums\ApprovalStatus;
 use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Models\Approval;
@@ -41,15 +41,19 @@ class ManpowerRequestTest extends TestCase
         Notification::fake();
         $this->tenant = $this->actingAsTenantUser()->tenant;
 
-        $sales = OrgUnit::factory()->create(['name' => 'Sales']);
-        $this->boss = $this->employeeWithLogin(['first_name' => 'Boss', 'org_unit_id' => $sales->id]);
-        $this->manager = $this->employeeWithLogin(['first_name' => 'Karim', 'org_unit_id' => $sales->id, 'supervisor_id' => $this->boss->id]);
+        $sales = Entity::factory()->create(['name' => 'Sales']);
+        $this->boss = $this->employeeWithLogin(['first_name' => 'Boss', 'entity_id' => $sales->id]);
+        $this->manager = $this->employeeWithLogin(['first_name' => 'Karim', 'entity_id' => $sales->id, 'supervisor_id' => $this->boss->id]);
     }
 
     /** @param  array<string, mixed>  $attributes */
     private function employeeWithLogin(array $attributes): Employee
     {
-        $employee = Employee::factory()->create($attributes);
+        $entityId = $attributes['entity_id'] ?? null;
+        unset($attributes['entity_id']);
+        $employee = Employee::factory()
+            ->when($entityId !== null, fn ($factory) => $factory->inEntity(Entity::findOrFail($entityId)))
+            ->create($attributes);
         $employee->forceFill(['user_id' => User::factory()->for($this->tenant)->create()->id])->save();
 
         return $employee;

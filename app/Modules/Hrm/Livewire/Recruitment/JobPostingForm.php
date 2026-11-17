@@ -16,7 +16,7 @@ use Livewire\Component;
 /**
  * New / Edit / Delete job posting (modal "job-posting-form").
  *
- *   - New: pick an APPROVED request (of a visible org unit) that still has openings to advertise.
+ *   - New: pick an APPROVED request (of a visible entity) that still has openings to advertise.
  *     Picking it prefills the title (designation) and the openings.
  *   - The request cannot be changed afterwards: the posting belongs to it.
  *   - Openings may not exceed ManpowerRequest::openingsToAdvertise().
@@ -173,7 +173,7 @@ class JobPostingForm extends Component
     }
 
     /**
-     * Approved requests of visible org units that still have openings to advertise.
+     * Approved requests of visible entities that still have openings to advertise.
      * "MPR-0007 · 2 × Sales Officer (Sales)"
      *
      * @return array<int, string>
@@ -182,10 +182,10 @@ class JobPostingForm extends Component
     {
         return ManpowerRequest::query()->approved()->visibleTo(Auth::user())
             ->whereColumn('hired_count', '<', 'headcount')   // fully hired ones are skipped in SQL already
-            ->with(['designation', 'orgUnit'])->orderByDesc('id')->get()
+            ->with(['designation', 'entity'])->orderByDesc('id')->get()
             ->filter(fn (ManpowerRequest $r) => $r->openingsToAdvertise() > 0)
             ->mapWithKeys(fn (ManpowerRequest $r) => [
-                $r->id => $r->number().' · '.$r->openingsToAdvertise().' × '.($r->designation->name ?? '?').' ('.($r->orgUnit->name ?? '?').')',
+                $r->id => $r->number().' · '.$r->openingsToAdvertise().' × '.($r->designation->name ?? '?').' ('.($r->entity->name ?? '?').')',
             ])->all();
     }
 
@@ -198,7 +198,7 @@ class JobPostingForm extends Component
 
     public function render(): View
     {
-        $posting = $this->recordId ? JobPosting::query()->visibleTo(Auth::user())->with('manpowerRequest.designation', 'manpowerRequest.orgUnit')->find($this->recordId) : null;
+        $posting = $this->recordId ? JobPosting::query()->visibleTo(Auth::user())->with('manpowerRequest.designation', 'manpowerRequest.entity')->find($this->recordId) : null;
 
         return view('hrm::livewire.recruitment.job-posting-form', [
             'posting' => $posting,

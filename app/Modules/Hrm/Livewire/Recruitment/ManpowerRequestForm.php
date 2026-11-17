@@ -23,10 +23,10 @@ use Livewire\Component;
  * New / Edit / Delete manpower request (modal "manpower-request-form").
  *
  * Rules beyond the fields:
- *   - the org unit must be one the user can see (same list as everywhere: EmployeeVisibility)
+ *   - the entity must be one the user can see (same list as everywhere: EmployeeVisibility)
  *   - only a draft or a request sent back for changes (Review) can be edited; only a draft deleted
- *   - Replacement needs the employee being replaced, from the chosen org unit
- *   - position (optional) must belong to the chosen org unit
+ *   - Replacement needs the employee being replaced, from the chosen entity
+ *   - position (optional) must belong to the chosen entity
  *
  * Not a LookupForm: those are for small setup lists. This form has its own rules and dependent dropdowns.
  */
@@ -45,7 +45,7 @@ class ManpowerRequestForm extends Component
         Gate::authorize('hrm.recruitment.request');
         $this->recordId = null;
         $this->form = [
-            'org_unit_id' => '', 'designation_id' => '', 'position_id' => '', 'grade_id' => '', 'employment_type_id' => '',
+            'entity_id' => '', 'designation_id' => '', 'position_id' => '', 'grade_id' => '', 'employment_type_id' => '',
             'type' => ManpowerRequestType::New->value, 'replaces_employee_id' => '', 'headcount' => 1,
             'salary_min' => '', 'salary_max' => '', 'needed_by' => '', 'justification' => '',
         ];
@@ -61,7 +61,7 @@ class ManpowerRequestForm extends Component
 
         $this->recordId = $request->id;
         $this->form = [
-            'org_unit_id' => $request->org_unit_id,
+            'entity_id' => $request->entity_id,
             'designation_id' => $request->designation_id,
             'position_id' => $request->position_id ?? '',
             'grade_id' => $request->grade_id ?? '',
@@ -79,8 +79,8 @@ class ManpowerRequestForm extends Component
         Flux::modal('manpower-request-form')->show();
     }
 
-    /** Another org unit: the position and the person being replaced belonged to the old one. */
-    public function updatedFormOrgUnitId(): void
+    /** Another entity: the position and the person being replaced belonged to the old one. */
+    public function updatedFormEntityId(): void
     {
         $this->form['position_id'] = '';
         $this->form['replaces_employee_id'] = '';
@@ -91,18 +91,18 @@ class ManpowerRequestForm extends Component
         Gate::authorize('hrm.recruitment.request');
         $request = $this->recordId ? $this->find($this->recordId) : null;
         if ($request && ! $request->isEditable()) {
-            $this->addError('form.org_unit_id', __('This request is waiting for approval or already answered, so it cannot be changed.'));
+            $this->addError('form.entity_id', __('This request is waiting for approval or already answered, so it cannot be changed.'));
 
             return;
         }
 
         $isReplacement = ($this->form['type'] ?? '') === ManpowerRequestType::Replacement->value;
-        $unitId = (int) ($this->form['org_unit_id'] ?: 0);
+        $unitId = (int) ($this->form['entity_id'] ?: 0);
 
         $values = $this->validate([
-            'form.org_unit_id' => ['required', Rule::in(array_keys($this->orgUnits()))],
+            'form.entity_id' => ['required', Rule::in(array_keys($this->entities()))],
             'form.designation_id' => ['required', Rule::exists(Designation::class, 'id')],
-            'form.position_id' => ['nullable', Rule::exists(Position::class, 'id')->where('org_unit_id', $unitId)],
+            'form.position_id' => ['nullable', Rule::exists(Position::class, 'id')->where('entity_id', $unitId)],
             'form.grade_id' => ['nullable', Rule::exists(Grade::class, 'id')],
             'form.employment_type_id' => ['nullable', Rule::exists(EmploymentType::class, 'id')],
             'form.type' => ['required', Rule::enum(ManpowerRequestType::class)],
@@ -114,7 +114,7 @@ class ManpowerRequestForm extends Component
             'form.needed_by' => ['nullable', 'date', ...($request ? [] : ['after_or_equal:today'])],
             'form.justification' => ['nullable', 'string', 'max:2000'],
         ], attributes: [
-            'form.org_unit_id' => __('org unit'), 'form.designation_id' => __('designation'),
+            'form.entity_id' => __('entity'), 'form.designation_id' => __('designation'),
             'form.replaces_employee_id' => __('employee being replaced'), 'form.salary_min' => __('minimum salary'),
             'form.salary_max' => __('maximum salary'), 'form.needed_by' => __('needed by'),
         ])['form'];
@@ -137,7 +137,7 @@ class ManpowerRequestForm extends Component
     {
         $request = $this->find((int) $this->recordId);
         if (! $request->isDraft()) {
-            $this->addError('form.org_unit_id', __('Only a draft can be deleted. This one has an approval history.'));
+            $this->addError('form.entity_id', __('Only a draft can be deleted. This one has an approval history.'));
 
             return;
         }
@@ -168,13 +168,13 @@ class ManpowerRequestForm extends Component
     }
 
     /** @return array<int, string> */
-    private function orgUnits(): array
+    private function entities(): array
     {
-        return app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user());
+        return app(EmployeeVisibility::class)->documentEntityOptionsFor(Auth::user());
     }
 
     /**
-     * Employees of the chosen unit who can be replaced (the visibility scope applies by itself).
+     * Employees currently in the chosen entity who can be replaced (the visibility scope applies by itself).
      *
      * @return array<int, string>
      */
@@ -184,21 +184,21 @@ class ManpowerRequestForm extends Component
             return [];
         }
 
-        return Employee::query()->where('org_unit_id', $unitId)->orderBy('first_name')->get()
+        return Employee::query()->inEntities([$unitId])->orderBy('first_name')->get()
             ->mapWithKeys(fn (Employee $e) => [$e->id => $e->code.' · '.$e->name])->all();
     }
 
     public function render(): View
     {
-        $unitId = (int) ($this->form['org_unit_id'] ?? 0);
+        $unitId = (int) ($this->form['entity_id'] ?? 0);
         $request = $this->recordId ? ManpowerRequest::query()->visibleTo(Auth::user())->find($this->recordId) : null;
 
         return view('hrm::livewire.recruitment.manpower-request-form', [
             'request' => $request,
             'editable' => $request === null || $request->isEditable(),
-            'units' => $this->orgUnits(),
+            'units' => $this->entities(),
             'designations' => Designation::where('is_active', true)->orderBy('name')->pluck('name', 'id')->all(),
-            'positions' => $unitId ? Position::where('org_unit_id', $unitId)->orderBy('name')->pluck('name', 'id')->all() : [],
+            'positions' => $unitId ? Position::where('entity_id', $unitId)->orderBy('name')->pluck('name', 'id')->all() : [],
             'grades' => Grade::ordered()->pluck('name', 'id')->all(),
             'types' => EmploymentType::orderBy('name')->pluck('name', 'id')->all(),
             'requestTypes' => ManpowerRequestType::options(),

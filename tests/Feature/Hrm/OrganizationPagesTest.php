@@ -6,18 +6,17 @@ use App\Models\Tenant;
 use App\Modules\Core\Livewire\CurrencyForm;
 use App\Modules\Core\Models\Currency;
 use App\Modules\Core\Models\Role;
-use App\Modules\Hrm\Livewire\Organization\BranchForm;
+use App\Modules\Hrm\Livewire\Organization\EntityForm;
+use App\Modules\Hrm\Livewire\Organization\EntityTable;
+use App\Modules\Hrm\Livewire\Organization\EntityTypeForm;
 use App\Modules\Hrm\Livewire\Organization\GradeForm;
 use App\Modules\Hrm\Livewire\Organization\GradeTable;
-use App\Modules\Hrm\Livewire\Organization\OrgUnitForm;
-use App\Modules\Hrm\Livewire\Organization\OrgUnitTable;
-use App\Modules\Hrm\Livewire\Organization\OrgUnitTypeForm;
 use App\Modules\Hrm\Livewire\Organization\PositionForm;
-use App\Modules\Hrm\Models\Branch;
+use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\EmploymentType;
+use App\Modules\Hrm\Models\Entity;
+use App\Modules\Hrm\Models\EntityType;
 use App\Modules\Hrm\Models\Grade;
-use App\Modules\Hrm\Models\OrgUnit;
-use App\Modules\Hrm\Models\OrgUnitType;
 use App\Modules\Hrm\Models\Position;
 use App\Modules\Workflow\Livewire\WorkflowForm;
 use App\Modules\Workflow\Models\ApprovalType;
@@ -29,7 +28,7 @@ use Tests\TestCase;
 
 /**
  * HRM → Organization screens (DataTable + modal form per table), Setup → Currencies,
- * and the workflow form's org unit / employment type scope.
+ * and the workflow form's entity / employment type scope.
  */
 class OrganizationPagesTest extends TestCase
 {
@@ -52,51 +51,48 @@ class OrganizationPagesTest extends TestCase
     {
         $this->get('/dashboard')->assertSee(route('hrm.organization'))->assertSee(route('core.currencies'));
 
-        foreach (['units', 'positions', 'designations', 'grades', 'branches', 'cost-centers', 'employment-types', 'unit-levels'] as $section) {
+        foreach (['entity-types', 'entities', 'positions', 'designations', 'grades', 'employment-types'] as $section) {
             $this->get("/hrm/org/{$section}")->assertOk()->assertSee(route('hrm.org.grades'));
         }
         $this->get('/core/currencies')->assertOk()->assertSee('BDT');
 
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: []);
-        $this->get('/hrm/org/units')->assertForbidden();
+        $this->get('/hrm/org/entities')->assertForbidden();
         $this->get('/core/currencies')->assertForbidden();
     }
 
-    // ---------------------------------------------------------------- the shared LookupForm (via branches)
+    // ---------------------------------------------------------------- the shared LookupForm (via entity types)
 
     public function test_a_record_is_created_edited_and_deleted_through_the_modal(): void
     {
-        Livewire::test(BranchForm::class)
-            ->dispatch('create-branch')
+        Livewire::test(EntityTypeForm::class)
+            ->dispatch('create-entity-type')
             ->assertSet('form.is_active', true)
-            ->set('form.name', 'Chattogram')
-            ->set('form.location', '')
+            ->set('form.name', 'Zone')
+            ->set('form.sequence', '9')
             ->call('save')
             ->assertHasNoErrors()
-            ->assertDispatched('branch-saved');
+            ->assertDispatched('entity-type-saved');
 
-        $branch = Branch::sole();
-        $this->assertNull($branch->location);   // empty input → NULL
+        $zone = EntityType::where('name', 'Zone')->sole();
 
-        Livewire::test(BranchForm::class)
-            ->dispatch('edit-branch', id: $branch->id)
-            ->assertSet('form.name', 'Chattogram')
-            ->set('form.name', 'Chattogram Port')
+        Livewire::test(EntityTypeForm::class)
+            ->dispatch('edit-entity-type', id: $zone->id)
+            ->assertSet('form.name', 'Zone')
+            ->set('form.name', 'Region')
             ->call('save')
             ->assertHasNoErrors()
             ->call('delete')
-            ->assertDispatched('branch-saved');
+            ->assertDispatched('entity-type-saved');
 
-        $this->assertSame(0, Branch::count());
+        $this->assertFalse(EntityType::whereIn('name', ['Zone', 'Region'])->exists());
     }
 
     public function test_names_must_be_unique(): void
     {
-        Branch::factory()->create(['name' => 'Dhaka']);
-
-        Livewire::test(BranchForm::class)
-            ->dispatch('create-branch')
-            ->set('form.name', 'Dhaka')
+        Livewire::test(EntityTypeForm::class)
+            ->dispatch('create-entity-type')
+            ->set('form.name', 'Department')   // seeded
             ->call('save')
             ->assertHasErrors(['form.name' => 'unique']);
     }
@@ -122,93 +118,109 @@ class OrganizationPagesTest extends TestCase
         Livewire::test(GradeTable::class)->assertSeeInOrder(['Grade One', 'Grade Two']);
     }
 
-    // ---------------------------------------------------------------- org units
+    // ---------------------------------------------------------------- entities
 
-    public function test_a_unit_must_sit_under_the_level_its_type_requires(): void
+    public function test_an_entity_is_created_with_its_type_head_and_optional_parent(): void
     {
-        // Seeded levels: Company → Division → Department → Section.
-        $company = $this->unit('Head Office', 'Company');
-        $division = $this->unit('Operations', 'Division', $company);
+        $dhaka = $this->entity('Dhaka', 'Division');
+        $head = Employee::factory()->create(['first_name' => 'Karim']);
 
-        $form = Livewire::test(OrgUnitForm::class)
-            ->dispatch('create-org-unit')
-            ->set('form.name', 'Accounts')
-            ->set('form.org_unit_type_id', (string) $this->level('Department')->id)
-            ->set('form.parent_id', (string) $company->id)   // a Department under a Company: wrong level
+        Livewire::test(EntityForm::class)
+            ->dispatch('create-entity')
+            ->set('form.entity_type_id', (string) $this->type('Branch')->id)
+            ->assertViewHas('parents', fn (array $parents) => isset($parents[$dhaka->id]))
+            ->set('form.name', 'Gulshan')
+            ->set('form.code', 'BR-GUL')
+            ->set('form.head_employee_id', (string) $head->id)
+            ->set('form.parent_id', (string) $dhaka->id)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $gulshan = Entity::where('name', 'Gulshan')->sole();
+        $this->assertSame('Branch', $gulshan->type->name);
+        $this->assertTrue($gulshan->head->is($head));
+        $this->assertTrue($gulshan->parent->is($dhaka));
+    }
+
+    public function test_the_parent_must_be_another_type_and_same_type_entities_are_not_offered(): void
+    {
+        $gulshan = $this->entity('Gulshan', 'Branch');
+        $dhaka = $this->entity('Dhaka', 'Division');
+
+        Livewire::test(EntityForm::class)
+            ->dispatch('create-entity')
+            ->set('form.entity_type_id', (string) $this->type('Branch')->id)
+            ->assertViewHas('parents', fn (array $parents) => ! isset($parents[$gulshan->id]) && isset($parents[$dhaka->id]))
+            ->set('form.name', 'Motijheel')
+            ->set('form.parent_id', (string) $gulshan->id)   // sent anyway: refused
             ->call('save')
             ->assertHasErrors('form.parent_id');
 
-        $form->set('form.parent_id', (string) $division->id)->call('save')->assertHasNoErrors();
-
-        $this->assertSame('Head Office › Operations › Accounts', OrgUnit::where('name', 'Accounts')->sole()->path());
-    }
-
-    public function test_a_unit_cannot_be_moved_under_its_own_sub_unit_and_they_are_not_offered(): void
-    {
-        $company = $this->unit('Head Office', 'Company');
-        $division = $this->unit('Operations', 'Division', $company);
-        $this->level('Division')->update(['parent_type_id' => null]);   // so only the loop rule applies
-
-        Livewire::test(OrgUnitForm::class)
-            ->dispatch('edit-org-unit', id: $company->id)
-            ->assertViewHas('parents', fn (array $parents) => ! isset($parents[$company->id]) && ! isset($parents[$division->id]))
-            ->set('form.parent_id', (string) $division->id)
+        // No loops: Dhaka cannot go under Gulshan while Gulshan is under Dhaka.
+        $gulshan->update(['parent_id' => $dhaka->id]);
+        Livewire::test(EntityForm::class)
+            ->dispatch('edit-entity', id: $dhaka->id)
+            ->set('form.parent_id', (string) $gulshan->id)
             ->call('save')
             ->assertHasErrors('form.parent_id');
-
-        $this->assertNull($company->fresh()?->parent_id);
     }
 
-    public function test_the_same_name_is_fine_under_different_parents(): void
+    public function test_the_same_name_is_refused_in_one_type_but_fine_in_another(): void
     {
-        $company = $this->unit('Head Office', 'Company');
-        $ops = $this->unit('Operations', 'Division', $company);
-        $sales = $this->unit('Sales', 'Division', $company);
-        $this->unit('Accounts', 'Department', $ops);
+        $this->entity('Dhaka', 'Division');
 
-        Livewire::test(OrgUnitForm::class)
-            ->dispatch('create-org-unit')
-            ->set('form.name', 'Accounts')
-            ->set('form.org_unit_type_id', (string) $this->level('Department')->id)
-            ->set('form.parent_id', (string) $ops->id)
+        Livewire::test(EntityForm::class)
+            ->dispatch('create-entity')
+            ->set('form.name', 'Dhaka')
+            ->set('form.entity_type_id', (string) $this->type('Division')->id)
             ->call('save')
             ->assertHasErrors(['form.name' => 'unique'])
-            ->set('form.parent_id', (string) $sales->id)
+            ->set('form.entity_type_id', (string) $this->type('Branch')->id)
             ->call('save')
             ->assertHasNoErrors();
     }
 
-    public function test_the_list_shows_where_each_unit_sits(): void
+    public function test_the_list_shows_type_head_parent_and_employee_count_and_filters_by_type(): void
     {
-        $company = $this->unit('Head Office', 'Company');
-        $this->unit('Operations', 'Division', $company);
+        $dhaka = $this->entity('Dhaka', 'Division');
+        $head = Employee::factory()->create(['first_name' => 'Karim', 'last_name' => 'Ahmed']);
+        $gulshan = Entity::factory()->ofType($this->type('Branch'))->create(['name' => 'Gulshan', 'parent_id' => $dhaka->id, 'head_employee_id' => $head->id]);
+        Employee::factory()->count(2)->inEntity($gulshan)->create();
 
-        Livewire::test(OrgUnitTable::class)->assertSee('Operations')->assertSee('Head Office')->assertSee('Division');
+        Livewire::test(EntityTable::class)
+            ->assertSee('Gulshan')->assertSee('Karim Ahmed')->assertSee('Dhaka (Division)')
+            ->assertViewHas('rows', fn ($rows) => $rows->firstWhere('name', 'Gulshan')->current_assignments_count === 2)
+            ->set('entityTypeId', (string) $this->type('Branch')->id)
+            ->assertViewHas('rows', fn ($rows) => $rows->pluck('name')->all() === ['Gulshan']);
+
+        // The Entity types tab links to the filtered list.
+        $this->get(route('hrm.org.entity-types'))->assertSee(route('hrm.org.entities', ['type' => $this->type('Branch')->id]), false);
     }
 
-    public function test_a_unit_level_cannot_sit_under_itself(): void
+    public function test_an_entity_type_with_entities_cannot_be_deleted(): void
     {
-        $level = $this->level('Division');
+        $this->entity('Gulshan', 'Branch');
 
-        Livewire::test(OrgUnitTypeForm::class)
-            ->dispatch('edit-org-unit-type', id: $level->id)
-            ->set('form.parent_type_id', (string) $level->id)
-            ->call('save')
-            ->assertHasErrors('form.parent_type_id');
+        Livewire::test(EntityTypeForm::class)
+            ->dispatch('edit-entity-type', id: $this->type('Branch')->id)
+            ->call('delete')
+            ->assertHasErrors('form.name');
+
+        $this->assertTrue($this->type('Branch')->exists);
     }
 
     // ---------------------------------------------------------------- positions
 
     public function test_a_position_is_created_and_reporting_loops_are_refused(): void
     {
-        $unit = OrgUnit::factory()->create();
-        $manager = Position::factory()->create(['name' => 'Manager', 'org_unit_id' => $unit->id]);
+        $unit = Entity::factory()->create();
+        $manager = Position::factory()->create(['name' => 'Manager', 'entity_id' => $unit->id]);
 
         Livewire::test(PositionForm::class)
             ->dispatch('create-position')
             ->assertSet('form.is_vacant', true)
             ->set('form.name', 'Officer')
-            ->set('form.org_unit_id', (string) $unit->id)
+            ->set('form.entity_id', (string) $unit->id)
             ->set('form.parent_id', (string) $manager->id)
             ->set('form.effective_from', '2026-01-01')
             ->call('save')
@@ -250,9 +262,9 @@ class OrganizationPagesTest extends TestCase
 
     // ---------------------------------------------------------------- workflow scope
 
-    public function test_a_workflow_can_now_be_limited_to_an_org_unit_and_employment_type(): void
+    public function test_a_workflow_can_now_be_limited_to_an_entity_and_employment_type(): void
     {
-        $unit = OrgUnit::factory()->create(['name' => 'Finance']);
+        $unit = Entity::factory()->create(['name' => 'Finance']);
         $type = EmploymentType::factory()->create(['name' => 'Contract']);
         $approvalType = ApprovalType::forKey('leave');   // registered by the leave migration
         $role = Role::create(['name' => 'Managers']);
@@ -261,36 +273,32 @@ class OrganizationPagesTest extends TestCase
             ->dispatch('create-workflow')
             ->set('approvalTypeId', (string) $approvalType->id)
             ->set('name', 'Finance contract staff')
-            ->set('scopeOrgUnitId', (string) $unit->id)
+            ->set('scopeEntityId', (string) $unit->id)
             ->set('scopeEmploymentTypeId', (string) $type->id)
             ->set('steps.0.approver_role_id', (string) $role->id)
             ->call('save')
             ->assertHasNoErrors();
 
         $workflow = Workflow::sole();
-        $this->assertSame([$unit->id, $type->id], [$workflow->scope_org_unit_id, $workflow->scope_employment_type_id]);
+        $this->assertSame([$unit->id, $type->id], [$workflow->scope_entity_id, $workflow->scope_employment_type_id]);
 
         Livewire::test(WorkflowForm::class)
             ->dispatch('edit-workflow', id: $workflow->id)
-            ->assertSet('scopeOrgUnitId', (string) $unit->id)
-            ->set('scopeOrgUnitId', '')
+            ->assertSet('scopeEntityId', (string) $unit->id)
+            ->set('scopeEntityId', '')
             ->call('save');
-        $this->assertNull($workflow->fresh()?->scope_org_unit_id);
+        $this->assertNull($workflow->fresh()?->scope_entity_id);
     }
 
     // ---------------------------------------------------------------- helpers
 
-    private function level(string $name): OrgUnitType
+    private function type(string $name): EntityType
     {
-        return OrgUnitType::where('name', $name)->firstOrFail();
+        return EntityType::where('name', $name)->firstOrFail();
     }
 
-    private function unit(string $name, string $level, ?OrgUnit $parent = null): OrgUnit
+    private function entity(string $name, string $type): Entity
     {
-        return OrgUnit::factory()->create([
-            'name' => $name,
-            'org_unit_type_id' => $this->level($level)->id,
-            'parent_id' => $parent?->id,
-        ]);
+        return Entity::factory()->ofType($this->type($type))->create(['name' => $name]);
     }
 }

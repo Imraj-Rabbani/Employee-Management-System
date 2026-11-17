@@ -28,10 +28,12 @@ interface Approvable
 
     /**
      * Facts the engine uses to pick the workflow and the approvers:
-     * ['employee_id' => 5, 'org_unit_id' => 2, 'employment_type_id' => 1, 'amount' => 50000]
+     * ['employee_id' => 5, 'entity_ids' => [2, 9], 'employment_type_id' => 1, 'amount' => 50000]
+     * entity_ids: the document's entities, e.g. the employee's current Department and Branch
+     * ($employee->entityIds()), or the one entity a roster / manpower request is for.
      * Leave out what does not apply.
      *
-     * @return array{employee_id?: int|null, org_unit_id?: int|null, employment_type_id?: int|null, amount?: float|int|string|null}
+     * @return array{employee_id?: int|null, entity_ids?: list<int>, employment_type_id?: int|null, amount?: float|int|string|null}
      */
     public function approvalContext(): array;
 

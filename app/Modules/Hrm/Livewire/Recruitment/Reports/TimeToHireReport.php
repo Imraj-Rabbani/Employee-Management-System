@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  *   Time to hire   days from the application (applied_on) to the hire
  *   Time to fill   days from the manpower request's approval to the hire
  *
- * Shown as tiles (count, average, median), per org unit, and hire by hire. The hire date is the day
+ * Shown as tiles (count, average, median), per entity, and hire by hire. The hire date is the day
  * "Hire" was pressed (the history row), not the employee's join date. Numbers: RecruitmentStats::hires().
  */
 class TimeToHireReport extends Component
@@ -43,7 +43,7 @@ class TimeToHireReport extends Component
             $h['application']->applicant->name,
             $h['application']->hiredEmployee->code ?? '',
             $h['application']->jobPosting->number().' · '.$h['application']->jobPosting->title,
-            $h['application']->jobPosting->manpowerRequest->orgUnit->name ?? '',
+            $h['application']->jobPosting->manpowerRequest->entity->name ?? '',
             format_date($h['application']->applied_on),
             format_date($h['hired_at']),
             $h['days_to_hire'],
@@ -51,7 +51,7 @@ class TimeToHireReport extends Component
         ])->all();
 
         return Excel::download(new ArrayExport(
-            [__('Applicant'), __('Employee'), __('Posting'), __('Org unit'), __('Applied'), __('Hired'), __('Days to hire'), __('Days to fill')],
+            [__('Applicant'), __('Employee'), __('Posting'), __('Entity'), __('Applied'), __('Hired'), __('Days to hire'), __('Days to fill')],
             $rows,
         ), 'time-to-hire-'.now()->format('Y-m-d').'.xlsx');
     }
@@ -60,7 +60,7 @@ class TimeToHireReport extends Component
     {
         $hires = $this->hires($stats);
 
-        $byUnit = $hires->groupBy(fn (array $h) => $h['application']->jobPosting->manpowerRequest->orgUnit->name ?? '—')
+        $byUnit = $hires->groupBy(fn (array $h) => $h['application']->jobPosting->manpowerRequest->entity->name ?? '—')
             ->map(fn (Collection $group, string $unit) => [
                 'unit' => $unit,
                 'hire' => $stats->summary($group->pluck('days_to_hire')),

@@ -45,7 +45,7 @@ use Throwable;
  * salary profile becomes the employee's profile.
  *
  * ALL OR NOTHING, like the employee import: every row is checked first; one error anywhere → nothing is saved and
- * $import->errors lists every problem as {row, column, message}. Employees are limited to the uploader's org units.
+ * $import->errors lists every problem as {row, column, message}. Employees are limited to the uploader's entities.
  */
 class SalaryImporter
 {
@@ -190,11 +190,11 @@ class SalaryImporter
         $heads = self::headColumns();
         $basicHead = SalaryHead::basic();
         $profiles = $this->profileLookup();
-        $allowedUnits = $uploader ? app(EmployeeVisibility::class)->orgUnitIdsFor($uploader) : null;
+        $allowedUnits = $uploader ? app(EmployeeVisibility::class)->entityIdsFor($uploader) : null;
 
-        // Every code company-wide (codes are unique), then the uploader's org units are checked per row.
+        // Every code company-wide (codes are unique), then the uploader's entities are checked per row.
         $codes = array_map(fn ($r) => trim((string) $r['employee_code']), $rows);
-        $employees = Employee::withoutGlobalScope(VisibleToCurrentUser::class)->whereIn('code', $codes)->get()
+        $employees = Employee::withoutGlobalScope(VisibleToCurrentUser::class)->whereIn('code', $codes)->with('currentEntityAssignments')->get()
             ->keyBy(fn (Employee $e) => Str::lower($e->code));
 
         $seen = [];
@@ -216,8 +216,8 @@ class SalaryImporter
             }
 
             $employee = $employees[Str::lower($code)] ?? null;
-            if ($employee === null || ($allowedUnits !== null && ! in_array($employee->org_unit_id, $allowedUnits, true))) {
-                $this->error($n, 'employee_code', __('No employee with code :code (or not in your org units).', ['code' => $code]));
+            if ($employee === null || ($allowedUnits !== null && array_intersect($employee->entityIds(), $allowedUnits) === [])) {
+                $this->error($n, 'employee_code', __('No employee with code :code (or not in your entities).', ['code' => $code]));
 
                 continue;
             }

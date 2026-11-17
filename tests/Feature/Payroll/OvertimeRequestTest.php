@@ -6,7 +6,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Core\Models\Role;
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Payroll\Livewire\Attendance\OvertimeForm;
 use App\Modules\Payroll\Livewire\Attendance\OvertimeTable;
 use App\Modules\Payroll\Livewire\Ess\MyOvertime;
@@ -187,8 +187,8 @@ class OvertimeRequestTest extends TestCase
 
     public function test_the_tab_needs_its_permission_and_shows_visible_employees_only(): void
     {
-        $factory = OrgUnit::factory()->create();
-        $rahim = Employee::factory()->create(['join_date' => '2026-01-01', 'org_unit_id' => $factory->id]);
+        $factory = Entity::factory()->create();
+        $rahim = Employee::factory()->inEntity($factory)->create(['join_date' => '2026-01-01']);
         OvertimeRequest::factory()->for($this->karim)->create(['detail' => 'Karim work']);
         OvertimeRequest::factory()->for($rahim)->create(['detail' => 'Rahim work']);
 
@@ -197,7 +197,7 @@ class OvertimeRequestTest extends TestCase
         Livewire::test(OvertimeForm::class)->call('create')->assertForbidden();
 
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['payroll.overtime.manage']);
-        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['org_unit_id' => $factory->id]);
+        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['entity_id' => $factory->id]);
         Livewire::test(OvertimeTable::class)->assertSee('Rahim work')->assertDontSee('Karim work');
         $this->ask()->assertHasErrors('employeeId');
     }

@@ -4,7 +4,6 @@ namespace App\Modules\Hrm\Livewire\Leave;
 
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\LeaveApplicationDay;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -15,8 +14,8 @@ use Livewire\Component;
 
 /**
  * HRM → Leave → Calendar: who is on leave in a month. Employees × days, only those with leave in the
- * month (approved, or still waiting: shown lighter), for the employees the user can see; filter by org unit
- * (incl. units below) and name / code. The bottom row counts people on leave per day (approved + waiting),
+ * month (approved, or still waiting: shown lighter), for the employees the user can see; filter by entity
+ * (employees currently in it) and name / code. The bottom row counts people on leave per day (approved + waiting),
  * to plan cover. Click a day: the application (LeaveApplicationDetails).
  *
  * Attendance's own calendars already show approved leave as "L" through ApprovedLeaveCalendar.
@@ -28,8 +27,8 @@ class LeaveCalendar extends Component
     #[Url(as: 'month')]
     public string $month = '';
 
-    #[Url(as: 'unit')]
-    public string $orgUnitId = '';
+    #[Url(as: 'entity')]
+    public string $entityId = '';
 
     #[Url(as: 'q')]
     public string $search = '';
@@ -63,9 +62,9 @@ class LeaveCalendar extends Component
         $start = $this->monthStart();
         $end = $start->endOfMonth()->startOfDay();
 
-        $units = app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user());
-        $unitIds = $this->orgUnitId !== '' && isset($units[(int) $this->orgUnitId])
-            ? [(int) $this->orgUnitId, ...(OrgUnit::find((int) $this->orgUnitId)?->descendantIds() ?? [])]
+        $units = app(EmployeeVisibility::class)->entityOptionsFor(Auth::user());
+        $unitIds = $this->entityId !== '' && isset($units[(int) $this->entityId])
+            ? [(int) $this->entityId]
             : null;
         $term = trim($this->search);
         $like = '%'.addcslashes($term, '%_\\').'%';
@@ -74,7 +73,7 @@ class LeaveCalendar extends Component
         $employees = Employee::query()
             ->whereIn('id', LeaveApplicationDay::query()->select('employee_id')->whereBetween('date', [$start->toDateString(), $end->toDateString()])
                 ->whereHas('application', fn ($q) => $q->active()))
-            ->when($unitIds, fn ($q, $ids) => $q->whereIn('org_unit_id', $ids))
+            ->when($unitIds, fn ($q, $ids) => $q->inEntities($ids))
             ->when($term !== '', fn ($q) => $q->where(fn ($q) => $q->where('code', 'like', $like)->orWhere('first_name', 'like', $like)->orWhere('last_name', 'like', $like)))
             ->orderBy('code')
             ->limit(self::MAX_ROWS + 1)

@@ -139,7 +139,7 @@ class OfferDetails extends Component
     {
         return JobOffer::query()
             ->whereHas('application', fn ($q) => $q->visibleTo(Auth::user()))
-            ->with(['application.applicant', 'application.hiredEmployee', 'application.jobPosting.manpowerRequest.orgUnit', 'designation', 'grade', 'employmentType', 'approvals'])
+            ->with(['application.applicant', 'application.hiredEmployee', 'application.jobPosting.manpowerRequest.entity', 'designation', 'grade', 'employmentType', 'approvals'])
             ->findOrFail($this->offerId);
     }
 

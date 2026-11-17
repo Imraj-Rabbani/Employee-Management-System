@@ -7,7 +7,7 @@
 <div class="space-y-4">
     <dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
         @foreach ([
-                __('Org unit') => $document->orgUnit?->name,
+                __('Entity') => $document->entity?->name,
                 __('Designation') => $document->designation?->name,
                 __('Position') => $document->position?->name,
                 __('Headcount') => $document->headcount,

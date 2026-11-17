@@ -66,7 +66,7 @@ class PositionTable extends Component
         $rows = $this->filteredQuery()->get()->map(fn (Position $position) => [
             $position->name,
             $position->code,
-            $position->orgUnit->name,
+            $position->entity->name,
             $position->grade->name ?? '-',
             $position->reportsTo->name ?? '-',
             $position->is_vacant ? __('Vacant') : __('Filled'),
@@ -74,7 +74,7 @@ class PositionTable extends Component
         ])->all();
 
         return Excel::download(
-            new ArrayExport([__('Position'), __('Code'), __('Org unit'), __('Grade'), __('Reports to'), __('Vacancy'), __('Active')], $rows),
+            new ArrayExport([__('Position'), __('Code'), __('Entity'), __('Grade'), __('Reports to'), __('Vacancy'), __('Active')], $rows),
             'position-table-'.now()->format('Y-m-d').'.xlsx',
         );
     }
@@ -90,7 +90,7 @@ class PositionTable extends Component
     /** @return Builder<Position> */
     private function query(): Builder
     {
-        return Position::query()->with(['orgUnit', 'grade', 'reportsTo']);
+        return Position::query()->with(['entity', 'grade', 'reportsTo']);
     }
 
     /** @return array<int|string, string> choices of the "Grade" filter */

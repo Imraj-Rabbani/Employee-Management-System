@@ -34,8 +34,9 @@ return new class extends Migration
 
             // Scope: which documents this workflow is for. NULL = "any".
             // The engine picks the MOST specific workflow that matches.
-            // No foreign keys: org_units / employment_types are HRM tables.
-            $table->unsignedBigInteger('scope_org_unit_id')->nullable()->index();
+            // scope_entity_id: the document must belong to this entity (any type), e.g. Department "IT".
+            // No foreign keys here: entities / employment_types are HRM tables (FKs added there).
+            $table->unsignedBigInteger('scope_entity_id')->nullable()->index();
             $table->unsignedBigInteger('scope_employment_type_id')->nullable()->index();
             $table->decimal('min_amount', 15, 2)->nullable();   // e.g. loans above 50,000 need the CFO
 
@@ -51,8 +52,11 @@ return new class extends Migration
             $table->foreignId('workflow_id')->constrained()->cascadeOnDelete();
             $table->unsignedTinyInteger('level');          // 1, 2, 3 ...
 
-            // employee | supervisor | org_head | role  (the ApproverType enum)
+            // employee | supervisor | entity_head | role  (the ApproverType enum)
             $table->string('approver_type', 20);
+            // Filled only when approver_type = entity_head: the head of WHICH type, e.g. "Department".
+            // (The form requires it; NULL = the document's first entity.) No FK here: entity_types is an HRM table (FK added there).
+            $table->unsignedBigInteger('approver_entity_type_id')->nullable()->index();
             // Filled only when approver_type = employee. No FK: the employees table is created later (HRM).
             $table->unsignedBigInteger('approver_employee_id')->nullable()->index();
             // Filled only when approver_type = role.

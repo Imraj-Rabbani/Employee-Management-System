@@ -23,14 +23,14 @@
 
             <div class="grid gap-4 sm:grid-cols-3">
                 <flux:field>
-                    <flux:label>{{ __('Only for org unit') }}</flux:label>
-                    <flux:select wire:model="scopeOrgUnitId">
-                        <flux:select.option value="">{{ __('Any unit') }}</flux:select.option>
-                        @foreach ($orgUnits as $optionValue => $optionLabel)
+                    <flux:label>{{ __('Only for entity') }}</flux:label>
+                    <flux:select wire:model="scopeEntityId">
+                        <flux:select.option value="">{{ __('Any entity') }}</flux:select.option>
+                        @foreach ($entities as $optionValue => $optionLabel)
                             <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
                         @endforeach
                     </flux:select>
-                    <flux:error name="scopeOrgUnitId" />
+                    <flux:error name="scopeEntityId" />
                 </flux:field>
 
                 <flux:field>
@@ -78,25 +78,39 @@
                             <flux:label>{{ __('Approver') }}</flux:label>
                             <flux:select wire:model.live="steps.{{ $i }}.approver_type">
                                 @foreach ($approverTypes as $type)
-                                    {{-- Employee-based approvers need employee records. --}}
-                                    <flux:select.option :value="$type->value" :disabled="$type->value !== 'role'">
-                                        {{ $type->label() }}@if ($type->value !== 'role') ({{ __('soon') }})@endif
+                                    @php $isOffered = in_array($type->value, $offered, true); @endphp
+                                    <flux:select.option :value="$type->value" :disabled="! $isOffered">
+                                        {{ $type->label() }}@if (! $isOffered) ({{ __('soon') }})@endif
                                     </flux:select.option>
                                 @endforeach
                             </flux:select>
                             <flux:error name="steps.{{ $i }}.approver_type" />
                         </flux:field>
 
-                        <flux:field>
-                            <flux:label>{{ __('Role') }}</flux:label>
-                            <flux:select wire:model="steps.{{ $i }}.approver_role_id">
-                                <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
-                                @foreach ($roles as $optionValue => $optionLabel)
-                                    <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
-                                @endforeach
-                            </flux:select>
-                            <flux:error name="steps.{{ $i }}.approver_role_id" />
-                        </flux:field>
+                        {{-- The second field depends on the approver type. --}}
+                        @if ($step['approver_type'] === 'entity_head')
+                            <flux:field>
+                                <flux:label>{{ __('Head of which type') }}</flux:label>
+                                <flux:select wire:model="steps.{{ $i }}.approver_entity_type_id">
+                                    <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
+                                    @foreach ($entityTypes as $optionValue => $optionLabel)
+                                        <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                                    @endforeach
+                                </flux:select>
+                                <flux:error name="steps.{{ $i }}.approver_entity_type_id" />
+                            </flux:field>
+                        @else
+                            <flux:field>
+                                <flux:label>{{ __('Role') }}</flux:label>
+                                <flux:select wire:model="steps.{{ $i }}.approver_role_id">
+                                    <flux:select.option value="">{{ __('Choose…') }}</flux:select.option>
+                                    @foreach ($roles as $optionValue => $optionLabel)
+                                        <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                                    @endforeach
+                                </flux:select>
+                                <flux:error name="steps.{{ $i }}.approver_role_id" />
+                            </flux:field>
+                        @endif
 
                         <div class="flex items-center gap-1">
                             <flux:tooltip :content="__('Attachment required to approve')">

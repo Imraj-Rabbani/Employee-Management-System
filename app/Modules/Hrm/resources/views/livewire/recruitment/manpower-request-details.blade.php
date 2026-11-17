@@ -12,7 +12,7 @@
                         @endif
                     </div>
                     <flux:text class="mt-1">
-                        {{ $request->headcount }} × {{ $request->designation?->name }} · {{ $request->orgUnit?->name }}
+                        {{ $request->headcount }} × {{ $request->designation?->name }} · {{ $request->entity?->name }}
                     </flux:text>
                     <flux:text class="mt-1 text-xs">{{ __('Created :date', ['date' => format_date($request->created_at)]) }}</flux:text>
                 </div>

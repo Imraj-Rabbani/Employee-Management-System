@@ -67,7 +67,7 @@ class WorkflowsTable extends Component
             $workflow->name,
             $workflow->approvalType->name,
             collect([
-                $workflow->scopeOrgUnit?->name,
+                $workflow->scopeEntity?->name,
                 $workflow->scopeEmploymentType?->name,
                 $workflow->min_amount !== null ? __('from :amount', ['amount' => number_format((float) $workflow->min_amount, 2)]) : null,
             ])->filter()->implode(' · ') ?: __('Everything'),
@@ -93,7 +93,7 @@ class WorkflowsTable extends Component
     /** @return Builder<Workflow> */
     private function query(): Builder
     {
-        return Workflow::query()->with(['approvalType', 'scopeOrgUnit', 'scopeEmploymentType'])->withCount('steps');
+        return Workflow::query()->with(['approvalType', 'scopeEntity', 'scopeEmploymentType'])->withCount('steps');
     }
 
     /** @return array<int|string, string> choices of the "Type" filter */

@@ -40,7 +40,7 @@ class SaveRosterCells
 
         foreach ($cells as $employeeId => $row) {
             if (! $employees->has((int) $employeeId)) {
-                return __('Employee #:id is not in this roster\'s org unit.', ['id' => $employeeId]);
+                return __('Employee #:id is not in this roster\'s entity.', ['id' => $employeeId]);
             }
             foreach ($row as $date => $value) {
                 if (! isset($dates[$date])) {

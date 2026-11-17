@@ -24,15 +24,15 @@
         </div>
 
         <div class="w-full sm:w-44">
-            <flux:select wire:model.live="orgUnit" :aria-label="__('Org unit')">
-                <flux:select.option value="">{{ __('All') }}: {{ __('Org unit') }}</flux:select.option>
-                @foreach ($orgUnitOptions as $value => $label)
+            <flux:select wire:model.live="entity" :aria-label="__('Entity')">
+                <flux:select.option value="">{{ __('All') }}: {{ __('Entity') }}</flux:select.option>
+                @foreach ($entityOptions as $value => $label)
                     <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
                 @endforeach
             </flux:select>
         </div>
 
-        @if ($year !== '' || $type !== '' || $orgUnit !== '')
+        @if ($year !== '' || $type !== '' || $entity !== '')
             <flux:button wire:click="clearFilters" variant="ghost" size="sm" icon="x-mark">{{ __('Clear') }}</flux:button>
         @endif
 

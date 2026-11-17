@@ -1,4 +1,4 @@
-{{-- BranchTable list. PHP side: App\Modules\Hrm\Livewire\Organization\BranchTable --}}
+{{-- EntityTypeTable list. PHP side: App\Modules\Hrm\Livewire\Organization\EntityTypeTable --}}
 <div class="glass overflow-hidden rounded-2xl">
 
     {{-- Toolbar --}}
@@ -22,6 +22,17 @@
             <thead>
                 <tr class="border-b border-white/50 text-left text-zinc-600 dark:border-white/10 dark:text-zinc-300">
                     <th class="px-4 py-3 font-medium whitespace-nowrap">
+                        <button type="button" wire:click="sort('sequence')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
+                            {{ __('Order') }}
+                            @if ($sortBy === 'sequence')
+                                <flux:icon :name="$sortDir === 'asc' ? 'chevron-up' : 'chevron-down'" variant="micro" />
+                            @else
+                                <flux:icon.chevron-up-down variant="micro" class="opacity-40" />
+                            @endif
+                        </button>
+                    </th>
+
+                    <th class="px-4 py-3 font-medium whitespace-nowrap">
                         <button type="button" wire:click="sort('name')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
                             {{ __('Name') }}
                             @if ($sortBy === 'name')
@@ -32,7 +43,17 @@
                         </button>
                     </th>
 
-                    <th class="px-4 py-3 font-medium">{{ __('Location') }}</th>
+                    <th class="px-4 py-3 font-medium whitespace-nowrap">
+                        <button type="button" wire:click="sort('entities_count')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
+                            {{ __('Entities') }}
+                            @if ($sortBy === 'entities_count')
+                                <flux:icon :name="$sortDir === 'asc' ? 'chevron-up' : 'chevron-down'" variant="micro" />
+                            @else
+                                <flux:icon.chevron-up-down variant="micro" class="opacity-40" />
+                            @endif
+                        </button>
+                    </th>
+
                     <th class="px-4 py-3 font-medium whitespace-nowrap">
                         <button type="button" wire:click="sort('is_active')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
                             {{ __('Active') }}
@@ -48,17 +69,21 @@
             </thead>
 
             <tbody>
-                @foreach ($rows as $branch)
-                    <tr wire:key="branch-{{ $branch->getKey() }}" class="border-b border-white/40 text-zinc-800 last:border-0 hover:bg-white/40 dark:border-white/5 dark:text-zinc-100 dark:hover:bg-white/5">
-                        {{-- Opens the edit form (it listens for "edit-branch"). --}}
+                @foreach ($rows as $entityType)
+                    <tr wire:key="entity-type-{{ $entityType->getKey() }}" class="border-b border-white/40 text-zinc-800 last:border-0 hover:bg-white/40 dark:border-white/5 dark:text-zinc-100 dark:hover:bg-white/5">
+                        <td class="px-4 py-3">{{ $entityType->sequence }}</td>
+                        {{-- Opens the edit form (it listens for "edit-entity-type"). --}}
                         <td class="px-4 py-3">
-                            <button type="button" x-on:click="$dispatch('edit-branch', { id: {{ $branch->getKey() }} })" class="text-left font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">
-                                {{ $branch->name }}
+                            <button type="button" x-on:click="$dispatch('edit-entity-type', { id: {{ $entityType->getKey() }} })" class="text-left font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">
+                                {{ $entityType->name }}
                             </button>
                         </td>
-                        <td class="px-4 py-3">{{ $branch->location }}</td>
+                        {{-- Opens the Entities tab filtered to this type. --}}
                         <td class="px-4 py-3">
-                            @if ($branch->is_active)
+                            <a href="{{ route('hrm.org.entities', ['type' => $entityType->getKey()]) }}" wire:navigate class="text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $entityType->entities_count }}</a>
+                        </td>
+                        <td class="px-4 py-3">
+                            @if ($entityType->is_active)
                                 <x-ui.badge color="success">{{ __('Active') }}</x-ui.badge>
                             @else
                                 <x-ui.badge>{{ __('Inactive') }}</x-ui.badge>

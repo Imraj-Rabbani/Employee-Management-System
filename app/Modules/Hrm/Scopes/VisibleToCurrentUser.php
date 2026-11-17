@@ -3,6 +3,7 @@
 namespace App\Modules\Hrm\Scopes;
 
 use App\Models\User;
+use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -11,8 +12,8 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * A GLOBAL SCOPE: a where-clause Eloquent adds to EVERY query of the model it is attached to
- * (Employee::all(), Employee::find(5), $unit->employees, route model binding, DataTable ...).
- * So a user limited to "Finance" cannot see a Sales employee, even if a screen forgets to filter.
+ * (Employee::all(), Employee::find(5), $employee->subordinates, route model binding, DataTable ...).
+ * So a user limited to Department "Finance" cannot see a Sales employee, even if a screen forgets to filter.
  *
  *     Employee::count()                                         only the employees I may see
  *     Employee::withoutGlobalScope(VisibleToCurrentUser::class) everyone (system code only: payroll run, reports for admins ...)
@@ -30,17 +31,18 @@ class VisibleToCurrentUser implements Scope
             return;
         }
 
-        $ids = app(EmployeeVisibility::class)->orgUnitIdsFor($user);
+        $ids = app(EmployeeVisibility::class)->entityIdsFor($user);
         if ($ids === null) {
             return;
         }
 
         $table = $model->getTable();
 
-        // Wrapped in one where(...) so it becomes "AND (org_unit_id IN (...) OR user_id = 5)"
+        // Wrapped in one where(...) so it becomes
+        // "AND (id IN (SELECT employee_id FROM employee_entities WHERE entity_id IN (...) AND current) OR user_id = 5)"
         // and cannot mix with other or-conditions of the query.
         $builder->where(fn (Builder $q) => $q
-            ->whereIn("{$table}.org_unit_id", $ids)   // empty list → "0 = 1": nothing
+            ->whereIn("{$table}.id", Employee::idsInEntities($ids))   // empty list → nothing
             ->orWhere("{$table}.user_id", $user->id));
     }
 }

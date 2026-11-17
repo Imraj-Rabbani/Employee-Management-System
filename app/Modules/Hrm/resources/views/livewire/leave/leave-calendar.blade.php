@@ -9,19 +9,19 @@
         </div>
         <div class="w-64">
         <flux:field>
-            <flux:select wire:model.live="orgUnitId">
-                <flux:select.option value="">{{ __('All org units') }}</flux:select.option>
+            <flux:select wire:model.live="entityId">
+                <flux:select.option value="">{{ __('All entities') }}</flux:select.option>
                 @foreach ($units as $optionValue => $optionLabel)
                     <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
                 @endforeach
             </flux:select>
-            <flux:error name="orgUnitId" />
+            <flux:error name="entityId" />
         </flux:field></div>
         <div class="w-56"><flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Name or code')" size="sm" /></div>
     </div>
 
     @if ($tooMany)
-        <flux:callout variant="warning" icon="information-circle" :heading="__('Only the first :n employees are shown. Choose an org unit or search to see the others.', ['n' => \App\Modules\Hrm\Livewire\Leave\LeaveCalendar::MAX_ROWS])" />
+        <flux:callout variant="warning" icon="information-circle" :heading="__('Only the first :n employees are shown. Choose an entity or search to see the others.', ['n' => \App\Modules\Hrm\Livewire\Leave\LeaveCalendar::MAX_ROWS])" />
     @endif
 
     <div class="glass overflow-hidden rounded-2xl">

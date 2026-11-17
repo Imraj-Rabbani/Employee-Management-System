@@ -224,9 +224,9 @@ class ApplicantForm extends Component
     private function postingOptions(): array
     {
         return JobPosting::query()->visibleTo(Auth::user())->where('status', 'open')
-            ->with('manpowerRequest.orgUnit')->orderByDesc('id')->get()
+            ->with('manpowerRequest.entity')->orderByDesc('id')->get()
             ->filter(fn (JobPosting $p) => $p->isAcceptingApplications())
-            ->mapWithKeys(fn (JobPosting $p) => [$p->id => $p->number().' · '.$p->title.' ('.($p->manpowerRequest->orgUnit->name ?? '?').')'])
+            ->mapWithKeys(fn (JobPosting $p) => [$p->id => $p->number().' · '.$p->title.' ('.($p->manpowerRequest->entity->name ?? '?').')'])
             ->all();
     }
 

@@ -14,7 +14,7 @@ use Livewire\Component;
 /**
  * Base for the "Edit" modals on the employee profile (Personal, Job ...).
  * Like LookupForm, but for ONE section of ONE employee, and every action checks
- * EmployeePolicy::update (permission + org-unit scope).
+ * EmployeePolicy::update (permission + entity scope).
  *
  * A child class declares:
  *     section()      'personal' → browser event "edit-employee-personal", modal "employee-personal-form"

@@ -28,8 +28,8 @@
             <div class="p-6">
                 <dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
                     <div>
-                        <dt class="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Org unit') }}</dt>
-                        <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">{{ $roster->orgUnit?->path() ?? '—' }}</dd>
+                        <dt class="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Entity') }}</dt>
+                        <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">{{ $roster->entity?->label() ?? '—' }}</dd>
                     </div>
 
                     {{-- Only for a change request: link to the roster it changes. --}}

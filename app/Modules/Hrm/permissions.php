@@ -14,10 +14,10 @@ return [
         'hrm.employee.login' => 'Give employees a login (invite, link, unlink)',
     ],
     'Organization' => [
-        'hrm.organization.manage' => 'Manage org units, positions and grades',
+        'hrm.organization.manage' => 'Manage entities, positions and grades',
     ],
     'Recruitment' => [
-        'hrm.recruitment.request' => 'Create manpower requests (for the org units they can see)',
+        'hrm.recruitment.request' => 'Create manpower requests (for the entities they can see)',
         'hrm.recruitment.manage' => 'Manage job postings and applicants (HR)',
         'hrm.recruitment.setup' => 'Manage recruitment setup (interview factors, rejection reasons)',
     ],

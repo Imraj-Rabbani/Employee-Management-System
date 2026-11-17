@@ -11,7 +11,8 @@ use App\Modules\Hrm\Livewire\Employees\JobForm;
 use App\Modules\Hrm\Livewire\Employees\PersonalForm;
 use App\Modules\Hrm\Livewire\Employees\PhotoForm;
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
+use App\Modules\Hrm\Models\EntityType;
 use App\Modules\Hrm\Models\Position;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -24,7 +25,7 @@ use Tests\TestCase;
 /**
  * New employee, edit Personal / Job, photo.
  *
- * Structure: Head Office › Finance and Head Office › Sales. Rahim works in Finance, Salma in Sales.
+ * Departments Finance and Sales. Rahim works in Finance, Salma in Sales.
  */
 class EmployeeFormsTest extends TestCase
 {
@@ -33,9 +34,9 @@ class EmployeeFormsTest extends TestCase
 
     private Tenant $tenant;
 
-    private OrgUnit $finance;
+    private Entity $finance;
 
-    private OrgUnit $sales;
+    private Entity $sales;
 
     private Employee $rahim;
 
@@ -47,12 +48,12 @@ class EmployeeFormsTest extends TestCase
 
         $this->tenant = $this->actingAsTenantUser()->tenant;
 
-        $head = OrgUnit::factory()->create(['name' => 'Head Office']);
-        $this->finance = OrgUnit::factory()->childOf($head)->create(['name' => 'Finance']);
-        $this->sales = OrgUnit::factory()->childOf($head)->create(['name' => 'Sales']);
+        $department = EntityType::firstWhere('name', 'Department');
+        $this->finance = Entity::factory()->ofType($department)->create(['name' => 'Finance']);
+        $this->sales = Entity::factory()->ofType($department)->create(['name' => 'Sales']);
 
-        $this->rahim = Employee::factory()->inUnit($this->finance)->create(['code' => 'E-001', 'first_name' => 'Rahim', 'last_name' => 'Uddin']);
-        $this->salma = Employee::factory()->inUnit($this->sales)->create(['code' => 'E-002', 'first_name' => 'Salma', 'last_name' => 'Begum']);
+        $this->rahim = Employee::factory()->inEntity($this->finance)->create(['code' => 'E-001', 'first_name' => 'Rahim', 'last_name' => 'Uddin']);
+        $this->salma = Employee::factory()->inEntity($this->sales)->create(['code' => 'E-002', 'first_name' => 'Salma', 'last_name' => 'Begum']);
     }
 
     protected function tearDown(): void
@@ -62,11 +63,11 @@ class EmployeeFormsTest extends TestCase
         parent::tearDown();
     }
 
-    /** A user whose role only reaches Finance (and the units below it). */
+    /** A user whose role only reaches Department Finance. */
     private function financeUser(array $permissions): User
     {
         $user = $this->actingAsTenantUser(tenant: $this->tenant, permissions: $permissions);
-        $user->role()->update(['org_unit_id' => $this->finance->id]);
+        $user->role()->update(['entity_id' => $this->finance->id]);
         app(Permissions::class)->flush();
 
         return $user;
@@ -81,37 +82,49 @@ class EmployeeFormsTest extends TestCase
             ->set('form.code', 'E-100')
             ->set('form.first_name', 'Nadia')
             ->set('form.gender', (string) Gender::Female->value)
-            ->set('form.org_unit_id', (string) $this->finance->id)
+            ->set("form.entities.{$this->finance->entity_type_id}", (string) $this->finance->id)
             ->call('save')
             ->assertHasNoErrors()
             ->assertRedirect(route('hrm.employees.show', Employee::where('code', 'E-100')->firstOrFail()));
 
         $nadia = Employee::where('code', 'E-100')->firstOrFail();
         $this->assertSame(Gender::Female, $nadia->gender);
-        $this->assertSame($this->finance->id, $nadia->org_unit_id);
+        $this->assertSame([$this->finance->id], $nadia->entityIds());
+        $this->assertSame($nadia->join_date->toDateString(), $nadia->entityAssignments()->sole()->effective_from->toDateString());
         $this->assertTrue($nadia->join_date->isToday());
     }
 
-    public function test_code_name_and_org_unit_are_required_and_the_code_unique(): void
+    public function test_code_and_name_are_required_and_the_code_unique_but_entities_are_optional(): void
     {
+        $departmentField = "form.entities.{$this->finance->entity_type_id}";
+
         Livewire::test(CreateEmployee::class)
             ->call('open')
+            ->assertViewHas('choices', fn (array $choices) => array_column($choices, 'name') === ['Department', 'Division', 'Branch', 'Location', 'Area'])
             ->set('form.code', 'E-001')
             ->call('save')
-            ->assertHasErrors(['form.code' => 'unique', 'form.first_name' => 'required', 'form.org_unit_id' => 'required']);
+            ->assertHasErrors(['form.code' => 'unique', 'form.first_name' => 'required'])
+            ->assertHasNoErrors($departmentField);
     }
 
-    public function test_a_finance_user_cannot_create_someone_in_sales(): void
+    public function test_a_finance_user_must_create_someone_in_finance(): void
     {
         $this->financeUser(['hrm.employee.view', 'hrm.employee.create']);
+        $departmentField = "form.entities.{$this->finance->entity_type_id}";
 
-        Livewire::test(CreateEmployee::class)
+        $form = Livewire::test(CreateEmployee::class)
             ->call('open')
+            ->assertSet($departmentField, (string) $this->finance->id)   // preselected: their only choice
+            ->assertViewHas('choices', fn (array $choices) => $choices[$this->finance->entity_type_id]['required']
+                && array_keys($choices[$this->finance->entity_type_id]['options']) === [$this->finance->id])
             ->set('form.code', 'E-100')
             ->set('form.first_name', 'Nadia')
-            ->set('form.org_unit_id', (string) $this->sales->id)
+            ->set($departmentField, (string) $this->sales->id)
             ->call('save')
-            ->assertHasErrors(['form.org_unit_id' => 'in']);
+            ->assertHasErrors([$departmentField => 'in']);
+
+        $form->set($departmentField, '')->call('save')->assertHasErrors([$departmentField => 'required']);
+        $form->set($departmentField, (string) $this->finance->id)->call('save')->assertHasNoErrors();
     }
 
     public function test_the_new_button_needs_the_create_permission(): void
@@ -215,8 +228,8 @@ class EmployeeFormsTest extends TestCase
 
     public function test_a_position_is_filled_and_the_old_one_freed(): void
     {
-        $officer = Position::factory()->create(['org_unit_id' => $this->finance->id, 'name' => 'Officer']);
-        $manager = Position::factory()->create(['org_unit_id' => $this->finance->id, 'name' => 'Manager']);
+        $officer = Position::factory()->create(['entity_id' => $this->finance->id, 'name' => 'Officer']);
+        $manager = Position::factory()->create(['entity_id' => $this->finance->id, 'name' => 'Manager']);
 
         Livewire::test(JobForm::class, ['employee' => $this->rahim])
             ->call('open')->set('form.position_id', (string) $officer->id)->call('save')->assertHasNoErrors();
@@ -232,7 +245,7 @@ class EmployeeFormsTest extends TestCase
 
     public function test_a_position_held_by_someone_else_is_refused(): void
     {
-        $officer = Position::factory()->create(['org_unit_id' => $this->finance->id, 'employee_id' => $this->salma->id, 'is_vacant' => false]);
+        $officer = Position::factory()->create(['entity_id' => $this->finance->id, 'employee_id' => $this->salma->id, 'is_vacant' => false]);
 
         Livewire::test(JobForm::class, ['employee' => $this->rahim])
             ->call('open')

@@ -11,7 +11,7 @@
             <div class="grid gap-6 md:grid-cols-2">
                 <div class="space-y-2">
                     <flux:heading>1. {{ __('Download the template') }}</flux:heading>
-                    <flux:text>{{ __('Fill in one employee per row and delete the example row. The “Lists” sheet shows the org units, designations, grades and types you can use. Columns with * are required.') }}</flux:text>
+                    <flux:text>{{ __('Fill in one employee per row and delete the example row. The “Lists” sheet shows the entities, designations, grades and types you can use. Columns with * are required.') }}</flux:text>
                     <flux:button icon="arrow-down-tray" :href="route('hrm.employees.import.template')">{{ __('Download template') }}</flux:button>
                 </div>
 

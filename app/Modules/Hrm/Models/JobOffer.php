@@ -221,7 +221,7 @@ class JobOffer extends TenantModel implements Approvable, ShowsApprovalDetails
     }
 
     /**
-     * org unit / employment type: of the job (via the manpower request), so offers can have their own
+     * entity / employment type: of the job (via the manpower request), so offers can have their own
      * workflow per department. employee = the HR user who made the offer. amount = monthly gross, so a
      * workflow with a min_amount can add a level for high salaries.
      */
@@ -232,7 +232,7 @@ class JobOffer extends TenantModel implements Approvable, ShowsApprovalDetails
 
         return [
             'employee_id' => $creator,
-            'org_unit_id' => $this->application?->jobPosting?->manpowerRequest?->org_unit_id,
+            'entity_ids' => array_filter([$this->application?->jobPosting?->manpowerRequest?->entity_id]),
             'employment_type_id' => $this->employment_type_id,
             'amount' => (float) $this->gross_salary,
         ];

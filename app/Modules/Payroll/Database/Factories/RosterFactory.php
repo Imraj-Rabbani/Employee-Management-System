@@ -2,7 +2,7 @@
 
 namespace App\Modules\Payroll\Database\Factories;
 
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Payroll\Models\Roster;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,7 +18,7 @@ class RosterFactory extends Factory
     public function definition(): array
     {
         return [
-            'org_unit_id' => OrgUnit::factory(),
+            'entity_id' => Entity::factory(),
             'title' => 'Roster '.fake()->unique()->numberBetween(1, 99999),
             'from_date' => '2026-12-01',
             'to_date' => '2026-12-07',

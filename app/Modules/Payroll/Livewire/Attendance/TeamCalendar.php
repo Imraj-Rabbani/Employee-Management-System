@@ -3,7 +3,6 @@
 namespace App\Modules\Payroll\Livewire\Attendance;
 
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Payroll\Services\AttendanceCalendar;
 use App\Modules\Payroll\Services\AttendanceReprocessor;
@@ -17,7 +16,7 @@ use Livewire\Component;
 /**
  * A team's attendance month: employees × days, one letter per processed day.
  *
- *   mode "hr"    Payroll → Attendance → Calendar: employees the user can see, filter by org unit and name / code
+ *   mode "hr"    Payroll → Attendance → Calendar: employees the user can see, filter by entity and name / code
  *   mode "team"  Self Service → My Team Attendance: everyone below the manager in the supervisor chain
  *
  * Only people employed at some point in the month. At most MAX_ROWS rows: narrow with the filters.
@@ -33,8 +32,8 @@ class TeamCalendar extends Component
     #[Url(as: 'month')]
     public string $month = '';
 
-    #[Url(as: 'unit')]
-    public string $orgUnitId = '';
+    #[Url(as: 'entity')]
+    public string $entityId = '';
 
     #[Url(as: 'q')]
     public string $search = '';
@@ -65,12 +64,12 @@ class TeamCalendar extends Component
         $to = $month->endOfMonth()->toDateString();
 
         if ($this->mode === 'hr') {
-            $units = app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user());
-            $unitIds = $this->orgUnitId !== '' && isset($units[(int) $this->orgUnitId])
-                ? [(int) $this->orgUnitId, ...(OrgUnit::find((int) $this->orgUnitId)?->descendantIds() ?? [])]
+            $units = app(EmployeeVisibility::class)->entityOptionsFor(Auth::user());
+            $unitIds = $this->entityId !== '' && isset($units[(int) $this->entityId])
+                ? [(int) $this->entityId]
                 : null;
             $query = $reprocessor->employedBetween($from, $to)   // visibility scope stays on
-                ->when($unitIds, fn ($q, $ids) => $q->whereIn('org_unit_id', $ids));
+                ->when($unitIds, fn ($q, $ids) => $q->inEntities($ids));
         } else {
             $units = [];
             $me = Employee::query()->where('user_id', Auth::id())->first();

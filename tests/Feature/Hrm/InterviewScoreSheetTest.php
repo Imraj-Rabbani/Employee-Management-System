@@ -14,11 +14,11 @@ use App\Modules\Hrm\Livewire\Recruitment\InterviewScoreSheet;
 use App\Modules\Hrm\Livewire\Recruitment\PostingInterviews;
 use App\Modules\Hrm\Models\Applicant;
 use App\Modules\Hrm\Models\Employee;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\Interview;
 use App\Modules\Hrm\Models\InterviewFactor;
 use App\Modules\Hrm\Models\InterviewPanelist;
 use App\Modules\Hrm\Models\JobPosting;
-use App\Modules\Hrm\Models\OrgUnit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
@@ -140,9 +140,9 @@ class InterviewScoreSheetTest extends TestCase
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: []);
         Livewire::test(InterviewScoreSheet::class)->dispatch('open-score-sheet', panelistId: $this->salma->id)->assertForbidden();
 
-        // HR limited to another org unit: 403 too.
+        // HR limited to another entity: 403 too.
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.recruitment.manage']);
-        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['org_unit_id' => OrgUnit::factory()->create()->id]);
+        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['entity_id' => Entity::factory()->create()->id]);
         Livewire::test(InterviewScoreSheet::class)->dispatch('open-score-sheet', panelistId: $this->salma->id)->assertForbidden();
     }
 

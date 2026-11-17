@@ -5,7 +5,7 @@ namespace App\Modules\Payroll\Models;
 use App\Core\Models\TenantModel;
 use App\Models\User;
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Payroll\Database\Factories\RosterFactory;
@@ -24,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * A plan of who works which shift on which day, for one org unit and a date range.
+ * A plan of who works which shift on which day, for one entity and a date range.
  * The cells are RosterItems. Goes through an approval workflow (approval type "roster");
  * only approved rosters count for attendance.
  *
@@ -34,7 +34,7 @@ use Illuminate\Support\Carbon;
  *   approved   approved_at is set    → read-only (changes: 7.2d)
  *
  * @property int $id
- * @property int $org_unit_id
+ * @property int $entity_id
  * @property int|null $replaces_roster_id
  * @property string $title
  * @property Carbon $from_date
@@ -52,7 +52,7 @@ class Roster extends TenantModel implements Approvable, ShowsApprovalDetails
     use HasFactory;
 
     /** approved_at is NOT fillable: only onApproved() may set it. */
-    protected $fillable = ['org_unit_id', 'replaces_roster_id', 'title', 'from_date', 'to_date', 'note', 'requested_by_user_id'];
+    protected $fillable = ['entity_id', 'replaces_roster_id', 'title', 'from_date', 'to_date', 'note', 'requested_by_user_id'];
 
     /** @return array<string, string> */
     protected function casts(): array
@@ -61,16 +61,16 @@ class Roster extends TenantModel implements Approvable, ShowsApprovalDetails
     }
 
     /**
-     * Only rosters of the org units $user can see (their role's unit + all units below; no limit = all).
+     * Only rosters of the entities $user can see (their role's entity; no limit = all).
      * Same rule as employees and manpower requests (EmployeeVisibility).
      *
      * @param  Builder<self>  $query
      */
     public function scopeVisibleTo(Builder $query, User $user): void
     {
-        $unitIds = app(EmployeeVisibility::class)->orgUnitIdsFor($user);
+        $unitIds = app(EmployeeVisibility::class)->entityIdsFor($user);
         if ($unitIds !== null) {
-            $query->whereIn('org_unit_id', $unitIds);
+            $query->whereIn('entity_id', $unitIds);
         }
     }
 
@@ -121,20 +121,19 @@ class Roster extends TenantModel implements Approvable, ShowsApprovalDetails
     }
 
     /**
-     * The people in the grid: active employees of the org unit and every unit below it, plus anyone who
-     * already has a cell (e.g. moved to another unit since). The visibility scope applies by itself.
+     * The people in the grid: active employees currently in the entity, plus anyone who
+     * already has a cell (e.g. moved to another entity since). The visibility scope applies by itself.
      *
      * @return Collection<int, Employee>
      */
     public function gridEmployees(): Collection
     {
-        $unitIds = [$this->org_unit_id, ...($this->orgUnit?->descendantIds() ?? [])];
         $planned = $this->items()->distinct()->pluck('employee_id')->all();
 
         return Employee::query()
-            ->where(fn (Builder $q) => $q->where(fn (Builder $q) => $q->active()->whereIn('org_unit_id', $unitIds))->orWhereIn('id', $planned))
+            ->where(fn (Builder $q) => $q->where(fn (Builder $q) => $q->active()->inEntities([$this->entity_id]))->orWhereIn('id', $planned))
             ->orderBy('code')
-            ->get(['id', 'code', 'first_name', 'last_name', 'org_unit_id', 'shift_id', 'weekend_profile_id', 'holiday_profile_id']);
+            ->get(['id', 'code', 'first_name', 'last_name', 'shift_id', 'weekend_profile_id', 'holiday_profile_id']);
     }
 
     /**
@@ -169,10 +168,10 @@ class Roster extends TenantModel implements Approvable, ShowsApprovalDetails
         return $this->belongsTo(self::class, 'replaces_roster_id');
     }
 
-    /** @return BelongsTo<OrgUnit, $this> */
-    public function orgUnit(): BelongsTo
+    /** @return BelongsTo<Entity, $this> */
+    public function entity(): BelongsTo
     {
-        return $this->belongsTo(OrgUnit::class);
+        return $this->belongsTo(Entity::class);
     }
 
     /** @return HasMany<RosterItem, $this> */
@@ -209,7 +208,7 @@ class Roster extends TenantModel implements Approvable, ShowsApprovalDetails
     {
         return [
             'employee_id' => $this->requesterEmployee()?->id,
-            'org_unit_id' => $this->org_unit_id,
+            'entity_ids' => [$this->entity_id],
         ];
     }
 

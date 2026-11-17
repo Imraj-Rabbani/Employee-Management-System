@@ -3,9 +3,8 @@
 namespace App\Modules\Hrm\Livewire\Organization;
 
 use App\Core\Livewire\LookupForm;
-use App\Modules\Hrm\Models\CostCenter;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\Grade;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Models\Position;
 use Illuminate\Validation\Rule;
 
@@ -28,8 +27,8 @@ class PositionForm extends LookupForm
     protected function defaults(): array
     {
         return [
-            'name' => '', 'code' => '', 'org_unit_id' => '', 'grade_id' => '', 'parent_id' => '',
-            'cost_center_id' => '', 'effective_from' => '', 'is_vacant' => true, 'is_active' => true,
+            'name' => '', 'code' => '', 'entity_id' => '', 'grade_id' => '', 'parent_id' => '',
+            'effective_from' => '', 'is_vacant' => true, 'is_active' => true,
         ];
     }
 
@@ -38,10 +37,9 @@ class PositionForm extends LookupForm
         return [
             'name' => ['required', 'string', 'max:100'],
             'code' => ['nullable', 'string', 'max:50', Rule::unique(Position::class, 'code')->ignore($this->recordId)],
-            'org_unit_id' => ['required', Rule::exists(OrgUnit::class, 'id')],
+            'entity_id' => ['required', Rule::exists(Entity::class, 'id')],
             'grade_id' => ['nullable', Rule::exists(Grade::class, 'id')],
             'parent_id' => ['nullable', Rule::exists(Position::class, 'id')],
-            'cost_center_id' => ['nullable', Rule::exists(CostCenter::class, 'id')],
             'effective_from' => ['nullable', 'date'],
             'is_vacant' => ['boolean'],
             'is_active' => ['boolean'],
@@ -50,7 +48,7 @@ class PositionForm extends LookupForm
 
     protected function labels(): array
     {
-        return ['org_unit_id' => __('org unit'), 'grade_id' => __('grade'), 'parent_id' => __('reports to'), 'cost_center_id' => __('cost center')];
+        return ['entity_id' => __('entity'), 'grade_id' => __('grade'), 'parent_id' => __('reports to')];
     }
 
     protected function check(array $values): bool
@@ -67,15 +65,13 @@ class PositionForm extends LookupForm
 
     protected function viewData(): array
     {
-        $units = OrgUnit::pathOptions();
+        $units = Entity::options();
 
         return [
             'units' => $units,
             'grades' => Grade::where('is_active', true)->ordered()->pluck('name', 'id')->all(),
             'bosses' => Position::whereKeyNot($this->recordId ?? 0)->orderBy('name')->get()
-                ->mapWithKeys(fn (Position $p) => [$p->id => $p->name.' · '.($units[$p->org_unit_id] ?? '')])->all(),
-            'costCenters' => CostCenter::where('is_active', true)->orderBy('code')->get()
-                ->mapWithKeys(fn (CostCenter $c) => [$c->id => "{$c->code} · {$c->name}"])->all(),
+                ->mapWithKeys(fn (Position $p) => [$p->id => $p->name.' · '.($units[$p->entity_id] ?? '')])->all(),
         ];
     }
 

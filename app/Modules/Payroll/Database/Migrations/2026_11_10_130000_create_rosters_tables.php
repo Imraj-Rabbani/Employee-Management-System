@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * TENANT tables for rosters: the PLANNED shift per employee per day.
  *
- *   rosters        one plan for one org unit and a date range, e.g. "Factory, 1–31 December". Approvable.
+ *   rosters        one plan for one entity and a date range, e.g. "Factory, 1–31 December". Approvable.
  *   roster_items   one cell of the grid: employee × date → shift, day off, or on call
  *
  * Only APPROVED rosters count for attendance; without one, the employee's own / default shift is used.
@@ -23,7 +23,7 @@ return new class extends Migration
     {
         Schema::create('rosters', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('org_unit_id')->constrained()->restrictOnDelete();
+            $table->foreignId('entity_id')->constrained()->restrictOnDelete();
             $table->string('title', 150);
             $table->date('from_date');
             $table->date('to_date');
@@ -32,7 +32,7 @@ return new class extends Migration
             $table->timestamp('approved_at')->nullable();
             $table->timestamps();
 
-            $table->index(['org_unit_id', 'from_date']);
+            $table->index(['entity_id', 'from_date']);
         });
 
         Schema::create('roster_items', function (Blueprint $table) {

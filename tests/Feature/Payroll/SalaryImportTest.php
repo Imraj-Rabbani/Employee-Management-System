@@ -8,7 +8,7 @@ use App\Models\Tenant;
 use App\Modules\Core\Services\Permissions;
 use App\Modules\Hrm\Enums\ImportStatus;
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Payroll\Actions\SetEmployeeSalary;
 use App\Modules\Payroll\Data\SalaryBreakdown;
 use App\Modules\Payroll\Data\SalaryLine;
@@ -58,7 +58,7 @@ class SalaryImportTest extends TestCase
 
     private Employee $karim;
 
-    private OrgUnit $finance;
+    private Entity $finance;
 
     protected function setUp(): void
     {
@@ -72,10 +72,10 @@ class SalaryImportTest extends TestCase
         $this->profile = SalaryProfile::factory()->create(['code' => 'G5', 'name' => 'Grade 5']);
         $this->profile->syncItems([$this->houseRent->id => ['value_type' => 'percent_basic', 'value' => '50']]);
 
-        $this->finance = OrgUnit::factory()->create(['name' => 'Finance']);
-        $sales = OrgUnit::factory()->create(['name' => 'Sales']);
-        $this->rahim = Employee::factory()->inUnit($this->finance)->create(['code' => 'E-001', 'first_name' => 'Rahim', 'join_date' => '2026-01-01']);
-        $this->karim = Employee::factory()->inUnit($sales)->create(['code' => 'E-002', 'first_name' => 'Karim', 'join_date' => '2026-01-01']);
+        $this->finance = Entity::factory()->create(['name' => 'Finance']);
+        $sales = Entity::factory()->create(['name' => 'Sales']);
+        $this->rahim = Employee::factory()->inEntity($this->finance)->create(['code' => 'E-001', 'first_name' => 'Rahim', 'join_date' => '2026-01-01']);
+        $this->karim = Employee::factory()->inEntity($sales)->create(['code' => 'E-002', 'first_name' => 'Karim', 'join_date' => '2026-01-01']);
     }
 
     protected function tearDown(): void
@@ -201,10 +201,10 @@ class SalaryImportTest extends TestCase
         $this->assertSame([], $this->salaryOn($this->rahim, '2026-12-31'));   // the good row of the first file was not saved
     }
 
-    public function test_employees_outside_the_uploaders_org_units_are_refused(): void
+    public function test_employees_outside_the_uploaders_entities_are_refused(): void
     {
         $user = $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['payroll.salary.manage', 'hrm.employee.view']);
-        $user->role()->update(['org_unit_id' => $this->finance->id]);
+        $user->role()->update(['entity_id' => $this->finance->id]);
         app(Permissions::class)->flush();
 
         $import = $this->upload($this->xlsx([['employee_code' => 'E-002', 'effective_from' => '2026-01-01', 'head_basic' => 1]]));

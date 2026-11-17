@@ -15,11 +15,11 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * New / Edit / Delete roster: the HEADER only (org unit, title, dates). The cells are filled in the grid.
+ * New / Edit / Delete roster: the HEADER only (entity, title, dates). The cells are filled in the grid.
  * Modal "roster-form".
  *
  * Rules beyond the fields:
- *   - the org unit must be one the user can see (EmployeeVisibility), and cannot change once cells exist
+ *   - the entity must be one the user can see (EmployeeVisibility), and cannot change once cells exist
  *   - at most MAX_DAYS days (one screen of grid; a month is the usual period)
  *   - only a draft or a roster sent back (Review) can be edited; only a draft deleted
  *   - shortening the period removes the cells outside it
@@ -35,7 +35,7 @@ class RosterForm extends Component
     /** @var array<string, mixed> */
     public array $form = [];
 
-    /** Starts as next month for the first unit: the usual case. */
+    /** Starts as next month for the first entity: the usual case. */
     #[On('create-roster')]
     public function create(): void
     {
@@ -44,7 +44,7 @@ class RosterForm extends Component
 
         $this->recordId = null;
         $this->form = [
-            'org_unit_id' => (string) (array_key_first($this->orgUnits()) ?? ''),
+            'entity_id' => (string) (array_key_first($this->entities()) ?? ''),
             'title' => $next->translatedFormat('F Y'),
             'from_date' => $next->copy()->startOfMonth()->toDateString(),
             'to_date' => $next->copy()->endOfMonth()->toDateString(),
@@ -62,7 +62,7 @@ class RosterForm extends Component
 
         $this->recordId = $roster->id;
         $this->form = [
-            'org_unit_id' => (string) $roster->org_unit_id,
+            'entity_id' => (string) $roster->entity_id,
             'title' => $roster->title,
             'from_date' => $roster->from_date->toDateString(),
             'to_date' => $roster->to_date->toDateString(),
@@ -83,13 +83,13 @@ class RosterForm extends Component
         }
 
         $values = $this->validate([
-            'form.org_unit_id' => ['required', Rule::in(array_keys($this->orgUnits()))],
+            'form.entity_id' => ['required', Rule::in(array_keys($this->entities()))],
             'form.title' => ['required', 'string', 'max:150'],
             'form.from_date' => ['required', 'date'],
             'form.to_date' => ['required', 'date', 'after_or_equal:form.from_date'],
             'form.note' => ['nullable', 'string', 'max:2000'],
         ], attributes: [
-            'form.org_unit_id' => __('org unit'), 'form.from_date' => __('from'), 'form.to_date' => __('to'),
+            'form.entity_id' => __('entity'), 'form.from_date' => __('from'), 'form.to_date' => __('to'),
         ])['form'];
         $values['note'] = $values['note'] === '' ? null : $values['note'];
 
@@ -100,8 +100,8 @@ class RosterForm extends Component
 
             return;
         }
-        if ($roster && (int) $values['org_unit_id'] !== $roster->org_unit_id && $roster->items()->exists()) {
-            $this->addError('form.org_unit_id', __('The grid already has shifts for this unit\'s employees. Make a new roster for another unit.'));
+        if ($roster && (int) $values['entity_id'] !== $roster->entity_id && $roster->items()->exists()) {
+            $this->addError('form.entity_id', __('The grid already has shifts for this entity\'s employees. Make a new roster for another entity.'));
 
             return;
         }
@@ -138,7 +138,7 @@ class RosterForm extends Component
         $this->redirectRoute('payroll.attendance.rosters', navigate: true);
     }
 
-    /** Only rosters the user may see: another unit's id in the event gives 404. */
+    /** Only rosters the user may see: another entity's roster id in the event gives 404. */
     private function find(int $id): Roster
     {
         Gate::authorize('payroll.roster.manage');
@@ -147,9 +147,9 @@ class RosterForm extends Component
     }
 
     /** @return array<int, string> */
-    private function orgUnits(): array
+    private function entities(): array
     {
-        return app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user());
+        return app(EmployeeVisibility::class)->documentEntityOptionsFor(Auth::user());
     }
 
     public function render(): View
@@ -158,7 +158,7 @@ class RosterForm extends Component
 
         return view('payroll::livewire.attendance.roster-form', [
             'roster' => $roster,
-            'units' => $this->orgUnits(),
+            'units' => $this->entities(),
         ]);
     }
 }

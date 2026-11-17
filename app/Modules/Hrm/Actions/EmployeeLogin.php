@@ -21,7 +21,7 @@ use Throwable;
  *     $logins->link($employee, $user);                                        an existing login of this company
  *     $logins->unlink($employee);                                             the login stays, only the link goes
  *
- * Each has a ...Problem() method returning a message for the user (or null), like ChangeOrgUnit.
+ * Each has a ...Problem() method returning a message for the user (or null), like ChangeEntity.
  *
  * The login lives in the CENTRAL database, the employee in the company one: no transaction can cover
  * both, so invite() removes the new login again if linking fails.

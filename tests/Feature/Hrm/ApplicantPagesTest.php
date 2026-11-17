@@ -12,9 +12,9 @@ use App\Modules\Hrm\Livewire\Recruitment\ApplicantWorkHistories;
 use App\Modules\Hrm\Livewire\Recruitment\ApplicationPipeline;
 use App\Modules\Hrm\Models\Applicant;
 use App\Modules\Hrm\Models\Application;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\JobPosting;
 use App\Modules\Hrm\Models\ManpowerRequest;
-use App\Modules\Hrm\Models\OrgUnit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Livewire\Features\SupportTesting\Testable;
@@ -189,19 +189,19 @@ class ApplicantPagesTest extends TestCase
 
     public function test_applications_to_postings_in_other_units_are_counted_not_shown(): void
     {
-        $sales = OrgUnit::factory()->create();
-        $mine = JobPosting::factory()->open()->for(ManpowerRequest::factory()->approved()->create(['org_unit_id' => $sales->id]))->create(['title' => 'Sales Officer']);
+        $sales = Entity::factory()->create();
+        $mine = JobPosting::factory()->open()->for(ManpowerRequest::factory()->approved()->create(['entity_id' => $sales->id]))->create(['title' => 'Sales Officer']);
         $rahim = Applicant::factory()->create();
         Application::factory()->for($rahim)->for($mine)->create();
         Application::factory()->for($rahim)->for(JobPosting::factory()->open()->create(['title' => 'Accountant']))->create();
 
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.recruitment.manage']);
-        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['org_unit_id' => $sales->id]);
+        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['entity_id' => $sales->id]);
 
         Livewire::test(ApplicantProfile::class, ['applicantId' => $rahim->id])
             ->assertSee('Sales Officer')
             ->assertDontSee('Accountant')
-            ->assertSee('+1 application in org units you cannot see');
+            ->assertSee('+1 application in entities you cannot see');
     }
 
     public function test_education_and_work_history_rows(): void

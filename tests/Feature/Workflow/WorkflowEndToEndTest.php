@@ -8,7 +8,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Core\Models\Role;
 use App\Modules\Hrm\Models\EmploymentType;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Workflow\Enums\ApprovalStatus;
 use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Exceptions\WorkflowException;
@@ -152,12 +152,12 @@ class WorkflowEndToEndTest extends TestCase
 
     public function test_unit_and_amount_together_beat_either_alone(): void
     {
-        $unit = OrgUnit::factory()->create();
-        $this->workflow('Unit', attributes: ['scope_org_unit_id' => $unit->id]);
+        $unit = Entity::factory()->create();
+        $this->workflow('Unit', attributes: ['scope_entity_id' => $unit->id]);
         $this->workflow('Big', attributes: ['min_amount' => 1000]);
-        $both = $this->workflow('Unit, big', attributes: ['scope_org_unit_id' => $unit->id, 'min_amount' => 1000]);
+        $both = $this->workflow('Unit, big', attributes: ['scope_entity_id' => $unit->id, 'min_amount' => 1000]);
 
-        $this->assertTrue($both->is(app(WorkflowEngine::class)->findWorkflow($this->note(['org_unit_id' => $unit->id, 'amount' => 5000]))));
+        $this->assertTrue($both->is(app(WorkflowEngine::class)->findWorkflow($this->note(['entity_ids' => [$unit->id], 'amount' => 5000]))));
     }
 
     public function test_an_employment_type_mismatch_falls_back_to_the_general_workflow(): void

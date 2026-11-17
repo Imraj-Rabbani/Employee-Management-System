@@ -4,10 +4,12 @@ namespace Tests\Feature\Hrm;
 
 use App\Models\Tenant;
 use App\Models\User;
+use App\Modules\Hrm\Actions\ChangeEntity;
 use App\Modules\Hrm\Enums\MaritalStatus;
 use App\Modules\Hrm\Livewire\Ess\ProfileRequests;
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
+use App\Modules\Hrm\Models\EntityType;
 use App\Modules\Hrm\Models\ProfileUpdateRequest;
 use App\Modules\Workflow\Enums\ApprovalStatus;
 use App\Modules\Workflow\Enums\ApproverType;
@@ -26,7 +28,7 @@ use Tests\TestCase;
 /**
  * Profile update requests through the workflow, plus the employee-based approver types.
  *
- * Head Office (head: Boss) › Finance (head: none). Rahim (Finance) reports to Salma. Everyone has a login
+ * Finance (head: none) has the optional parent Head Office (head: Boss). Rahim (Finance) reports to Salma. Everyone has a login
  * without any role (pure self service).
  */
 class ProfileUpdateRequestTest extends TestCase
@@ -42,9 +44,9 @@ class ProfileUpdateRequestTest extends TestCase
 
     private Employee $boss;
 
-    private OrgUnit $head;
+    private Entity $head;
 
-    private OrgUnit $finance;
+    private Entity $finance;
 
     protected function setUp(): void
     {
@@ -53,14 +55,15 @@ class ProfileUpdateRequestTest extends TestCase
         Notification::fake();
         $this->tenant = $this->actingAsTenantUser()->tenant;
 
-        $this->head = OrgUnit::factory()->create(['name' => 'Head Office']);
-        $this->finance = OrgUnit::factory()->childOf($this->head)->create(['name' => 'Finance']);
+        // Department Finance (no head) sits under Division Head Office (head: Boss).
+        $this->head = Entity::factory()->create(['name' => 'Head Office']);
+        $this->finance = Entity::factory()->create(['name' => 'Finance', 'parent_id' => $this->head->id]);
 
-        $this->boss = $this->employeeWithLogin(['first_name' => 'Boss', 'org_unit_id' => $this->head->id]);
+        $this->boss = $this->employeeWithLogin(['first_name' => 'Boss', 'entity_id' => $this->head->id]);
         $this->head->update(['head_employee_id' => $this->boss->id]);
-        $this->salma = $this->employeeWithLogin(['first_name' => 'Salma', 'org_unit_id' => $this->finance->id]);
+        $this->salma = $this->employeeWithLogin(['first_name' => 'Salma', 'entity_id' => $this->finance->id]);
         $this->rahim = $this->employeeWithLogin([
-            'first_name' => 'Rahim', 'last_name' => 'Uddin', 'org_unit_id' => $this->finance->id,
+            'first_name' => 'Rahim', 'last_name' => 'Uddin', 'entity_id' => $this->finance->id,
             'supervisor_id' => $this->salma->id, 'mobile' => '01711000000',
         ]);
     }
@@ -68,7 +71,11 @@ class ProfileUpdateRequestTest extends TestCase
     /** @param  array<string, mixed>  $attributes */
     private function employeeWithLogin(array $attributes): Employee
     {
-        $employee = Employee::factory()->create($attributes);
+        $entityId = $attributes['entity_id'] ?? null;
+        unset($attributes['entity_id']);
+        $employee = Employee::factory()
+            ->when($entityId !== null, fn ($factory) => $factory->inEntity(Entity::findOrFail($entityId)))
+            ->create($attributes);
         $employee->forceFill(['user_id' => User::factory()->for($this->tenant)->create()->id])->save();
 
         return $employee;
@@ -214,12 +221,34 @@ class ProfileUpdateRequestTest extends TestCase
 
     // ---- Approver types ------------------------------------------------------------------
 
-    public function test_org_head_walks_up_to_a_unit_with_a_head(): void
+    public function test_entity_head_walks_up_to_a_parent_with_a_head(): void
     {
-        $this->workflow(ApproverType::OrgHead);   // Finance has no head → Head Office's head (Boss)
+        // Head of Rahim's Finance-type entity: Finance has no head → its parent Head Office's head (Boss).
+        $this->workflow(ApproverType::EntityHead, ['approver_entity_type_id' => $this->finance->entity_type_id]);
         $this->rahimRequestsNewMobile();
 
         $this->assertSame($this->boss->user_id, Approval::sole()->approver_user_id);
+    }
+
+    public function test_entity_head_of_another_type_uses_the_employees_entity_of_that_type(): void
+    {
+        $gulshan = Entity::factory()->create(['name' => 'Gulshan', 'head_employee_id' => $this->salma->id]);
+        app(ChangeEntity::class)->handle($this->rahim, $gulshan->id, today());
+        $this->workflow(ApproverType::EntityHead, ['approver_entity_type_id' => $gulshan->entity_type_id]);
+        $this->rahimRequestsNewMobile();
+
+        $this->assertSame($this->salma->user_id, Approval::sole()->approver_user_id);
+    }
+
+    public function test_entity_head_with_no_entity_of_that_type_means_nobody_can_approve(): void
+    {
+        $this->workflow(ApproverType::EntityHead, ['approver_entity_type_id' => EntityType::factory()->create()->id]);
+        $this->login($this->rahim);
+
+        Livewire::test(ProfileRequests::class)
+            ->call('open')->set('form.mobile', '01811999999')->set('reason', 'New SIM')->call('submit');
+
+        $this->assertSame(0, Approval::count());
     }
 
     public function test_a_specific_employee_can_be_the_approver(): void

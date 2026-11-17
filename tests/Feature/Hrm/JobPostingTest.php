@@ -5,9 +5,9 @@ namespace Tests\Feature\Hrm;
 use App\Models\Tenant;
 use App\Modules\Core\Models\Role;
 use App\Modules\Hrm\Enums\JobPostingStatus;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\JobPosting;
 use App\Modules\Hrm\Models\ManpowerRequest;
-use App\Modules\Hrm\Models\OrgUnit;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\ActsAsTenantUser;
@@ -74,15 +74,15 @@ class JobPostingTest extends TestCase
         $this->assertSame(1, $request->fresh()->openingsToAdvertise());
     }
 
-    public function test_visible_to_follows_the_requests_org_unit(): void
+    public function test_visible_to_follows_the_requests_entity(): void
     {
-        $sales = OrgUnit::factory()->create();
-        $finance = OrgUnit::factory()->create();
-        $mine = JobPosting::factory()->for(ManpowerRequest::factory()->approved()->create(['org_unit_id' => $sales->id]))->create();
-        JobPosting::factory()->for(ManpowerRequest::factory()->approved()->create(['org_unit_id' => $finance->id]))->create();
+        $sales = Entity::factory()->create();
+        $finance = Entity::factory()->create();
+        $mine = JobPosting::factory()->for(ManpowerRequest::factory()->approved()->create(['entity_id' => $sales->id]))->create();
+        JobPosting::factory()->for(ManpowerRequest::factory()->approved()->create(['entity_id' => $finance->id]))->create();
 
         $user = $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.recruitment.request']);
-        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['org_unit_id' => $sales->id]);
+        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['entity_id' => $sales->id]);
 
         $this->assertSame([$mine->id], JobPosting::visibleTo($user)->pluck('id')->all());
     }

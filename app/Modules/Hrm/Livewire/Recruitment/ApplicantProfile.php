@@ -19,7 +19,7 @@ use Livewire\Component;
  * "Apply to posting". Education and work history are separate cards (ApplicantEducations / ...WorkHistories).
  *
  * Applications are listed only for postings the user can see (Application::visibleTo); one to a posting
- * outside the user's org units is counted ("+1 in other org units") but not shown.
+ * outside the user's entities is counted ("+1 in other entities") but not shown.
  */
 class ApplicantProfile extends Component
 {
@@ -72,16 +72,16 @@ class ApplicantProfile extends Component
     {
         return JobPosting::query()->visibleTo(Auth::user())->where('status', 'open')
             ->whereDoesntHave('applications', fn ($q) => $q->where('applicant_id', $applicant->id))
-            ->with('manpowerRequest.orgUnit')->orderByDesc('id')->get()
+            ->with('manpowerRequest.entity')->orderByDesc('id')->get()
             ->filter(fn (JobPosting $p) => $p->isAcceptingApplications())
-            ->mapWithKeys(fn (JobPosting $p) => [$p->id => $p->number().' · '.$p->title.' ('.($p->manpowerRequest->orgUnit->name ?? '?').')'])
+            ->mapWithKeys(fn (JobPosting $p) => [$p->id => $p->number().' · '.$p->title.' ('.($p->manpowerRequest->entity->name ?? '?').')'])
             ->all();
     }
 
     public function render(): View
     {
         $applicant = $this->applicant();
-        $applications = $applicant->applications()->visibleTo(Auth::user())->with(['jobPosting.manpowerRequest.orgUnit', 'offers.approvals', 'hiredEmployee'])->get();
+        $applications = $applicant->applications()->visibleTo(Auth::user())->with(['jobPosting.manpowerRequest.entity', 'offers.approvals', 'hiredEmployee'])->get();
 
         return view('hrm::livewire.recruitment.applicant-profile', [
             'applicant' => $applicant,

@@ -8,7 +8,6 @@ use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\LeaveApplication;
 use App\Modules\Hrm\Models\LeaveBalance;
 use App\Modules\Hrm\Models\LeaveType;
-use App\Modules\Hrm\Models\OrgUnit;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -22,7 +21,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 /**
  * HRM → Leave → Balances: the balance report. One row per employee and leave type of a leave year,
  * straight from the cached leave_balances (= SUM of the ledger), for the employees the user can see.
- * Filter by year (default: this one), type and org unit (incl. units below); export with the table's Export.
+ * Filter by year (default: this one), type and entity (employees currently in it); export with the table's Export.
  * A name opens the employee's Leave tab, where every number is explained row by row.
  *
  * View: app/Modules/Hrm/resources/views/livewire/leave/leave-balance-table.blade.php
@@ -45,9 +44,9 @@ class LeaveBalanceTable extends Component
     #[Url(as: 'type', except: '')]
     public string $type = '';
 
-    /** Filter "Org unit": '' = all */
-    #[Url(as: 'org_unit', except: '')]
-    public string $orgUnit = '';
+    /** Filter "Entity": '' = all */
+    #[Url(as: 'entity', except: '')]
+    public string $entity = '';
 
     #[Url(as: 'per_page', except: 10)]
     public int $perPage = 10;
@@ -73,7 +72,7 @@ class LeaveBalanceTable extends Component
 
     public function clearFilters(): void
     {
-        $this->reset('year', 'type', 'orgUnit');
+        $this->reset('year', 'type', 'entity');
         $this->resetPage();
     }
 
@@ -102,7 +101,7 @@ class LeaveBalanceTable extends Component
     /** Typing a search or picking a filter or page size starts again at page 1. */
     public function updated(string $property): void
     {
-        if (in_array($property, ['year', 'type', 'orgUnit', 'perPage'], true)) {
+        if (in_array($property, ['year', 'type', 'entity', 'perPage'], true)) {
             $this->resetPage();
         }
     }
@@ -111,7 +110,7 @@ class LeaveBalanceTable extends Component
     private function query(): Builder
     {
         return LeaveBalance::query()
-            ->with(['employee:id,code,first_name,last_name,org_unit_id', 'leaveType:id,code,name,sequence,requires_balance'])
+            ->with(['employee:id,code,first_name,last_name', 'leaveType:id,code,name,sequence,requires_balance'])
             ->whereIn('employee_id', Employee::query()->select('id'));
     }
 
@@ -132,10 +131,10 @@ class LeaveBalanceTable extends Component
         return LeaveType::query()->ordered()->pluck('name', 'id')->all();
     }
 
-    /** @return array<int|string, string> choices of the "Org unit" filter */
-    private function orgUnitOptions(): array
+    /** @return array<int|string, string> choices of the "Entity" filter */
+    private function entityOptions(): array
     {
-        return app(EmployeeVisibility::class)->orgUnitOptionsFor(Auth::user());
+        return app(EmployeeVisibility::class)->entityOptionsFor(Auth::user());
     }
 
     /** @return Builder<LeaveBalance> */
@@ -151,9 +150,8 @@ class LeaveBalanceTable extends Component
             $query->where('leave_type_id', (int) $this->type);
         }
 
-        if ($this->orgUnit !== '' && array_key_exists($this->orgUnit, $this->orgUnitOptions())) {
-            $query->whereHas('employee', fn (Builder $e) => $e
-                ->whereIn('org_unit_id', [(int) $this->orgUnit, ...(OrgUnit::find((int) $this->orgUnit)?->descendantIds() ?? [])]));
+        if ($this->entity !== '' && array_key_exists($this->entity, $this->entityOptions())) {
+            $query->whereHas('employee', fn (Builder $e) => $e->inEntities([(int) $this->entity]));
         }
 
         if (in_array($this->sortBy, self::SORTABLE, true)) {
@@ -174,7 +172,7 @@ class LeaveBalanceTable extends Component
             'rows' => $this->filteredQuery()->paginate($perPage),
             'yearOptions' => $this->yearOptions(),
             'typeOptions' => $this->typeOptions(),
-            'orgUnitOptions' => $this->orgUnitOptions(),
+            'entityOptions' => $this->entityOptions(),
         ]);
     }
 }

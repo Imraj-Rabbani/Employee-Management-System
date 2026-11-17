@@ -5,7 +5,7 @@ namespace Tests\Feature\Payroll;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\OrgUnit;
+use App\Modules\Hrm\Models\Entity;
 use App\Modules\Payroll\Models\Roster;
 use App\Modules\Payroll\Models\RosterItem;
 use App\Modules\Payroll\Models\Shift;
@@ -60,16 +60,16 @@ class RosterModelsTest extends TestCase
 
     public function test_approval_stamps_approved_at_and_locks_the_roster(): void
     {
-        $unit = OrgUnit::factory()->create();
-        $boss = Employee::factory()->create(['org_unit_id' => $unit->id]);
+        $unit = Entity::factory()->create();
+        $boss = Employee::factory()->inEntity($unit)->create([]);
         $boss->forceFill(['user_id' => User::factory()->for($this->tenant)->create()->id])->save();
-        $planner = Employee::factory()->create(['org_unit_id' => $unit->id, 'supervisor_id' => $boss->id]);
+        $planner = Employee::factory()->inEntity($unit)->create(['supervisor_id' => $boss->id]);
         $planner->forceFill(['user_id' => User::factory()->for($this->tenant)->create()->id])->save();
 
         $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('roster')?->id, 'name' => 'Roster']);
         WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Supervisor]);
 
-        $roster = Roster::factory()->create(['org_unit_id' => $unit->id, 'requested_by_user_id' => $planner->user_id]);
+        $roster = Roster::factory()->create(['entity_id' => $unit->id, 'requested_by_user_id' => $planner->user_id]);
         $roster->submitForApproval(User::findOrFail($planner->user_id));
 
         $this->assertSame($boss->user_id, Approval::sole()->approver_user_id);   // the planner's supervisor

@@ -12,7 +12,7 @@
                         <x-ui.badge :color="$posting->status->color()">{{ $posting->status->label() }}</x-ui.badge>
                     </div>
                     <flux:text class="mt-1">
-                        {{ $posting->number() }} · {{ $request->orgUnit?->name }} ·
+                        {{ $posting->number() }} · {{ $request->entity?->name }} ·
                         {{ trans_choice(':count opening|:count openings', $posting->openings, ['count' => $posting->openings]) }}
                     </flux:text>
                     <flux:text class="mt-1 text-xs">{{ $posting->applicationWindow() }}</flux:text>

@@ -79,7 +79,7 @@
                         </td>
                         <td class="px-4 py-3">{{ $workflow->approvalType->name }}</td>
                         <td class="px-4 py-3">{{ collect([
-                    $workflow->scopeOrgUnit?->name,
+                    $workflow->scopeEntity?->name,
                     $workflow->scopeEmploymentType?->name,
                     $workflow->min_amount !== null ? __('from :amount', ['amount' => number_format((float) $workflow->min_amount, 2)]) : null,
                 ])->filter()->implode(' · ') ?: __('Everything') }}</td>

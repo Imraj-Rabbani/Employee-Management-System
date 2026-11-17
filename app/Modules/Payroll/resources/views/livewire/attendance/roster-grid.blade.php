@@ -115,7 +115,7 @@
                 <flux:icon name="users" />
             </div>
             <flux:heading size="lg" class="mt-4">{{ __('No employees') }}</flux:heading>
-            <flux:text class="mt-1 max-w-sm">{{ __('This org unit (and the units below it) has no active employees you can see.') }}</flux:text>
+            <flux:text class="mt-1 max-w-sm">{{ __('This entity has no active employees you can see.') }}</flux:text>
         </div>
     @else
         <div class="glass overflow-hidden rounded-2xl">

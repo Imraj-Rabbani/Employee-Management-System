@@ -10,7 +10,7 @@ enum ApproverType: string
 {
     case Employee = 'employee';       // one fixed employee (approver_employee_id)
     case Supervisor = 'supervisor';   // the requester's supervisor
-    case OrgHead = 'org_head';        // the head of the requester's org unit
+    case EntityHead = 'entity_head';  // the head of the document's entity of one type (approver_entity_type_id)
     case Role = 'role';               // anyone with a role (approver_role_id)
 
     public function label(): string
@@ -18,7 +18,7 @@ enum ApproverType: string
         return match ($this) {
             self::Employee => __('Specific employee'),
             self::Supervisor => __('Supervisor of requester'),
-            self::OrgHead => __('Head of org unit'),
+            self::EntityHead => __('Head of entity'),
             self::Role => __('Anyone with a role'),
         };
     }

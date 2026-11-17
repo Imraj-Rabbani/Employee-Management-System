@@ -18,8 +18,8 @@ return new class extends Migration
             $table->id();
             $table->string('code', 50)->unique();
             $table->string('name', 100);
-            // NULL = for the whole company; otherwise the shift is offered for this org unit.
-            $table->foreignId('org_unit_id')->nullable()->constrained('org_units')->restrictOnDelete();
+            // NULL = for the whole company; otherwise the shift is offered for employees of this entity.
+            $table->foreignId('entity_id')->nullable()->constrained()->restrictOnDelete();
 
             $table->time('start_time');
             $table->time('end_time');
