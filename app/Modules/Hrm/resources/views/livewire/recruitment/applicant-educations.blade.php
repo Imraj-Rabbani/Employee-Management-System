@@ -37,8 +37,7 @@
                 <div class="grid gap-4 sm:grid-cols-2">
                     <flux:field>
                         <flux:label>{{ __('Degree / exam') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                        <flux:description>{{ __('e.g. SSC, HSC, B Sc (Hon\'s), MBA') }}</flux:description>
-                        <flux:input aria-required="true" wire:model="form.degree" />
+                        <flux:input :placeholder="__('e.g. SSC, HSC, B Sc (Hon\'s), MBA')" aria-required="true" wire:model="form.degree" />
                         <flux:error name="form.degree" />
                     </flux:field>
 
@@ -63,8 +62,7 @@
 
                     <flux:field>
                         <flux:label>{{ __('Out of') }}</flux:label>
-                        <flux:description>{{ __('e.g. 5, 4 or 100') }}</flux:description>
-                        <flux:input wire:model="form.out_of" type="number" step="0.01" min="0" />
+                        <flux:input :placeholder="__('e.g. 5, 4 or 100')" wire:model="form.out_of" type="number" step="0.01" min="0" />
                         <flux:error name="form.out_of" />
                     </flux:field>
 

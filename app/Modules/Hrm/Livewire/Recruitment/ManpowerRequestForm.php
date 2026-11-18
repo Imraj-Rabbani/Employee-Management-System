@@ -136,8 +136,8 @@ class ManpowerRequestForm extends Component
     public function delete(): void
     {
         $request = $this->find((int) $this->recordId);
-        if (! $request->isDraft()) {
-            $this->addError('form.entity_id', __('Only a draft can be deleted. This one has an approval history.'));
+        if ($problem = $this->deleteProblem($request)) {
+            $this->addError('form.entity_id', $problem);
 
             return;
         }
@@ -150,9 +150,43 @@ class ManpowerRequestForm extends Component
     }
 
     /**
+     * Delete from the list's toolbar: every ticked one that may go (drafts); one toast says what happened.
+     *
+     * @param  list<int|string>  $ids
+     */
+    #[On('delete-manpower-request')]
+    public function deleteMany(array $ids): void
+    {
+        Gate::authorize('hrm.recruitment.request');
+        $deleted = 0;
+        $problems = [];
+        foreach (ManpowerRequest::query()->visibleTo(Auth::user())->whereKey($ids)->get() as $request) {
+            if ($problem = $this->deleteProblem($request)) {
+                $problems[] = $request->number().': '.$problem;
+
+                continue;
+            }
+            $request->getConnection()->transaction(fn () => $request->delete());
+            $deleted++;
+        }
+
+        $this->dispatch('manpower-request-saved');
+        $this->dispatch('toast',
+            message: implode(' ', array_filter([$deleted > 0 ? trans_choice(':count deleted.|:count deleted.', $deleted) : null, ...$problems])),
+            variant: $problems === [] ? 'success' : ($deleted > 0 ? 'warning' : 'error'),
+        );
+    }
+
+    /**
      * Only requests the user may see: someone else's id in the URL / event gives 404.
      * Also checks the permission: this form sits on the request page, which HR may open just to read.
      */
+    /** Only a draft can be deleted: once sent, the approval history must stay. */
+    private function deleteProblem(ManpowerRequest $request): ?string
+    {
+        return $request->isDraft() ? null : __('Only a draft can be deleted. This one has an approval history.');
+    }
+
     private function find(int $id): ManpowerRequest
     {
         Gate::authorize('hrm.recruitment.request');

@@ -6,6 +6,7 @@ use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Payroll\Enums\PunchSource;
 use App\Modules\Payroll\Models\PunchLog;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -52,6 +53,13 @@ class PunchTable extends Component
     /** @var array<string, string> */
     protected $listeners = ['punches-saved' => '$refresh'];
 
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        Flux::modal('punch-filters')->close();
+    }
+
     public function sort(string $field): void
     {
         if (! in_array($field, self::SORTABLE, true)) {
@@ -67,6 +75,7 @@ class PunchTable extends Component
     {
         $this->reset('search', 'source', 'matched');
         $this->resetPage();
+        Flux::modal('punch-filters')->close();
     }
 
     public function export(): BinaryFileResponse

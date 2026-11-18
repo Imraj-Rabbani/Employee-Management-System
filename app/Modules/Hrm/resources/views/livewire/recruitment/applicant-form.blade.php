@@ -38,8 +38,7 @@
 
                 <flux:field>
                     <flux:label>{{ __('Phone') }}</flux:label>
-                    <flux:description>{{ __('e.g. 01711-000000') }}</flux:description>
-                    <flux:input wire:model.blur="form.phone" />
+                    <flux:input :placeholder="__('e.g. 01711-000000')" wire:model.blur="form.phone" />
                     <flux:error name="form.phone" />
                 </flux:field>
             </div>

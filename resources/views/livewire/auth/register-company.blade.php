@@ -21,8 +21,8 @@
 
         <flux:field>
             <flux:label>{{ __('Your employee ID') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-            <flux:description>{{ __('e.g. EMP-001. You will be the first employee.') }}</flux:description>
-            <flux:input aria-required="true" wire:model="employeeCode" />
+            <flux:input :placeholder="__('e.g. EMP-001')" aria-required="true" wire:model="employeeCode" />
+            <flux:description>{{ __('You will be the first employee.') }}</flux:description>
             <flux:error name="employeeCode" />
         </flux:field>
 

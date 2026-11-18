@@ -6,6 +6,7 @@ use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Payroll\Enums\AttendanceStatus;
 use App\Modules\Payroll\Models\AttendanceDay;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -53,6 +54,13 @@ class AttendanceDayTable extends Component
     /** @var array<string, string> */
     protected $listeners = ['attendance-days-saved' => '$refresh'];
 
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        Flux::modal('attendance-day-filters')->close();
+    }
+
     public function sort(string $field): void
     {
         if (! in_array($field, self::SORTABLE, true)) {
@@ -68,6 +76,7 @@ class AttendanceDayTable extends Component
     {
         $this->reset('month', 'status', 'entity');
         $this->resetPage();
+        Flux::modal('attendance-day-filters')->close();
     }
 
     public function export(): BinaryFileResponse

@@ -88,8 +88,7 @@
 
                 <flux:field>
                     <flux:label>{{ __('Reason') }}</flux:label>
-                    <flux:description>{{ __('e.g. Transfer, Restructuring') }}</flux:description>
-                    <flux:input wire:model="form.reason" />
+                    <flux:input :placeholder="__('e.g. Transfer, Restructuring')" wire:model="form.reason" />
                     <flux:error name="form.reason" />
                 </flux:field>
             </form>

@@ -7,7 +7,6 @@
 
         <div class="flex flex-wrap items-center justify-between gap-4">
             <flux:subheading>{{ __('People who applied. One record per person, however many postings they apply to.') }}</flux:subheading>
-            <flux:button variant="primary" icon="plus" x-on:click="$dispatch('create-applicant')">{{ __('New applicant') }}</flux:button>
         </div>
 
         <livewire:hrm::recruitment.applicant-table />

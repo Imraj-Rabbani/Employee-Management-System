@@ -3,6 +3,7 @@
 namespace App\Modules\Core\Livewire;
 
 use App\Core\Livewire\LookupForm;
+use App\Core\Models\TenantModel;
 use App\Modules\Core\Models\Currency;
 use Illuminate\Validation\Rule;
 
@@ -44,6 +45,12 @@ class CurrencyForm extends LookupForm
     }
 
     /** Codes are stored in capitals; the default currency always has rate 1. */
+    /** The default currency stays: every amount is converted against it. */
+    protected function deleteProblem(TenantModel $record): ?string
+    {
+        return $record->getAttribute('code') === Currency::defaultCode() ? __('The default currency cannot be deleted.') : null;
+    }
+
     protected function check(array $values): bool
     {
         $this->form['code'] = strtoupper((string) $values['code']);

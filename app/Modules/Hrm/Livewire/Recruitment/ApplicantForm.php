@@ -187,8 +187,8 @@ class ApplicantForm extends Component
     public function delete(TenantUploads $uploads): void
     {
         $applicant = Applicant::findOrFail((int) $this->recordId);
-        if ($applicant->applications()->exists()) {
-            $this->addError('form.first_name', __('This person has applications, so the record stays (hiring history).'));
+        if ($problem = $this->deleteProblem($applicant)) {
+            $this->addError('form.first_name', $problem);
 
             return;
         }
@@ -199,6 +199,41 @@ class ApplicantForm extends Component
 
         session()->flash('toast', ['message' => __(':name deleted.', ['name' => $applicant->name]), 'variant' => 'success']);
         $this->redirectRoute('hrm.recruitment.applicants', navigate: true);
+    }
+
+    /**
+     * Delete from the list's toolbar: every ticked applicant without applications (and their CV file).
+     *
+     * @param  list<int|string>  $ids
+     */
+    #[On('delete-applicant')]
+    public function deleteMany(array $ids, TenantUploads $uploads): void
+    {
+        $deleted = 0;
+        $problems = [];
+        foreach (Applicant::whereKey($ids)->get() as $applicant) {
+            if ($problem = $this->deleteProblem($applicant)) {
+                $problems[] = $applicant->name.': '.$problem;
+
+                continue;
+            }
+            $cv = $applicant->cv_path;
+            $applicant->getConnection()->transaction(fn () => $applicant->delete());
+            $uploads->delete($cv);
+            $deleted++;
+        }
+
+        $this->dispatch('applicant-saved');
+        $this->dispatch('toast',
+            message: implode(' ', array_filter([$deleted > 0 ? trans_choice(':count deleted.|:count deleted.', $deleted) : null, ...$problems])),
+            variant: $problems === [] ? 'success' : ($deleted > 0 ? 'warning' : 'error'),
+        );
+    }
+
+    /** Someone with applications stays: the hiring history needs them. */
+    private function deleteProblem(Applicant $applicant): ?string
+    {
+        return $applicant->applications()->exists() ? __('This person has applications, so the record stays (hiring history).') : null;
     }
 
     public function removeCv(TenantUploads $uploads): void

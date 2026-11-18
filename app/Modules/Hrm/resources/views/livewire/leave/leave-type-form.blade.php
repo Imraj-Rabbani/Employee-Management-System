@@ -5,15 +5,13 @@
             <div class="grid gap-4 sm:grid-cols-[1fr_2fr_1fr]">
                 <flux:field>
                     <flux:label>{{ __('Code') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                    <flux:description>{{ __('e.g. CL, SL, EL') }}</flux:description>
-                    <flux:input aria-required="true" wire:model="form.code" />
+                    <flux:input :placeholder="__('e.g. CL, SL, EL')" aria-required="true" wire:model="form.code" />
                     <flux:error name="form.code" />
                 </flux:field>
 
                 <flux:field>
                     <flux:label>{{ __('Name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                    <flux:description>{{ __('e.g. Casual leave') }}</flux:description>
-                    <flux:input aria-required="true" wire:model="form.name" />
+                    <flux:input :placeholder="__('e.g. Casual leave')" aria-required="true" wire:model="form.name" />
                     <flux:error name="form.name" />
                 </flux:field>
 
@@ -73,8 +71,8 @@
 
                 <flux:field>
                     <flux:label>{{ __('Times in whole service') }}</flux:label>
-                    <flux:description>{{ __('e.g. 2 for maternity leave. Empty = no limit.') }}</flux:description>
-                    <flux:input type="number" wire:model="form.max_times_in_service" />
+                    <flux:input :placeholder="__('e.g. 2 for maternity leave')" type="number" wire:model="form.max_times_in_service" />
+                    <flux:description>{{ __('Empty = no limit.') }}</flux:description>
                     <flux:error name="form.max_times_in_service" />
                 </flux:field>
             </div>
@@ -128,7 +126,7 @@
                     <flux:error name="form.bridging" />
                 </flux:field>
             </div>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid gap-4 sm:grid-cols-2 items-start">
                 <flux:switch wire:model="form.allow_half_day" :label="__('Half day allowed')" />
 
                 <flux:switch wire:model="form.exclude_holidays" :label="__('Do not count weekends and holidays')" :description="__('Only working days inside the leave are taken.')" />
@@ -161,8 +159,7 @@
                 <div x-show="$wire.form.earn_type == {{ $perDaysWorked }}" x-cloak>
                     <flux:field>
                         <flux:label>{{ __('Days worked per earned day') }}</flux:label>
-                        <flux:description>{{ __('e.g. 18') }}</flux:description>
-                        <flux:input type="number" step="0.01" wire:model="form.earn_per_days_worked" />
+                        <flux:input :placeholder="__('e.g. 18')" type="number" step="0.01" wire:model="form.earn_per_days_worked" />
                         <flux:error name="form.earn_per_days_worked" />
                     </flux:field>
                 </div>
@@ -173,7 +170,7 @@
                     <flux:error name="form.max_balance" />
                 </flux:field>
             </div>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid gap-4 sm:grid-cols-2 items-start">
                 <flux:switch wire:model="form.requires_balance" :label="__('Needs a balance')" :description="__('Cannot be taken beyond the days left.')" />
 
                 <flux:switch wire:model="form.is_lwp" :label="__('Without pay')" :description="__('Payroll deducts these days (LWP).')" />

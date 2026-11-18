@@ -125,8 +125,8 @@ class RosterForm extends Component
     public function delete(): void
     {
         $roster = $this->find((int) $this->recordId);
-        if (! $roster->isDraft()) {
-            $this->addError('form.title', __('Only a draft can be deleted. This one has an approval history.'));
+        if ($problem = $this->deleteProblem($roster)) {
+            $this->addError('form.title', $problem);
 
             return;
         }
@@ -138,7 +138,41 @@ class RosterForm extends Component
         $this->redirectRoute('payroll.attendance.rosters', navigate: true);
     }
 
+    /**
+     * Delete from the list's toolbar: every ticked one that may go (drafts); one toast says what happened.
+     *
+     * @param  list<int|string>  $ids
+     */
+    #[On('delete-roster')]
+    public function deleteMany(array $ids): void
+    {
+        Gate::authorize('payroll.roster.manage');
+        $deleted = 0;
+        $problems = [];
+        foreach (Roster::query()->visibleTo(Auth::user())->whereKey($ids)->get() as $roster) {
+            if ($problem = $this->deleteProblem($roster)) {
+                $problems[] = $roster->number().': '.$problem;
+
+                continue;
+            }
+            $roster->getConnection()->transaction(fn () => $roster->delete());
+            $deleted++;
+        }
+
+        $this->dispatch('roster-saved');
+        $this->dispatch('toast',
+            message: implode(' ', array_filter([$deleted > 0 ? trans_choice(':count deleted.|:count deleted.', $deleted) : null, ...$problems])),
+            variant: $problems === [] ? 'success' : ($deleted > 0 ? 'warning' : 'error'),
+        );
+    }
+
     /** Only rosters the user may see: another entity's roster id in the event gives 404. */
+    /** Only a draft can be deleted (its cells go with it); once sent, the approval history must stay. */
+    private function deleteProblem(Roster $roster): ?string
+    {
+        return $roster->isDraft() ? null : __('Only a draft can be deleted. This one has an approval history.');
+    }
+
     private function find(int $id): Roster
     {
         Gate::authorize('payroll.roster.manage');

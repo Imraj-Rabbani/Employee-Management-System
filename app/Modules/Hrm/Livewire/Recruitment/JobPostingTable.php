@@ -5,6 +5,7 @@ namespace App\Modules\Hrm\Livewire\Recruitment;
 use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Enums\JobPostingStatus;
 use App\Modules\Hrm\Models\JobPosting;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -44,7 +45,23 @@ class JobPostingTable extends Component
     private const SORTABLE = ['id', 'title', 'openings', 'open_date', 'close_date', 'status'];
 
     /** @var array<string, string> refresh the list when the form saved something */
-    protected $listeners = ['job-posting-saved' => '$refresh'];
+    protected $listeners = ['job-posting-saved' => 'clearSelection'];
+
+    /** @var list<string> ids of the ticked rows (the checkboxes). Edit needs one; Delete / Request approval any number. */
+    public array $selected = [];
+
+    public function clearSelection(): void
+    {
+        $this->selected = [];
+    }
+
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+        Flux::modal('job-posting-filters')->close();
+    }
 
     public function sort(string $field): void
     {
@@ -61,6 +78,8 @@ class JobPostingTable extends Component
     {
         $this->reset('search', 'status');
         $this->resetPage();
+        $this->selected = [];
+        Flux::modal('job-posting-filters')->close();
     }
 
     public function export(): BinaryFileResponse

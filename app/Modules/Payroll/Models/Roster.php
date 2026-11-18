@@ -86,6 +86,16 @@ class Roster extends TenantModel implements Approvable, ShowsApprovalDetails
         return in_array($this->approvalStatus(), [null, ApprovalStatus::Review], true);
     }
 
+    /** Why this roster cannot be sent for approval now, or null: a draft (or sent back) with at least one saved cell. */
+    public function approvalSendProblem(): ?string
+    {
+        return match (true) {
+            ! $this->isEditable() => __('This roster is already waiting for approval or answered.'),
+            ! $this->items()->exists() => __('Plan at least one cell and save, then send the roster.'),
+            default => null,
+        };
+    }
+
     /** Can be deleted: only a draft. Once sent, the approval history must stay. */
     public function isDraft(): bool
     {

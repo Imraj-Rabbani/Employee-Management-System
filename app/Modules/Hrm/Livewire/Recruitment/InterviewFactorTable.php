@@ -4,6 +4,7 @@ namespace App\Modules\Hrm\Livewire\Recruitment;
 
 use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Models\InterviewFactor;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Url;
@@ -33,7 +34,23 @@ class InterviewFactorTable extends Component
     private const SORTABLE = ['sequence', 'name', 'weight', 'is_required', 'is_active'];
 
     /** @var array<string, string> refresh the list when its form saved something */
-    protected $listeners = ['interview-factor-saved' => '$refresh'];
+    protected $listeners = ['interview-factor-saved' => 'clearSelection'];
+
+    /** @var list<string> ids of the ticked rows (the checkboxes). Edit needs one; Delete / Request approval any number. */
+    public array $selected = [];
+
+    public function clearSelection(): void
+    {
+        $this->selected = [];
+    }
+
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+        Flux::modal('interview-factor-filters')->close();
+    }
 
     public function sort(string $field): void
     {
@@ -50,6 +67,8 @@ class InterviewFactorTable extends Component
     {
         $this->reset('search');
         $this->resetPage();
+        $this->selected = [];
+        Flux::modal('interview-factor-filters')->close();
     }
 
     public function export(): BinaryFileResponse

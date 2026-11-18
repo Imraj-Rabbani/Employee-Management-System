@@ -154,6 +154,12 @@ class ManpowerRequest extends TenantModel implements Approvable, ShowsApprovalDe
         return in_array($this->approvalStatus(), [null, ApprovalStatus::Review], true);
     }
 
+    /** Why this request cannot be sent for approval now, or null (a draft or one sent back can). */
+    public function approvalSendProblem(): ?string
+    {
+        return $this->isEditable() ? null : __('This request is already waiting for approval or answered.');
+    }
+
     /** Can be deleted: only a draft. Once sent, the approval history must stay. */
     public function isDraft(): bool
     {

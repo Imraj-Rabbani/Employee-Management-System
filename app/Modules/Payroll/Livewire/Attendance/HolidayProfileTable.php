@@ -5,6 +5,7 @@ namespace App\Modules\Payroll\Livewire\Attendance;
 use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use App\Modules\Payroll\Models\HolidayProfile;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Url;
@@ -34,7 +35,23 @@ class HolidayProfileTable extends Component
     private const SORTABLE = ['name', 'holidays_count', 'employees_count', 'is_active'];
 
     /** @var array<string, string> also refreshed when a holiday was saved: the holiday counts change */
-    protected $listeners = ['holiday-profile-saved' => '$refresh', 'holiday-saved' => '$refresh'];
+    protected $listeners = ['holiday-profile-saved' => 'clearSelection', 'holiday-saved' => 'clearSelection'];
+
+    /** @var list<string> ids of the ticked rows (the checkboxes). Edit needs one; Delete / Request approval any number. */
+    public array $selected = [];
+
+    public function clearSelection(): void
+    {
+        $this->selected = [];
+    }
+
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+        Flux::modal('holiday-profile-filters')->close();
+    }
 
     public function sort(string $field): void
     {
@@ -51,6 +68,8 @@ class HolidayProfileTable extends Component
     {
         $this->reset('search');
         $this->resetPage();
+        $this->selected = [];
+        Flux::modal('holiday-profile-filters')->close();
     }
 
     public function export(): BinaryFileResponse

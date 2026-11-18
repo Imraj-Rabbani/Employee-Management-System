@@ -15,8 +15,7 @@
 
                 <flux:field>
                     <flux:label>{{ __('Name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                    <flux:description>{{ __('e.g. Leave, head office') }}</flux:description>
-                    <flux:input aria-required="true" wire:model="name" />
+                    <flux:input :placeholder="__('e.g. Leave, head office')" aria-required="true" wire:model="name" />
                     <flux:error name="name" />
                 </flux:field>
             </div>

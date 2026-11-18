@@ -5,6 +5,7 @@ namespace App\Modules\Hrm\Livewire\Organization;
 use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\EntityType;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Url;
@@ -38,7 +39,23 @@ class EntityTable extends Component
     private const SORTABLE = ['name', 'code', 'current_assignments_count', 'is_active'];
 
     /** @var array<string, string> refresh the list when its form saved something */
-    protected $listeners = ['entity-saved' => '$refresh'];
+    protected $listeners = ['entity-saved' => 'clearSelection'];
+
+    /** @var list<string> ids of the ticked rows (the checkboxes). Edit needs one; Delete / Request approval any number. */
+    public array $selected = [];
+
+    public function clearSelection(): void
+    {
+        $this->selected = [];
+    }
+
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+        Flux::modal('entity-filters')->close();
+    }
 
     public function sort(string $field): void
     {
@@ -55,6 +72,8 @@ class EntityTable extends Component
     {
         $this->reset('search', 'entityTypeId');
         $this->resetPage();
+        $this->selected = [];
+        Flux::modal('entity-filters')->close();
     }
 
     public function export(): BinaryFileResponse

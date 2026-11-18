@@ -7,6 +7,7 @@ use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\LeaveApplication;
 use App\Modules\Hrm\Models\LeaveType;
 use App\Modules\Workflow\Enums\ApprovalStatus;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -54,7 +55,23 @@ class LeaveApplicationTable extends Component
     private const SORTABLE = ['id', 'from_date', 'days', 'created_at'];
 
     /** @var array<string, string> */
-    protected $listeners = ['leave-saved' => '$refresh'];
+    protected $listeners = ['leave-saved' => 'clearSelection'];
+
+    /** @var list<string> ids of the ticked rows (the checkboxes). Edit needs one; Delete / Request approval any number. */
+    public array $selected = [];
+
+    public function clearSelection(): void
+    {
+        $this->selected = [];
+    }
+
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+        Flux::modal('leave-filters')->close();
+    }
 
     public function sort(string $field): void
     {
@@ -71,6 +88,8 @@ class LeaveApplicationTable extends Component
     {
         $this->reset('search', 'month', 'type', 'status');
         $this->resetPage();
+        $this->selected = [];
+        Flux::modal('leave-filters')->close();
     }
 
     public function export(): BinaryFileResponse

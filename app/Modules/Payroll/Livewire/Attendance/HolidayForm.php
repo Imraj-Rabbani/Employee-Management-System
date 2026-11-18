@@ -90,13 +90,19 @@ class HolidayForm extends LookupForm
     }
 
     /** Deleting a holiday: those days become normal days again. */
-    public function delete(): void
+    /** Reads the holiday's calendars BEFORE the delete (the pivot rows go with it), for deleted() below. */
+    protected function deleteRecord(TenantModel $record): ?string
     {
-        $holiday = Holiday::query()->with('profiles:id')->findOrFail($this->recordId);
-        parent::delete();
+        $record->loadMissing('profiles:id');
 
-        if (! Holiday::query()->whereKey($holiday->id)->exists()) {
-            $this->reprocess($holiday, null, $holiday->profiles->pluck('id')->all());
+        return parent::deleteRecord($record);
+    }
+
+    /** A deleted holiday: the days it covered are processed again (they may be workdays now). */
+    protected function deleted(TenantModel $record): void
+    {
+        if ($record instanceof Holiday) {
+            $this->reprocess($record, null, $record->profiles->pluck('id')->all());
         }
     }
 

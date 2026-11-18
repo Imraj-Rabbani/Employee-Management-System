@@ -143,8 +143,8 @@ class JobPostingForm extends Component
     public function delete(): void
     {
         $posting = $this->find((int) $this->recordId);
-        if ($posting->status !== JobPostingStatus::Draft) {
-            $this->addError('form.title', __('Only a draft can be deleted. Close the posting instead.'));
+        if ($problem = $this->deleteProblem($posting)) {
+            $this->addError('form.title', $problem);
 
             return;
         }
@@ -156,7 +156,40 @@ class JobPostingForm extends Component
         $this->redirectRoute('hrm.recruitment.postings', navigate: true);
     }
 
+    /**
+     * Delete from the list's toolbar: every ticked one that may go (drafts); one toast says what happened.
+     *
+     * @param  list<int|string>  $ids
+     */
+    #[On('delete-job-posting')]
+    public function deleteMany(array $ids): void
+    {
+        $deleted = 0;
+        $problems = [];
+        foreach (JobPosting::query()->visibleTo(Auth::user())->whereKey($ids)->get() as $posting) {
+            if ($problem = $this->deleteProblem($posting)) {
+                $problems[] = $posting->number().': '.$problem;
+
+                continue;
+            }
+            $posting->getConnection()->transaction(fn () => $posting->delete());
+            $deleted++;
+        }
+
+        $this->dispatch('job-posting-saved');
+        $this->dispatch('toast',
+            message: implode(' ', array_filter([$deleted > 0 ? trans_choice(':count deleted.|:count deleted.', $deleted) : null, ...$problems])),
+            variant: $problems === [] ? 'success' : ($deleted > 0 ? 'warning' : 'error'),
+        );
+    }
+
     /** Only postings the user may see: someone else's id gives 404. */
+    /** Only a draft can be deleted; an advertised posting is closed instead. */
+    private function deleteProblem(JobPosting $posting): ?string
+    {
+        return $posting->status === JobPostingStatus::Draft ? null : __('Only a draft can be deleted. Close the posting instead.');
+    }
+
     private function find(int $id): JobPosting
     {
         return JobPosting::query()->visibleTo(Auth::user())->with('manpowerRequest')->findOrFail($id);

@@ -5,6 +5,7 @@ namespace App\Modules\Payroll\Livewire;
 use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use App\Modules\Payroll\Models\PayScaleProfile;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Url;
@@ -34,7 +35,23 @@ class PayScaleProfileTable extends Component
     private const SORTABLE = ['code', 'name', 'employees_count', 'is_active'];
 
     /** @var array<string, string> */
-    protected $listeners = ['pay-scale-profile-saved' => '$refresh'];
+    protected $listeners = ['pay-scale-profile-saved' => 'clearSelection'];
+
+    /** @var list<string> ids of the ticked rows (the checkboxes). Edit needs one; Delete / Request approval any number. */
+    public array $selected = [];
+
+    public function clearSelection(): void
+    {
+        $this->selected = [];
+    }
+
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+        Flux::modal('pay-scale-profile-filters')->close();
+    }
 
     public function sort(string $field): void
     {
@@ -51,6 +68,8 @@ class PayScaleProfileTable extends Component
     {
         $this->reset('search');
         $this->resetPage();
+        $this->selected = [];
+        Flux::modal('pay-scale-profile-filters')->close();
     }
 
     public function export(): BinaryFileResponse

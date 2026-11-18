@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Core\Exports\ArrayExport;
 use App\Models\Tenant;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
@@ -60,10 +61,23 @@ class TenantsTable extends Component
         $this->sortBy = $field;
     }
 
+    /** @var list<string> ids of the ticked rows (the checkboxes). Edit needs exactly one. */
+    public array $selected = [];
+
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+        Flux::modal('tenants-filters')->close();
+    }
+
     public function clearFilters(): void
     {
         $this->reset('search', 'status');
         $this->resetPage();
+        $this->selected = [];
+        Flux::modal('tenants-filters')->close();
     }
 
     public function export(): BinaryFileResponse
@@ -89,6 +103,7 @@ class TenantsTable extends Component
     public function refreshList(): void
     {
         $this->resetPage();
+        $this->selected = [];
     }
 
     public function updated(string $property): void

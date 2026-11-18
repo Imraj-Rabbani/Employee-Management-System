@@ -1,26 +1,54 @@
 {{-- InterviewFactorTable list. PHP side: App\Modules\Hrm\Livewire\Recruitment\InterviewFactorTable --}}
 <div class="glass overflow-hidden rounded-2xl">
 
-    {{-- Toolbar --}}
-    <div class="flex flex-wrap items-center gap-3 border-b border-white/50 p-4 dark:border-white/10">
-        <div class="w-full sm:w-72">
-            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search…')" clearable />
-        </div>
-
-        @if ($search !== '')
-            <flux:button wire:click="clearFilters" variant="ghost" size="sm" icon="x-mark">{{ __('Clear') }}</flux:button>
-        @endif
+    {{-- Toolbar: actions on the left, Filter on the right.
+         The buttons work on the ticked rows: $wire.selected = their ids (Alpine reads it, no round trip). --}}
+    @php $activeFilters = count(array_filter([$search !== ''])); @endphp
+    <div class="flex flex-wrap items-center gap-2 border-b border-white/50 p-4 dark:border-white/10">
+        <flux:button variant="primary" size="sm" icon="plus" x-on:click="$dispatch('create-interview-factor')">{{ __('Add new') }}</flux:button>
+        {{-- Edit: exactly one row ticked. --}}
+        <flux:button size="sm" icon="pencil-square" x-bind:disabled="$wire.selected.length !== 1" x-on:click="$dispatch('edit-interview-factor', { id: Number($wire.selected[0]) })">{{ __('Edit') }}</flux:button>
+        {{-- Delete: one or more rows. The form (delete-interview-factor) deletes those that may go and says which stayed. --}}
+        <flux:button size="sm" icon="trash" x-bind:disabled="$wire.selected.length === 0" x-on:click="$dispatch('confirm', {
+            title: {{ Js::from(__('Delete the ticked rows?')) }},
+            message: {{ Js::from(__('Rows that are still in use stay.')) }},
+            confirmText: {{ Js::from(__('Delete')) }},
+            onConfirm: () => $wire.dispatch('delete-interview-factor', { ids: $wire.selected }),
+        })">{{ __('Delete') }}</flux:button>
+        <flux:button wire:click="export" size="sm" icon="arrow-down-tray">{{ __('Export') }}</flux:button>
+        <span x-show="$wire.selected.length > 0" x-cloak class="text-xs text-zinc-500 dark:text-zinc-400" x-text="$wire.selected.length + ' ' + {{ Js::from(__('selected')) }}"></span>
 
         <flux:spacer />
 
-        <flux:button wire:click="export" size="sm" icon="arrow-down-tray">{{ __('Export') }}</flux:button>
+        <flux:modal.trigger name="interview-factor-filters">
+            <flux:button size="sm" icon="funnel">{{ __('Filter') }}{{ $activeFilters > 0 ? " ($activeFilters)" : '' }}</flux:button>
+        </flux:modal.trigger>
     </div>
+
+    {{-- The Filter form. wire:model (not .live): the list only changes when Apply is clicked. --}}
+    <x-ui.modal name="interview-factor-filters" :heading="__('Filter')">
+        <flux:field>
+            <flux:label>{{ __('Search') }}</flux:label>
+            <flux:input wire:model="search" icon="magnifying-glass" :placeholder="__('Search…')" />
+        </flux:field>
+
+        <x-slot:footer>
+            <flux:button wire:click="clearFilters" variant="ghost">{{ __('Clear') }}</flux:button>
+            <flux:button wire:click="applyFilters" variant="primary">{{ __('Apply') }}</flux:button>
+        </x-slot:footer>
+    </x-ui.modal>
 
     {{-- The table --}}
     <div class="overflow-x-auto" wire:loading.class="opacity-60">
         <table class="min-w-full text-sm">
             <thead>
                 <tr class="border-b border-white/50 text-left text-zinc-600 dark:border-white/10 dark:text-zinc-300">
+                    {{-- Tick all rows of this page (adds to / removes from $wire.selected). --}}
+                    <th class="w-10 px-4 py-3" x-data="{ ids: {{ Js::from($rows->map(fn ($row) => (string) $row->getKey())->values()) }} }">
+                        <input type="checkbox" class="size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 dark:border-white/20 dark:bg-white/10" aria-label="{{ __('Tick all on this page') }}"
+                            x-bind:checked="ids.length > 0 && ids.every(id => $wire.selected.includes(id))"
+                            x-on:change="$wire.selected = $event.target.checked ? [...new Set([...$wire.selected, ...ids])] : $wire.selected.filter(id => ! ids.includes(id))">
+                    </th>
                     <th class="px-4 py-3 font-medium whitespace-nowrap">
                         <button type="button" wire:click="sort('sequence')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
                             {{ __('Order') }}
@@ -82,7 +110,10 @@
 
             <tbody>
                 @foreach ($rows as $interviewFactor)
-                    <tr wire:key="interview-factor-{{ $interviewFactor->getKey() }}" class="border-b border-white/40 text-zinc-800 last:border-0 hover:bg-white/40 dark:border-white/5 dark:text-zinc-100 dark:hover:bg-white/5">
+                    <tr wire:key="interview-factor-{{ $interviewFactor->getKey() }}" x-bind:class="$wire.selected.includes('{{ $interviewFactor->getKey() }}') && '!bg-brand-50/70 dark:!bg-white/10'" class="border-b border-white/40 text-zinc-800 last:border-0 hover:bg-white/40 dark:border-white/5 dark:text-zinc-100 dark:hover:bg-white/5">
+                        <td class="px-4 py-3">
+                            <input type="checkbox" wire:model="selected" value="{{ $interviewFactor->getKey() }}" class="size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 dark:border-white/20 dark:bg-white/10" aria-label="{{ __('Tick this row') }}">
+                        </td>
                         <td class="px-4 py-3">{{ $interviewFactor->sequence }}</td>
                         {{-- Opens the edit form (it listens for "edit-interview-factor"). --}}
                         <td class="px-4 py-3">

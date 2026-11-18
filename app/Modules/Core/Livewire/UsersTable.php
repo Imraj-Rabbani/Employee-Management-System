@@ -5,6 +5,7 @@ namespace App\Modules\Core\Livewire;
 use App\Core\Exports\ArrayExport;
 use App\Models\User;
 use App\Modules\Core\Models\UserRole;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -44,9 +45,6 @@ class UsersTable extends Component
     /** @var list<string> ids of the ticked rows */
     public array $selected = [];
 
-    /** The tick box in the table header: ticks every row on this page. */
-    public bool $selectPage = false;
-
     /** Columns the user may sort by. Anything else sent from the browser is ignored. */
     private const SORTABLE = ['name', 'email', 'created_at'];
 
@@ -68,12 +66,20 @@ class UsersTable extends Component
         $this->reset('search', 'status');
         $this->resetPage();
         $this->clearSelection();
+        Flux::modal('users-filters')->close();
     }
 
     public function clearSelection(): void
     {
         $this->selected = [];
-        $this->selectPage = false;
+    }
+
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        $this->clearSelection();
+        Flux::modal('users-filters')->close();
     }
 
     public function export(): BinaryFileResponse
@@ -117,7 +123,10 @@ class UsersTable extends Component
 
     /** The role form saved: re-render so the new role name shows. */
     #[On('user-role-saved')]
-    public function refreshList(): void {}
+    public function refreshList(): void
+    {
+        $this->clearSelection();
+    }
 
     // ----------------------------------------------------------------- Livewire hooks
 
@@ -128,13 +137,6 @@ class UsersTable extends Component
             $this->resetPage();
             $this->clearSelection();
         }
-    }
-
-    public function updatedSelectPage(bool $value): void
-    {
-        $this->selected = $value
-            ? $this->rows()->getCollection()->map(fn (User $user) => (string) $user->id)->all()
-            : [];
     }
 
     // ----------------------------------------------------------------- the rows

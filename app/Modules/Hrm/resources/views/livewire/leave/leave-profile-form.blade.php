@@ -4,8 +4,7 @@
         <form wire:submit="save" id="{{ $modal }}" class="space-y-6">
             <flux:field>
                 <flux:label>{{ __('Name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                <flux:description>{{ __('e.g. Staff, Workers, Probation') }}</flux:description>
-                <flux:input aria-required="true" wire:model="form.name" />
+                <flux:input :placeholder="__('e.g. Staff, Workers, Probation')" aria-required="true" wire:model="form.name" />
                 <flux:error name="form.name" />
             </flux:field>
 

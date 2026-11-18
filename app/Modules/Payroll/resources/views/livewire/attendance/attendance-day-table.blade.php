@@ -2,43 +2,56 @@
 @use('App\Modules\Payroll\Models\AttendanceDay')
 <div class="glass overflow-hidden rounded-2xl">
 
-    {{-- Toolbar --}}
-    <div class="flex flex-wrap items-center gap-3 border-b border-white/50 p-4 dark:border-white/10">
-        <div class="w-full sm:w-44">
-            <flux:select wire:model.live="month" :aria-label="__('Month')">
-                <flux:select.option value="">{{ __('All') }}: {{ __('Month') }}</flux:select.option>
+    {{-- Toolbar: actions on the left, Filter on the right. --}}
+    @php $activeFilters = count(array_filter([$month !== '', $status !== '', $entity !== ''])); @endphp
+    <div class="flex flex-wrap items-center gap-2 border-b border-white/50 p-4 dark:border-white/10">
+        <flux:button wire:click="export" size="sm" icon="arrow-down-tray">{{ __('Export') }}</flux:button>
+
+        <flux:spacer />
+
+        <flux:modal.trigger name="attendance-day-filters">
+            <flux:button size="sm" icon="funnel">{{ __('Filter') }}{{ $activeFilters > 0 ? " ($activeFilters)" : '' }}</flux:button>
+        </flux:modal.trigger>
+    </div>
+
+    {{-- The Filter form. wire:model (not .live): the list only changes when Apply is clicked. --}}
+    <x-ui.modal name="attendance-day-filters" :heading="__('Filter')">
+
+        <flux:field>
+            <flux:label>{{ __('Month') }}</flux:label>
+            <flux:select wire:model="month">
+                <flux:select.option value="">{{ __('All') }}</flux:select.option>
                 @foreach ($monthOptions as $value => $label)
                     <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
                 @endforeach
             </flux:select>
-        </div>
+        </flux:field>
 
-        <div class="w-full sm:w-44">
-            <flux:select wire:model.live="status" :aria-label="__('Status')">
-                <flux:select.option value="">{{ __('All') }}: {{ __('Status') }}</flux:select.option>
+        <flux:field>
+            <flux:label>{{ __('Status') }}</flux:label>
+            <flux:select wire:model="status">
+                <flux:select.option value="">{{ __('All') }}</flux:select.option>
                 @foreach ($statusOptions as $value => $label)
                     <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
                 @endforeach
             </flux:select>
-        </div>
+        </flux:field>
 
-        <div class="w-full sm:w-44">
-            <flux:select wire:model.live="entity" :aria-label="__('Entity')">
-                <flux:select.option value="">{{ __('All') }}: {{ __('Entity') }}</flux:select.option>
+        <flux:field>
+            <flux:label>{{ __('Entity') }}</flux:label>
+            <flux:select wire:model="entity">
+                <flux:select.option value="">{{ __('All') }}</flux:select.option>
                 @foreach ($entityOptions as $value => $label)
                     <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
                 @endforeach
             </flux:select>
-        </div>
+        </flux:field>
 
-        @if ($month !== '' || $status !== '' || $entity !== '')
-            <flux:button wire:click="clearFilters" variant="ghost" size="sm" icon="x-mark">{{ __('Clear') }}</flux:button>
-        @endif
-
-        <flux:spacer />
-
-        <flux:button wire:click="export" size="sm" icon="arrow-down-tray">{{ __('Export') }}</flux:button>
-    </div>
+        <x-slot:footer>
+            <flux:button wire:click="clearFilters" variant="ghost">{{ __('Clear') }}</flux:button>
+            <flux:button wire:click="applyFilters" variant="primary">{{ __('Apply') }}</flux:button>
+        </x-slot:footer>
+    </x-ui.modal>
 
     {{-- The table --}}
     <div class="overflow-x-auto" wire:loading.class="opacity-60">

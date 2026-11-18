@@ -7,9 +7,6 @@
 
         <div class="flex flex-wrap items-center justify-between gap-4">
             <flux:subheading>{{ __('Ask for people. Once a request is approved, HR can advertise it.') }}</flux:subheading>
-            <div class="flex gap-2">
-                <flux:button variant="primary" icon="plus" x-on:click="$dispatch('create-manpower-request')">{{ __('New request') }}</flux:button>
-            </div>
         </div>
 
         <livewire:hrm::recruitment.manpower-request-table />

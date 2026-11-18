@@ -4,10 +4,10 @@
 --}}
 @php
     $sections = [
-        'factors' => [__('Interview factors'), 'interview-factor-table', 'interview-factor-form', 'create-interview-factor', __('New factor'), __('What interviewers score, e.g. Communication. Weights of the active factors should add up to 100%.')],
-        'reasons' => [__('Rejection reasons'), 'rejection-reason-table', 'rejection-reason-form', 'create-rejection-reason', __('New reason'), __('Picked when an application is rejected or withdrawn.')],
+        'factors' => [__('Interview factors'), 'interview-factor-table', 'interview-factor-form', __('What interviewers score, e.g. Communication. Weights of the active factors should add up to 100%.')],
+        'reasons' => [__('Rejection reasons'), 'rejection-reason-table', 'rejection-reason-form', __('Picked when an application is rejected or withdrawn.')],
     ];
-    [$label, $table, $form, $createEvent, $createLabel, $intro] = $sections[$section];
+    [$label, $table, $form, $intro] = $sections[$section];
 @endphp
 
 <x-layouts.app :title="__('Recruitment')">
@@ -27,7 +27,6 @@
 
         <div class="flex items-center justify-between gap-4">
             <flux:subheading>{{ $intro }}</flux:subheading>
-            <flux:button variant="primary" icon="plus" x-on:click="$dispatch('{{ $createEvent }}')">{{ $createLabel }}</flux:button>
         </div>
 
         @livewire('hrm::recruitment.'.$table, key($table))

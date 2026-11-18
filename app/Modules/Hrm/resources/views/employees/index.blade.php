@@ -10,7 +10,6 @@
                     @if (App\Modules\Hrm\Livewire\Employees\InviteUser::allowed())
                         <flux:button icon="envelope" x-on:click="$dispatch('invite-user')">{{ __('Invite user') }}</flux:button>
                     @endif
-                    <flux:button variant="primary" icon="plus" x-on:click="$dispatch('create-employee')">{{ __('New employee') }}</flux:button>
                 </div>
             @endcan
         </div>

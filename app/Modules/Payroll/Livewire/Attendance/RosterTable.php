@@ -4,10 +4,13 @@ namespace App\Modules\Payroll\Livewire\Attendance;
 
 use App\Core\Exports\ArrayExport;
 use App\Modules\Payroll\Models\Roster;
+use App\Modules\Workflow\Exceptions\WorkflowException;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -40,7 +43,54 @@ class RosterTable extends Component
     private const SORTABLE = ['id', 'title', 'from_date', 'to_date', 'employees_count'];
 
     /** @var array<string, string> */
-    protected $listeners = ['roster-saved' => '$refresh'];
+    protected $listeners = ['roster-saved' => 'clearSelection'];
+
+    /** @var list<string> ids of the ticked rows (the checkboxes). Edit needs one; Delete / Request approval any number. */
+    public array $selected = [];
+
+    public function clearSelection(): void
+    {
+        $this->selected = [];
+    }
+
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+        Flux::modal('roster-filters')->close();
+    }
+
+    /**
+     * Toolbar → Request approval: sends every ticked roster that may go (a draft or one sent back) into its
+     * workflow, with the same checks as its own page. One toast says what was sent and what was not, and why.
+     */
+    public function requestApproval(): void
+    {
+        Gate::authorize('payroll.roster.manage');
+        $sent = 0;
+        $problems = [];
+        foreach (Roster::query()->visibleTo(Auth::user())->with('approvals')->whereKey($this->selected)->get() as $document) {
+            $problem = $document->approvalSendProblem();
+            if ($problem === null) {
+                try {
+                    $document->submitForApproval(Auth::user());
+                    $sent++;
+
+                    continue;
+                } catch (WorkflowException $e) {
+                    $problem = $e->getMessage();   // no workflow, nobody to approve ...: written for users
+                }
+            }
+            $problems[] = $document->number().': '.$problem;
+        }
+
+        $this->selected = [];
+        $this->dispatch('toast',
+            message: implode(' ', array_filter([$sent > 0 ? trans_choice(':count sent for approval.|:count sent for approval.', $sent) : null, ...$problems])),
+            variant: $problems === [] ? 'success' : ($sent > 0 ? 'warning' : 'error'),
+        );
+    }
 
     public function sort(string $field): void
     {
@@ -57,6 +107,8 @@ class RosterTable extends Component
     {
         $this->reset('search');
         $this->resetPage();
+        $this->selected = [];
+        Flux::modal('roster-filters')->close();
     }
 
     public function export(): BinaryFileResponse

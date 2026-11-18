@@ -95,7 +95,7 @@ class AttendanceCorrectionTest extends TestCase
     {
         AttendanceDay::factory()->for($this->karim)->absent()->create(['date' => '2026-12-03']);
 
-        $this->get(route('payroll.attendance.corrections'))->assertOk()->assertSee('New correction')->assertSee('Limits for employees');
+        $this->get(route('payroll.attendance.corrections'))->assertOk()->assertSee('Add new')->assertSee('Limits for employees');
         $this->ask()->assertHasNoErrors()->assertDispatched('corrections-saved');
 
         $correction = AttendanceCorrection::sole();

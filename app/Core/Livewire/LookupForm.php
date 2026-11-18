@@ -22,7 +22,11 @@ use Livewire\Component;
  *
  * Optional: labels() for nicer error messages, viewData() for dropdown options,
  * check($values) for rules that need the database (add an error and return false),
- * saved($record) for extra saving after the record itself (same transaction).
+ * saved($record) for extra saving after the record itself (same transaction),
+ * deleteProblem($record) for a reason a record may not be deleted, deleted($record) for work after a delete.
+ *
+ * Deleting: from the edit modal (delete(), one record) or from the list's toolbar (deleteMany(), the ticked
+ * rows: the table dispatches "delete-{key}" with { ids: [...] }). Both use deleteRecord(), so the rules are the same.
  *
  * All values live in ONE array property, $form, so this class can fill and save any model.
  */
@@ -69,6 +73,15 @@ abstract class LookupForm extends Component
     /** After the record is saved, in the same transaction: e.g. sync a many-to-many list. */
     protected function saved(TenantModel $record): void {}
 
+    /** Why this record may not be deleted (shown to the user), or null. Foreign keys are checked anyway. */
+    protected function deleteProblem(TenantModel $record): ?string
+    {
+        return null;
+    }
+
+    /** After a record was deleted (outside the transaction): e.g. reprocess attendance. */
+    protected function deleted(TenantModel $record): void {}
+
     /**
      * Livewire asks this which browser events to listen to (a method, because the names depend on key()).
      *
@@ -76,7 +89,7 @@ abstract class LookupForm extends Component
      */
     protected function getListeners(): array
     {
-        return ["create-{$this->key()}" => 'create', "edit-{$this->key()}" => 'edit'];
+        return ["create-{$this->key()}" => 'create', "edit-{$this->key()}" => 'edit', "delete-{$this->key()}" => 'deleteMany'];
     }
 
     /**
@@ -147,9 +160,52 @@ abstract class LookupForm extends Component
         $this->finish(__(':name saved.', ['name' => $this->title($record)]));
     }
 
+    /** Delete from the edit modal: the record being edited. A refusal is shown under the first field. */
     public function delete(): void
     {
         $record = $this->model()::findOrFail($this->recordId);
+
+        if ($problem = $this->deleteRecord($record)) {
+            $this->addError('form.'.array_key_first($this->defaults()), $problem);
+
+            return;
+        }
+
+        $this->finish(__(':name deleted.', ['name' => $this->title($record)]));
+    }
+
+    /**
+     * Delete from the list's toolbar: every ticked row that may go. The others stay, and one toast says
+     * what happened, e.g. "2 deleted. Grade 1: still in use …".
+     *
+     * @param  list<int|string>  $ids
+     */
+    public function deleteMany(array $ids): void
+    {
+        $deleted = 0;
+        $problems = [];
+
+        foreach ($this->model()::query()->whereKey($ids)->get() as $record) {
+            if ($problem = $this->deleteRecord($record)) {
+                $problems[] = $this->title($record).': '.$problem;
+            } else {
+                $deleted++;
+            }
+        }
+
+        $this->dispatch($this->key().'-saved');
+        $this->dispatch('toast',
+            message: implode(' ', array_filter([$deleted > 0 ? trans_choice(':count deleted.|:count deleted.', $deleted) : null, ...$problems])),
+            variant: $problems === [] ? 'success' : ($deleted > 0 ? 'warning' : 'error'),
+        );
+    }
+
+    /** Deletes one record. Returns why it could not be deleted, or null when it was. */
+    protected function deleteRecord(TenantModel $record): ?string
+    {
+        if ($problem = $this->deleteProblem($record)) {
+            return $problem;
+        }
 
         try {
             // In a transaction: the delete and its activity-log entry are saved together, or not at all.
@@ -159,12 +215,13 @@ abstract class LookupForm extends Component
             if ($e->getCode() !== '23000') {
                 throw $e;
             }
-            $this->addError('form.'.array_key_first($this->defaults()), __('This record is still in use and cannot be deleted. Make it inactive instead.'));
 
-            return;
+            return __('This record is still in use and cannot be deleted. Make it inactive instead.');
         }
 
-        $this->finish(__(':name deleted.', ['name' => $this->title($record)]));
+        $this->deleted($record);
+
+        return null;
     }
 
     /** Shown in the toast. */

@@ -169,8 +169,7 @@
                 </div>
                 <flux:field>
                     <flux:label>{{ __('Reason') }}</flux:label>
-                    <flux:description>{{ __('e.g. new phone number, name changed after marriage') }}</flux:description>
-                    <flux:textarea wire:model="reason" rows="2" />
+                    <flux:textarea :placeholder="__('e.g. new phone number, name changed after marriage')" wire:model="reason" rows="2" />
                     <flux:error name="reason" />
                 </flux:field>
             </form>

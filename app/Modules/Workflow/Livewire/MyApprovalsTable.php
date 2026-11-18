@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Modules\Workflow\Contracts\Approvable;
 use App\Modules\Workflow\Enums\ApprovalStatus;
 use App\Modules\Workflow\Models\Approval;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\On;
@@ -45,6 +46,13 @@ class MyApprovalsTable extends Component
     /** @var array<int, string> users.id => name, so each name is looked up once per render */
     private array $userNames = [];
 
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        Flux::modal('my-approvals-filters')->close();
+    }
+
     public function subject(Approval $approval): string
     {
         return $approval->approvable instanceof Approvable ? $approval->approvable->approvalSubject() : __('(deleted)');
@@ -80,6 +88,7 @@ class MyApprovalsTable extends Component
     {
         $this->reset('show');
         $this->resetPage();
+        Flux::modal('my-approvals-filters')->close();
     }
 
     public function export(): BinaryFileResponse

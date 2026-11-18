@@ -7,9 +7,6 @@
                 <flux:subheading>{{ __('Every company on the platform, each with its own database.') }}</flux:subheading>
             </div>
 
-            <flux:modal.trigger name="create-tenant">
-                <flux:button variant="primary" icon="plus">{{ __('New company') }}</flux:button>
-            </flux:modal.trigger>
         </div>
 
         <livewire:admin.tenants-table />

@@ -4,6 +4,7 @@ namespace App\Modules\Hrm\Livewire\Organization;
 
 use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Models\Grade;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Url;
@@ -33,7 +34,23 @@ class GradeTable extends Component
     private const SORTABLE = ['sequence', 'name', 'code', 'salary_min', 'is_active'];
 
     /** @var array<string, string> refresh the list when its form saved something */
-    protected $listeners = ['grade-saved' => '$refresh'];
+    protected $listeners = ['grade-saved' => 'clearSelection'];
+
+    /** @var list<string> ids of the ticked rows (the checkboxes). Edit needs one; Delete / Request approval any number. */
+    public array $selected = [];
+
+    public function clearSelection(): void
+    {
+        $this->selected = [];
+    }
+
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+        Flux::modal('grade-filters')->close();
+    }
 
     public function sort(string $field): void
     {
@@ -50,6 +67,8 @@ class GradeTable extends Component
     {
         $this->reset('search');
         $this->resetPage();
+        $this->selected = [];
+        Flux::modal('grade-filters')->close();
     }
 
     public function export(): BinaryFileResponse

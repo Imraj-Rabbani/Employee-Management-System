@@ -10,12 +10,11 @@
 
                 <flux:field>
                     <flux:label>{{ __('Title') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                    <flux:description>{{ __('e.g. Victory Day') }}</flux:description>
-                    <flux:input aria-required="true" wire:model="form.title" />
+                    <flux:input :placeholder="__('e.g. Victory Day')" aria-required="true" wire:model="form.title" />
                     <flux:error name="form.title" />
                 </flux:field>
             </div>
-            <div class="grid gap-4 sm:grid-cols-3">
+            <div class="grid gap-4 sm:grid-cols-3 items-start">
                 <flux:switch wire:model="form.is_public" :label="__('Public')" />
 
                 <flux:switch wire:model="form.is_festival" :label="__('Festival')" />

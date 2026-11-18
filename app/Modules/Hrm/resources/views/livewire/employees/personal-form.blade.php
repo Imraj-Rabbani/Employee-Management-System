@@ -23,8 +23,7 @@
             </div>
             <flux:field>
                 <flux:label>{{ __('Name (local)') }}</flux:label>
-                <flux:description>{{ __('e.g. the name in Bangla') }}</flux:description>
-                <flux:input wire:model="form.name_local" />
+                <flux:input :placeholder="__('e.g. the name in Bangla')" wire:model="form.name_local" />
                 <flux:error name="form.name_local" />
             </flux:field>
 

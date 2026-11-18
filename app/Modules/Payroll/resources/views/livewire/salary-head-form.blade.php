@@ -61,8 +61,8 @@
             @elseif ($method === \App\Modules\Payroll\Enums\CalcMethod::Formula)
                 <flux:field>
                     <flux:label>{{ __('Formula') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                    <flux:description>{{ __('e.g. BASIC * 0.5. It is evaluated when payroll runs.') }}</flux:description>
-                    <flux:input aria-required="true" wire:model.live.debounce.400ms="form.formula" />
+                    <flux:input :placeholder="__('e.g. BASIC * 0.5')" aria-required="true" wire:model.live.debounce.400ms="form.formula" />
+                    <flux:description>{{ __('It is evaluated when payroll runs.') }}</flux:description>
                     <flux:error name="form.formula" />
                 </flux:field>
             @endif

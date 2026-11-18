@@ -92,13 +92,8 @@ class RosterGrid extends Component
     public function submit(): void
     {
         $roster = $this->roster();
-        if (! $roster->isEditable()) {
-            $this->dispatch('toast', message: __('This roster is already waiting for approval or answered.'), variant: 'danger');
-
-            return;
-        }
-        if (! $roster->items()->exists()) {
-            $this->dispatch('toast', message: __('Plan at least one cell and save, then send the roster.'), variant: 'danger');
+        if ($problem = $roster->approvalSendProblem()) {
+            $this->dispatch('toast', message: $problem, variant: 'error');
 
             return;
         }

@@ -194,7 +194,7 @@ class RosterGridTest extends TestCase
     {
         Livewire::test(RosterGrid::class, ['rosterId' => $this->roster->id])
             ->call('submit')
-            ->assertDispatched('toast', variant: 'danger');   // nothing planned yet
+            ->assertDispatched('toast', variant: 'error');   // nothing planned yet
 
         RosterItem::factory()->for($this->roster)->create(['employee_id' => $this->karim->id, 'date' => '2026-12-01', 'shift_id' => $this->morning->id]);
         Livewire::test(RosterGrid::class, ['rosterId' => $this->roster->id])

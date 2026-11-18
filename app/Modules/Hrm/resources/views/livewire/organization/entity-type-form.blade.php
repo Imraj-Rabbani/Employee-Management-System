@@ -4,8 +4,7 @@
             <div class="grid gap-4 sm:grid-cols-[2fr_1fr]">
                 <flux:field>
                     <flux:label>{{ __('Name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                    <flux:description>{{ __('e.g. Department') }}</flux:description>
-                    <flux:input aria-required="true" wire:model="form.name" />
+                    <flux:input :placeholder="__('e.g. Department')" aria-required="true" wire:model="form.name" />
                     <flux:error name="form.name" />
                 </flux:field>
 

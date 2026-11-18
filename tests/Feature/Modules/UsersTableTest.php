@@ -115,14 +115,15 @@ class UsersTableTest extends TestCase
             ->assertDontSeeHtml('&lt;span');
     }
 
-    public function test_select_page_selects_visible_rows(): void
+    public function test_rows_have_tick_boxes_and_the_header_box_knows_the_page_ids(): void
     {
-        User::factory()->for($this->tenant)->count(2)->create();
+        $others = User::factory()->for($this->tenant)->count(2)->create();
 
+        // Ticking happens in the browser ($wire.selected); the header box gets this page's ids.
         Livewire::test(UsersTable::class)
-            ->set('selectPage', true)
-            ->assertCount('selected', 3)
-            ->assertSee('3 selected')
+            ->assertSeeHtml('wire:model="selected" value="'.$others[0]->id.'"')
+            ->assertSeeHtml('Tick all on this page')
+            ->set('selected', [(string) $others[0]->id])
             ->call('clearSelection')
             ->assertCount('selected', 0);
     }

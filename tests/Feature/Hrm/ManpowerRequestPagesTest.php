@@ -275,7 +275,7 @@ class ManpowerRequestPagesTest extends TestCase
         $this->assertSame(ApprovalStatus::Pending, $request->fresh()->approvalStatus());
 
         // A second "Send" (e.g. from an old browser tab) is refused, no second approval row.
-        Livewire::test(ManpowerRequestDetails::class, ['requestId' => $request->id])->call('submit')->assertDispatched('toast', variant: 'danger');
+        Livewire::test(ManpowerRequestDetails::class, ['requestId' => $request->id])->call('submit')->assertDispatched('toast', variant: 'error');
         $this->assertSame(1, Approval::count());
 
         // The approver's modal shows the request's details (ShowsApprovalDetails).

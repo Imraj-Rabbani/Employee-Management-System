@@ -4,8 +4,7 @@
             <div class="grid gap-4 sm:grid-cols-[2fr_1fr]">
                 <flux:field>
                     <flux:label>{{ __('Name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                    <flux:description>{{ __('e.g. Accounts Officer') }}</flux:description>
-                    <flux:input aria-required="true" wire:model="form.name" />
+                    <flux:input :placeholder="__('e.g. Accounts Officer')" aria-required="true" wire:model="form.name" />
                     <flux:error name="form.name" />
                 </flux:field>
 
@@ -57,7 +56,7 @@
                 </flux:field>
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid gap-4 sm:grid-cols-2 items-start">
                 <flux:switch wire:model="form.is_vacant" :label="__('Vacant')" :description="__('Switch off once someone holds this position.')" />
 
                 <flux:switch wire:model="form.is_active" :label="__('Active')" />

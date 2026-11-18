@@ -8,7 +8,6 @@
 
         <div class="flex flex-wrap items-center justify-between gap-4">
             <flux:subheading>{{ __('Days are taken from the balance when the last approver approves; withdrawing gives them back.') }}</flux:subheading>
-            <flux:button variant="primary" icon="plus" x-on:click="$dispatch('create-leave')">{{ __('Apply for leave') }}</flux:button>
         </div>
 
         <livewire:hrm::leave.leave-application-table />

@@ -8,6 +8,7 @@ use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\EmploymentType;
 use App\Modules\Hrm\Models\Grade;
 use App\Modules\Hrm\Services\EmployeeVisibility;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -73,6 +74,22 @@ class EmployeeTable extends Component
         return app(EmployeeVisibility::class)->entityOptionsFor(Auth::user());
     }
 
+    /** @var list<string> ids of the ticked rows (the checkboxes). Edit needs one; Delete / Request approval any number. */
+    public array $selected = [];
+
+    public function clearSelection(): void
+    {
+        $this->selected = [];
+    }
+
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+        Flux::modal('employee-filters')->close();
+    }
+
     public function sort(string $field): void
     {
         if (! in_array($field, self::SORTABLE, true)) {
@@ -88,6 +105,8 @@ class EmployeeTable extends Component
     {
         $this->reset('search', 'entity', 'status', 'gradeId', 'employmentTypeId');
         $this->resetPage();
+        $this->selected = [];
+        Flux::modal('employee-filters')->close();
     }
 
     public function export(): BinaryFileResponse

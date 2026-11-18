@@ -4,9 +4,9 @@
 --}}
 @php
     $sections = [
-        'heads' => [__('Salary heads'), 'salary-head-table', 'salary-head-form', 'create-salary-head', __('New salary head'), __('The pay components: Basic, House rent, PF, Tax ... Each head has its own calculation rule.')],
-        'profiles' => [__('Salary profiles'), 'salary-profile-table', 'salary-profile-form', 'create-salary-profile', __('New salary profile'), __('Salary structures, usually one per grade: what each head is worth next to the basic. Apply one to a basic or gross to see every head.')],
-        'pay-scales' => [__('Pay scale profiles'), 'pay-scale-profile-table', 'pay-scale-profile-form', 'create-pay-scale-profile', __('New pay scale profile'), __('How payroll treats a group of employees: arrears, the joining threshold day, leave without pay.')],
+        'heads' => [__('Salary heads'), 'salary-head-table', 'salary-head-form', __('The pay components: Basic, House rent, PF, Tax ... Each head has its own calculation rule.')],
+        'profiles' => [__('Salary profiles'), 'salary-profile-table', 'salary-profile-form', __('Salary structures, usually one per grade: what each head is worth next to the basic. Apply one to a basic or gross to see every head.')],
+        'pay-scales' => [__('Pay scale profiles'), 'pay-scale-profile-table', 'pay-scale-profile-form', __('How payroll treats a group of employees: arrears, the joining threshold day, leave without pay.')],
     ];
 @endphp
 
@@ -20,10 +20,9 @@
             <flux:subheading>{{ __('Company-wide payroll settings.') }}</flux:subheading>
             @livewire('payroll::payroll-settings-form')
         @else
-            @php [$label, $table, $form, $createEvent, $createLabel, $intro] = $sections[$section]; @endphp
+            @php [$label, $table, $form, $intro] = $sections[$section]; @endphp
             <div class="flex items-center justify-between gap-4">
                 <flux:subheading>{{ $intro }}</flux:subheading>
-                <flux:button variant="primary" icon="plus" x-on:click="$dispatch('{{ $createEvent }}')">{{ $createLabel }}</flux:button>
             </div>
 
             @livewire('payroll::'.$table, key($table))

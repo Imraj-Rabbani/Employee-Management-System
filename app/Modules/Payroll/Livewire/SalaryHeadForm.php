@@ -3,6 +3,7 @@
 namespace App\Modules\Payroll\Livewire;
 
 use App\Core\Livewire\LookupForm;
+use App\Core\Models\TenantModel;
 use App\Core\Support\Money;
 use App\Modules\Payroll\Enums\CalcMethod;
 use App\Modules\Payroll\Enums\HeadRole;
@@ -100,19 +101,14 @@ class SalaryHeadForm extends LookupForm
     }
 
     /** A head the payroll settings use (tax, overtime ...) cannot be deleted: the run would lose it. */
-    public function delete(): void
+    /** A head used in the payroll settings (tax, PF ...) stays: the settings would point at nothing. */
+    protected function deleteProblem(TenantModel $record): ?string
     {
-        $head = SalaryHead::find($this->recordId);
-        $roles = $head ? app(PayrollSettings::class)->rolesOf($head) : [];
-        if ($roles !== []) {
-            $this->addError('form.code', __('The payroll settings use this head for: :roles. Choose another head there first.', [
-                'roles' => implode(', ', array_map(fn (HeadRole $r) => $r->label(), $roles)),
-            ]));
+        $roles = $record instanceof SalaryHead ? app(PayrollSettings::class)->rolesOf($record) : [];
 
-            return;
-        }
-
-        parent::delete();
+        return $roles === [] ? null : __('The payroll settings use this head for: :roles. Choose another head there first.', [
+            'roles' => implode(', ', array_map(fn (HeadRole $r) => $r->label(), $roles)),
+        ]);
     }
 
     protected function labels(): array

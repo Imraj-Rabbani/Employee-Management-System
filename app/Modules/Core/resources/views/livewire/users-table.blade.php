@@ -1,45 +1,54 @@
 {{-- Setup → Users list. PHP side: App\Modules\Core\Livewire\UsersTable --}}
 <div class="glass overflow-hidden rounded-2xl">
 
-    {{-- Toolbar: search, status filter, export --}}
-    <div class="flex flex-wrap items-center gap-3 border-b border-white/50 p-4 dark:border-white/10">
-        <div class="w-full sm:w-72">
-            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search…')" clearable />
-        </div>
-
-        <div class="w-full sm:w-44">
-            <flux:select wire:model.live="status" :aria-label="__('Status')">
-                <flux:select.option value="">{{ __('All') }}: {{ __('Status') }}</flux:select.option>
-                <flux:select.option value="yes">{{ __('Verified') }}</flux:select.option>
-                <flux:select.option value="no">{{ __('Not verified') }}</flux:select.option>
-            </flux:select>
-        </div>
-
-        @if ($search !== '' || $status !== '')
-            <flux:button wire:click="clearFilters" variant="ghost" size="sm" icon="x-mark">{{ __('Clear') }}</flux:button>
+    {{-- Toolbar: actions on the left, Filter on the right.
+         The buttons work on the ticked rows: $wire.selected = their ids (Alpine reads it, no round trip). --}}
+    @php $activeFilters = count(array_filter([$search !== '', $status !== ''])); @endphp
+    <div class="flex flex-wrap items-center gap-2 border-b border-white/50 p-4 dark:border-white/10">
+        @if ($canManage)
+            {{-- Edit = change the user's role (one row ticked). --}}
+            <flux:button size="sm" icon="pencil-square" x-bind:disabled="$wire.selected.length !== 1" x-on:click="$dispatch('edit-user-role', { id: Number($wire.selected[0]) })">{{ __('Edit') }}</flux:button>
+            <flux:button size="sm" icon="trash" x-bind:disabled="$wire.selected.length === 0" x-on:click="$dispatch('confirm', {
+                title: {{ Js::from(__('Delete the ticked users?')) }},
+                message: {{ Js::from(__('Your own login is never deleted from here.')) }},
+                confirmText: {{ Js::from(__('Delete')) }},
+                onConfirm: () => $wire.runBulkAction('delete'),
+            })">{{ __('Delete') }}</flux:button>
+        @endif
+        <flux:button wire:click="export" size="sm" icon="arrow-down-tray">{{ __('Export') }}</flux:button>
+        @if ($canManage)
+            <flux:button size="sm" icon="check-badge" x-bind:disabled="$wire.selected.length === 0" wire:click="runBulkAction('verify')">{{ __('Mark verified') }}</flux:button>
+            <span x-show="$wire.selected.length > 0" x-cloak class="text-xs text-zinc-500 dark:text-zinc-400" x-text="$wire.selected.length + ' ' + {{ Js::from(__('selected')) }}"></span>
         @endif
 
         <flux:spacer />
 
-        <flux:button wire:click="export" size="sm" icon="arrow-down-tray">{{ __('Export') }}</flux:button>
+        <flux:modal.trigger name="users-filters">
+            <flux:button size="sm" icon="funnel">{{ __('Filter') }}{{ $activeFilters > 0 ? " ($activeFilters)" : '' }}</flux:button>
+        </flux:modal.trigger>
     </div>
 
-    {{-- Bulk action bar: only while rows are ticked --}}
-    @if ($canManage && count($selected) > 0)
-        <div class="flex flex-wrap items-center gap-3 border-b border-white/50 bg-brand-800/5 px-4 py-2 text-sm dark:border-white/10 dark:bg-white/5">
-            <span class="font-medium">{{ trans_choice(':count selected|:count selected', count($selected), ['count' => count($selected)]) }}</span>
+    {{-- The Filter form. wire:model (not .live): the list only changes when Apply is clicked. --}}
+    <x-ui.modal name="users-filters" :heading="__('Filter')">
+        <flux:field>
+            <flux:label>{{ __('Search') }}</flux:label>
+            <flux:input wire:model="search" icon="magnifying-glass" :placeholder="__('Search…')" />
+        </flux:field>
 
-            <flux:button size="sm" wire:click="runBulkAction('verify')">{{ __('Mark verified') }}</flux:button>
+        <flux:field>
+            <flux:label>{{ __('Status') }}</flux:label>
+            <flux:select wire:model="status">
+                <flux:select.option value="">{{ __('All') }}</flux:select.option>
+                <flux:select.option value="yes">{{ __('Verified') }}</flux:select.option>
+                <flux:select.option value="no">{{ __('Not verified') }}</flux:select.option>
+            </flux:select>
+        </flux:field>
 
-            <flux:button size="sm" variant="danger" x-on:click="$dispatch('confirm', {
-                title: @js(__('Delete the selected users?')),
-                confirmText: @js(__('Delete')),
-                onConfirm: () => $wire.runBulkAction('delete'),
-            })">{{ __('Delete') }}</flux:button>
-
-            <flux:button wire:click="clearSelection" size="sm" variant="ghost">{{ __('Clear selection') }}</flux:button>
-        </div>
-    @endif
+        <x-slot:footer>
+            <flux:button wire:click="clearFilters" variant="ghost">{{ __('Clear') }}</flux:button>
+            <flux:button wire:click="applyFilters" variant="primary">{{ __('Apply') }}</flux:button>
+        </x-slot:footer>
+    </x-ui.modal>
 
     {{-- The table --}}
     <div class="overflow-x-auto" wire:loading.class="opacity-60">
@@ -47,8 +56,11 @@
             <thead>
                 <tr class="border-b border-white/50 text-left text-zinc-600 dark:border-white/10 dark:text-zinc-300">
                     @if ($canManage)
-                        <th class="w-10 px-4 py-3">
-                            <flux:checkbox wire:model.live="selectPage" :aria-label="__('Select all on this page')" />
+                        {{-- Tick all rows of this page (adds to / removes from $wire.selected). --}}
+                        <th class="w-10 px-4 py-3" x-data="{ ids: {{ Js::from($rows->map(fn ($row) => (string) $row->getKey())->values()) }} }">
+                            <input type="checkbox" class="size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 dark:border-white/20 dark:bg-white/10" aria-label="{{ __('Tick all on this page') }}"
+                                x-bind:checked="ids.length > 0 && ids.every(id => $wire.selected.includes(id))"
+                                x-on:change="$wire.selected = $event.target.checked ? [...new Set([...$wire.selected, ...ids])] : $wire.selected.filter(id => ! ids.includes(id))">
                         </th>
                     @endif
 
@@ -93,10 +105,10 @@
 
             <tbody>
                 @foreach ($rows as $user)
-                    <tr wire:key="user-{{ $user->id }}" class="border-b border-white/40 text-zinc-800 last:border-0 hover:bg-white/40 dark:border-white/5 dark:text-zinc-100 dark:hover:bg-white/5">
+                    <tr wire:key="user-{{ $user->id }}" x-bind:class="$wire.selected.includes('{{ $user->id }}') && '!bg-brand-50/70 dark:!bg-white/10'" class="border-b border-white/40 text-zinc-800 last:border-0 hover:bg-white/40 dark:border-white/5 dark:text-zinc-100 dark:hover:bg-white/5">
                         @if ($canManage)
                             <td class="px-4 py-3">
-                                <flux:checkbox wire:model.live="selected" value="{{ $user->id }}" :aria-label="__('Select row')" />
+                                <input type="checkbox" wire:model="selected" value="{{ $user->id }}" class="size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 dark:border-white/20 dark:bg-white/10" aria-label="{{ __('Tick this row') }}">
                             </td>
                         @endif
 

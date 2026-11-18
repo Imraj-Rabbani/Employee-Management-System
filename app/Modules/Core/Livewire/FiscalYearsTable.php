@@ -4,6 +4,7 @@ namespace App\Modules\Core\Livewire;
 
 use App\Core\Exports\ArrayExport;
 use App\Modules\Core\Models\FiscalYear;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\On;
@@ -35,6 +36,30 @@ class FiscalYearsTable extends Component
     public int $perPage = 10;
 
     private const SORTABLE = ['name', 'start_date', 'end_date'];
+
+    /** @var list<string> ids of the ticked rows (the checkboxes). Edit needs one; Delete / Request approval any number. */
+    public array $selected = [];
+
+    public function clearSelection(): void
+    {
+        $this->selected = [];
+    }
+
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+        Flux::modal('fiscal-year-filters')->close();
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset('search');
+        $this->resetPage();
+        $this->selected = [];
+        Flux::modal('fiscal-year-filters')->close();
+    }
 
     public function sort(string $field): void
     {
@@ -71,7 +96,10 @@ class FiscalYearsTable extends Component
 
     /** The form saved a year: re-render the list. */
     #[On('fiscal-year-saved')]
-    public function refreshList(): void {}
+    public function refreshList(): void
+    {
+        $this->selected = [];
+    }
 
     public function updated(string $property): void
     {

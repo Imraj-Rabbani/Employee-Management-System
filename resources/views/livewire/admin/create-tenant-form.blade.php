@@ -4,8 +4,8 @@
             <div class="grid gap-4 sm:grid-cols-3">
                 <flux:field>
                     <flux:label>{{ __('Code') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                    <flux:description>{{ __('e.g. sss. Cannot be changed later.') }}</flux:description>
-                    <flux:input aria-required="true" wire:model.blur="code" />
+                    <flux:input :placeholder="__('e.g. sss')" aria-required="true" wire:model.blur="code" />
+                    <flux:description>{{ __('Cannot be changed later.') }}</flux:description>
                     <flux:error name="code" />
                 </flux:field>
                 <div class="sm:col-span-2">

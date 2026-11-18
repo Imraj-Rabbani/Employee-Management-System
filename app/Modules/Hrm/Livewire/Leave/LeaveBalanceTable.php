@@ -9,6 +9,7 @@ use App\Modules\Hrm\Models\LeaveApplication;
 use App\Modules\Hrm\Models\LeaveBalance;
 use App\Modules\Hrm\Models\LeaveType;
 use App\Modules\Hrm\Services\EmployeeVisibility;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -54,6 +55,13 @@ class LeaveBalanceTable extends Component
     /** Columns the user may sort by. Anything else sent from the browser is ignored. */
     private const SORTABLE = ['employee_id', 'leave_type_id', 'year', 'taken', 'balance'];
 
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        Flux::modal('leave-balance-filters')->close();
+    }
+
     public function mount(): void
     {
         $this->year = $this->year ?: (string) LeaveYear::current()->year;
@@ -74,6 +82,7 @@ class LeaveBalanceTable extends Component
     {
         $this->reset('year', 'type', 'entity');
         $this->resetPage();
+        Flux::modal('leave-balance-filters')->close();
     }
 
     public function export(): BinaryFileResponse

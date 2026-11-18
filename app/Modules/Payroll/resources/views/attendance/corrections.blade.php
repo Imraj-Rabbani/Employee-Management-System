@@ -8,7 +8,6 @@
 
         <div class="flex flex-wrap items-center justify-between gap-4">
             <flux:subheading>{{ __('Corrected in / out times. They count once approved, and the day is then processed again.') }}</flux:subheading>
-            <flux:button variant="primary" icon="plus" x-on:click="$dispatch('create-correction')">{{ __('New correction') }}</flux:button>
         </div>
 
         @can('payroll.attendance.setup')

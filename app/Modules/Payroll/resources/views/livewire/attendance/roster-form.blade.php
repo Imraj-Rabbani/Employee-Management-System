@@ -14,8 +14,7 @@
 
             <flux:field>
                 <flux:label>{{ __('Title') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                <flux:description>{{ __('e.g. December 2026') }}</flux:description>
-                <flux:input aria-required="true" wire:model="form.title" />
+                <flux:input :placeholder="__('e.g. December 2026')" aria-required="true" wire:model="form.title" />
                 <flux:error name="form.title" />
             </flux:field>
             <div class="grid gap-4 sm:grid-cols-2">

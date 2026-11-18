@@ -87,14 +87,8 @@ class RoleForm extends Component
     {
         $role = Role::findOrFail($this->roleId);
 
-        if ($role->is_admin) {
-            $this->addError('name', __('The Administrator role cannot be deleted.'));
-
-            return;
-        }
-
-        if ($role->userRoles()->exists()) {
-            $this->addError('name', __('This role is still given to users. Give them another role first.'));
+        if ($problem = $this->deleteProblem($role)) {
+            $this->addError('name', $problem);
 
             return;
         }
@@ -104,6 +98,43 @@ class RoleForm extends Component
         Flux::modal('role-form')->close();
         $this->dispatch('role-saved');
         $this->dispatch('toast', message: __(':name deleted.', ['name' => $role->name]), variant: 'success');
+    }
+
+    /**
+     * Delete from the list's toolbar: every ticked role that may go; one toast says what happened.
+     *
+     * @param  list<int|string>  $ids
+     */
+    #[On('delete-role')]
+    public function deleteMany(array $ids): void
+    {
+        $deleted = 0;
+        $problems = [];
+        foreach (Role::whereKey($ids)->get() as $role) {
+            if ($problem = $this->deleteProblem($role)) {
+                $problems[] = $role->name.': '.$problem;
+
+                continue;
+            }
+            $role->delete();
+            $deleted++;
+        }
+
+        $this->dispatch('role-saved');
+        $this->dispatch('toast',
+            message: implode(' ', array_filter([$deleted > 0 ? trans_choice(':count deleted.|:count deleted.', $deleted) : null, ...$problems])),
+            variant: $problems === [] ? 'success' : ($deleted > 0 ? 'warning' : 'error'),
+        );
+    }
+
+    /** Why this role may not be deleted, or null. */
+    private function deleteProblem(Role $role): ?string
+    {
+        return match (true) {
+            $role->is_admin => __('The Administrator role cannot be deleted.'),
+            $role->userRoles()->exists() => __('This role is still given to users. Give them another role first.'),
+            default => null,
+        };
     }
 
     public function render(): View

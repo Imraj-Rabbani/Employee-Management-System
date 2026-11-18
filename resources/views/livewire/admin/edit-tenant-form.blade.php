@@ -7,7 +7,7 @@
                 <flux:error name="name" />
             </flux:field>
 
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid gap-4 sm:grid-cols-2 items-start">
                 <flux:switch wire:model="isActive" :label="__('Active')" :description="__('Inactive companies cannot log in.')" />
 
                 <flux:field>

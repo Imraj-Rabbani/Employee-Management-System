@@ -129,10 +129,10 @@ class EmployeeFormsTest extends TestCase
 
     public function test_the_new_button_needs_the_create_permission(): void
     {
-        $this->get(route('hrm.employees.index'))->assertSee('New employee');
+        $this->get(route('hrm.employees.index'))->assertSee('Add new');
 
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.employee.view']);
-        $this->get(route('hrm.employees.index'))->assertDontSee('New employee');
+        $this->get(route('hrm.employees.index'))->assertDontSee('Add new');
         Livewire::test(CreateEmployee::class)->call('open')->assertForbidden();
     }
 

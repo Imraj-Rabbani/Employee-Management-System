@@ -8,7 +8,6 @@
 
         <div class="flex flex-wrap items-center justify-between gap-4">
             <flux:subheading>{{ __('Asked, recommended and approved hours. Only approved hours are paid, at the rate of the day type.') }}</flux:subheading>
-            <flux:button variant="primary" icon="plus" x-on:click="$dispatch('create-overtime')">{{ __('Ask for overtime') }}</flux:button>
         </div>
 
         <livewire:payroll::attendance.overtime-table />

@@ -18,8 +18,7 @@
                 <form wire:submit="save" id="fiscal-year-form" class="space-y-6">
                     <flux:field>
                         <flux:label>{{ __('Name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                        <flux:description>{{ __('e.g. FY 2025-26') }}</flux:description>
-                        <flux:input aria-required="true" wire:model="name" />
+                        <flux:input :placeholder="__('e.g. FY 2025-26')" aria-required="true" wire:model="name" />
                         <flux:error name="name" />
                     </flux:field>
 

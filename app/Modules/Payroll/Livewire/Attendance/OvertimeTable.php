@@ -6,6 +6,7 @@ use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Payroll\Models\OvertimeRequest;
 use App\Modules\Workflow\Enums\ApprovalStatus;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -49,7 +50,23 @@ class OvertimeTable extends Component
     private const SORTABLE = ['id', 'date', 'hours', 'approved_hours'];
 
     /** @var array<string, string> */
-    protected $listeners = ['overtime-saved' => '$refresh'];
+    protected $listeners = ['overtime-saved' => 'clearSelection'];
+
+    /** @var list<string> ids of the ticked rows (the checkboxes). Edit needs one; Delete / Request approval any number. */
+    public array $selected = [];
+
+    public function clearSelection(): void
+    {
+        $this->selected = [];
+    }
+
+    /** Filter form → Apply: the new filter values came with this click; start again at page 1. */
+    public function applyFilters(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+        Flux::modal('overtime-filters')->close();
+    }
 
     public function sort(string $field): void
     {
@@ -66,6 +83,8 @@ class OvertimeTable extends Component
     {
         $this->reset('search', 'month', 'status');
         $this->resetPage();
+        $this->selected = [];
+        Flux::modal('overtime-filters')->close();
     }
 
     public function export(): BinaryFileResponse

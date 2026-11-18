@@ -34,8 +34,8 @@ class ManpowerRequestDetails extends Component
         Gate::authorize('hrm.recruitment.request');
         $request = $this->request();
 
-        if (! $request->isEditable()) {
-            $this->dispatch('toast', message: __('This request is already waiting for approval or answered.'), variant: 'danger');
+        if ($problem = $request->approvalSendProblem()) {
+            $this->dispatch('toast', message: $problem, variant: 'error');
 
             return;
         }
