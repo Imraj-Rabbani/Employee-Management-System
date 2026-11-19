@@ -66,7 +66,7 @@ return [
             ['label' => 'Attendance', 'route' => 'payroll.attendance', 'current' => 'payroll.attendance*', 'can' => ['payroll.roster.manage', 'payroll.punch.manage', 'payroll.attendance.setup']],
             ['label' => 'Salary Setup', 'route' => 'payroll.setup', 'current' => 'payroll.setup*', 'can' => 'payroll.salary.manage'],
             ['label' => 'Employee Salaries', 'route' => null],
-            ['label' => 'Payroll Runs', 'route' => null],
+            ['label' => 'Payroll Runs', 'route' => 'payroll.runs', 'current' => 'payroll.runs*', 'can' => 'payroll.run.view'],
             ['label' => 'Increments', 'route' => null],
             ['label' => 'Incentives', 'route' => null],
             ['label' => 'Tax', 'route' => null],

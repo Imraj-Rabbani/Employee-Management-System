@@ -50,7 +50,7 @@ class HrmServiceProvider extends ModuleServiceProvider
         // Changing or sending a request still needs hrm.recruitment.request.
         Gate::define('hrm.recruitment.view-requests', fn (User $user) => $user->can('hrm.recruitment.request') || $user->can('hrm.recruitment.manage'));
 
-        // Self Service (5.8+): an employee's own pages. Same protection as module pages, but under
+        // Self Service: an employee's own pages. Same protection as module pages, but under
         // /ess and route names "ess.*" (the sidebar's Self Service group opens on "ess.*").
         Route::middleware(['web', 'auth', 'tenant', 'tenant.settings', 'module:hrm'])
             ->prefix('ess')

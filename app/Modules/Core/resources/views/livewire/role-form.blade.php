@@ -36,19 +36,57 @@
                     @else
                         <flux:error name="permissions.*" />
 
-                        {{-- One block per module, one checkbox group per permission group. --}}
-                        <div class="space-y-6">
+                        {{--
+                            One collapsible row per module. Everything is plain checkboxes bound to $wire.permissions
+                            (the Livewire $permissions array), so the module checkbox and the single ones stay in sync.
+                              - module checkbox: ticks / unticks every permission of the module
+                                (half-ticked "indeterminate" when only some are ticked)
+                              - arrow: shows the module's single permissions, closed at first
+                        --}}
+                        <div class="divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-white/10 dark:border-white/10">
                             @foreach ($modules as $moduleLabel => $groups)
-                                <div wire:key="module-{{ $moduleLabel }}">
-                                    <flux:heading size="sm" class="mb-3 uppercase tracking-wide text-zinc-500">{{ $moduleLabel }}</flux:heading>
+                                @php($moduleKeys = array_keys(array_merge(...array_values($groups))))
 
-                                    <div class="grid gap-6 sm:grid-cols-2">
+                                <div wire:key="module-{{ $moduleLabel }}"
+                                    x-data="{
+                                        open: false,
+                                        keys: @js($moduleKeys),
+                                        ticked() { return this.keys.filter(k => $wire.permissions.includes(k)).length },
+                                        toggleAll(on) {
+                                            const others = $wire.permissions.filter(k => ! this.keys.includes(k));
+                                            $wire.permissions = on ? [...others, ...this.keys] : others;
+                                        },
+                                    }">
+                                    <div class="flex items-center gap-3 px-3 py-2.5">
+                                        <input type="checkbox" id="module-{{ $loop->index }}"
+                                            class="size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 dark:border-white/20 dark:bg-white/10"
+                                            x-bind:checked="ticked() === keys.length"
+                                            x-bind:indeterminate="ticked() > 0 && ticked() < keys.length"
+                                            x-on:change="toggleAll($event.target.checked)">
+                                        <label for="module-{{ $loop->index }}" class="text-sm font-medium text-zinc-800 dark:text-white">{{ $moduleLabel }}</label>
+
+                                        <button type="button" x-on:click="open = ! open" x-bind:aria-expanded="open"
+                                            aria-label="{{ __('Show the permissions of :module', ['module' => $moduleLabel]) }}"
+                                            class="ms-auto flex items-center gap-2 rounded px-1.5 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-white/10 dark:hover:text-zinc-200">
+                                            <span x-text="ticked() + ' / ' + keys.length"></span>
+                                            <flux:icon.chevron-down variant="micro" class="transition-transform duration-200" x-bind:class="open ? 'rotate-180' : ''" />
+                                        </button>
+                                    </div>
+
+                                    <div x-show="open" x-collapse x-cloak class="grid gap-5 border-t border-zinc-200 bg-zinc-50/60 px-3 py-4 sm:grid-cols-2 dark:border-white/10 dark:bg-white/5">
                                         @foreach ($groups as $group => $permissionList)
-                                            <flux:checkbox.group wire:model="permissions" :label="__($group)">
-                                                @foreach ($permissionList as $key => $label)
-                                                    <flux:checkbox :value="$key" :label="__($label)" />
-                                                @endforeach
-                                            </flux:checkbox.group>
+                                            <fieldset>
+                                                <legend class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ __($group) }}</legend>
+                                                <div class="space-y-2">
+                                                    @foreach ($permissionList as $key => $label)
+                                                        <label class="flex items-start gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                                            <input type="checkbox" value="{{ $key }}" x-model="$wire.permissions"
+                                                                class="mt-0.5 size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 dark:border-white/20 dark:bg-white/10">
+                                                            <span>{{ __($label) }}</span>
+                                                        </label>
+                                                    @endforeach
+                                                </div>
+                                            </fieldset>
                                         @endforeach
                                     </div>
                                 </div>

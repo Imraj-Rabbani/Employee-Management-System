@@ -80,3 +80,6 @@ Route::middleware('can:payroll.salary.manage')->group(function () {
         Route::view("setup/{$section}", 'payroll::setup', ['section' => $section])->name("setup.{$section}");
     }
 });
+
+// Payroll → Payroll runs: the list of runs (only those the user may see) and the New run form.
+Route::middleware('can:payroll.run.view')->get('runs', fn () => view('payroll::runs'))->name('runs');
