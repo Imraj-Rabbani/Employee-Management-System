@@ -3,6 +3,8 @@
 namespace App\Modules\Payroll\Livewire;
 
 use App\Core\Exports\ArrayExport;
+use App\Modules\Payroll\Actions\ProcessPayrollRun;
+use App\Modules\Payroll\Enums\PayrollCalcStatus;
 use App\Modules\Payroll\Enums\PayrollRunStatus;
 use App\Modules\Payroll\Enums\PayrollRunType;
 use App\Modules\Payroll\Models\PayrollRun;
@@ -10,6 +12,7 @@ use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -75,6 +78,35 @@ class PayrollRunTable extends Component
         Flux::modal('payroll-run-filters')->close();
     }
 
+    /**
+     * Toolbar → Calculate: starts the calculation (a queued job per employee) of every ticked run that may be
+     * calculated. One toast says what was started and what was not, and why. A single run opens its progress.
+     */
+    public function calculate(ProcessPayrollRun $action): void
+    {
+        Gate::authorize('payroll.run.process');
+        $started = [];
+        $problems = [];
+        foreach (PayrollRun::query()->visibleTo(Auth::user())->whereKey($this->selected)->get() as $run) {
+            if ($problem = $action->problem($run)) {
+                $problems[] = $run->code.': '.$problem;
+
+                continue;
+            }
+            $action->handle($run);
+            $started[] = $run->id;
+        }
+
+        $this->selected = [];
+        $this->dispatch('toast',
+            message: implode(' ', array_filter([$started !== [] ? trans_choice('Calculation started for :count run.|Calculation started for :count runs.', count($started)) : null, ...$problems])),
+            variant: $problems === [] ? 'success' : ($started !== [] ? 'warning' : 'error'),
+        );
+        if (count($started) === 1) {
+            $this->dispatch('show-payroll-run', id: $started[0]);
+        }
+    }
+
     public function sort(string $field): void
     {
         if (! in_array($field, self::SORTABLE, true)) {
@@ -115,7 +147,9 @@ class PayrollRunTable extends Component
     /** @return Builder<PayrollRun> */
     private function filteredQuery(): Builder
     {
-        $query = PayrollRun::query()->visibleTo(Auth::user())->with(['entity:id,name', 'head:id,name']);
+        // done_count: employees already calculated (ok or failed), for "12 / 40" next to a run that is processing.
+        $query = PayrollRun::query()->visibleTo(Auth::user())->with(['entity:id,name', 'head:id,name'])
+            ->withCount(['employees as done_count' => fn (Builder $q) => $q->where('calc_status', '!=', PayrollCalcStatus::Pending->value)]);
 
         if (trim($this->search) !== '') {
             $query->where('code', 'like', '%'.addcslashes(trim($this->search), '%_\\').'%');
@@ -144,8 +178,11 @@ class PayrollRunTable extends Component
         $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
         $years = PayrollRun::query()->visibleTo(Auth::user())->distinct()->orderByDesc('year')->pluck('year')->all();
 
+        $rows = $this->filteredQuery()->paginate($perPage);
+
         return view('payroll::livewire.payroll-run-table', [
-            'rows' => $this->filteredQuery()->paginate($perPage),
+            'rows' => $rows,
+            'busy' => $rows->contains(fn (PayrollRun $run) => $run->status === PayrollRunStatus::Processing),
             'years' => $years,
         ]);
     }

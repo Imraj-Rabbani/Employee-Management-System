@@ -11,6 +11,7 @@
         </div>
 
         <livewire:payroll::payroll-run-table />
+        <livewire:payroll::payroll-run-progress />
         @can('payroll.run.process')
             <livewire:payroll::payroll-run-form />
         @endcan

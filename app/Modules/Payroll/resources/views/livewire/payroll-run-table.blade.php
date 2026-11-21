@@ -1,5 +1,6 @@
 {{-- PayrollRunTable list. PHP side: App\Modules\Payroll\Livewire\PayrollRunTable --}}
-<div class="glass overflow-hidden rounded-2xl">
+{{-- wire:poll only while a run on this page is processing: the "12 / 40" and the status move by themselves. --}}
+<div class="glass overflow-hidden rounded-2xl" @if ($busy) wire:poll.3s @endif>
 
     {{-- Toolbar: actions on the left, Filter on the right. $wire.selected = the ticked rows' ids. --}}
     @php $activeFilters = count(array_filter([$search !== '', $year !== '', $runType !== '', $status !== ''])); @endphp
@@ -13,7 +14,11 @@
                 confirmText: {{ Js::from(__('Delete')) }},
                 onConfirm: () => $wire.dispatch('delete-payroll-run', { ids: $wire.selected }),
             })">{{ __('Delete') }}</flux:button>
+            {{-- Calculate: one queued job per employee (needs the queue worker). Also calculates a processed run again. --}}
+            <flux:button size="sm" icon="play" x-bind:disabled="$wire.selected.length === 0" wire:click="calculate">{{ __('Calculate') }}</flux:button>
         @endcan
+        {{-- Progress: how far the calculation is and who failed. --}}
+        <flux:button size="sm" icon="chart-bar" x-bind:disabled="$wire.selected.length !== 1" x-on:click="$dispatch('show-payroll-run', { id: Number($wire.selected[0]) })">{{ __('Progress') }}</flux:button>
         <flux:button wire:click="export" size="sm" icon="arrow-down-tray">{{ __('Export') }}</flux:button>
         <span x-show="$wire.selected.length > 0" x-cloak class="text-xs text-zinc-500 dark:text-zinc-400" x-text="$wire.selected.length + ' ' + {{ Js::from(__('selected')) }}"></span>
 
@@ -135,8 +140,14 @@
                         <td class="px-4 py-3 text-right">{{ $run->employee_count }}</td>
                         <td class="px-4 py-3 text-right whitespace-nowrap">{{ $run->total_net->format() }}</td>
                         <td class="px-4 py-3 whitespace-nowrap">{{ format_date($run->pay_date) ?: '-' }}</td>
-                        <td class="px-4 py-3">
-                            <x-ui.badge :color="$run->status->color()">{{ $run->status->label() }}</x-ui.badge>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            {{-- Click: the calculation's progress and failures. --}}
+                            <button type="button" x-on:click="$dispatch('show-payroll-run', { id: {{ $run->id }} })" class="inline-flex items-center gap-2" title="{{ __('Show the calculation') }}">
+                                <x-ui.badge :color="$run->status->color()">{{ $run->status->label() }}</x-ui.badge>
+                                @if ($run->status === \App\Modules\Payroll\Enums\PayrollRunStatus::Processing)
+                                    <span class="text-xs tabular-nums text-zinc-500 dark:text-zinc-400">{{ $run->done_count }} / {{ $run->employee_count }}</span>
+                                @endif
+                            </button>
                         </td>
                     </tr>
                 @endforeach
