@@ -5,15 +5,17 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-// "/" = "take me to my start page". Used after login and by the logo / Dashboard link.
-// Guests are sent to login (auth middleware); super admins go to Platform admin,
-// everyone else to their company's dashboard.
+// Public landing page. Signed-in users are taken straight to their start page.
 Route::get('/', function () {
+    if (! auth()->check()) {
+        return view('landing');
+    }
+
     /** @var User $user */
     $user = auth()->user();
 
     return redirect()->route($user->isSuperAdmin() ? 'admin.dashboard' : 'dashboard');
-})->middleware('auth')->name('home');
+})->name('home');
 
 // The company dashboard runs inside the user's company ("tenant"), like module pages.
 Route::view('dashboard', 'dashboard')
