@@ -14,6 +14,9 @@
                 </a>
 
                 <nav class="flex items-center gap-3">
+                    <a href="{{ route('pricing') }}" class="rounded-lg px-4 py-2.5 text-sm font-semibold text-brand-100 transition hover:text-white">
+                        Pricing
+                    </a>
                     <a href="{{ route('login') }}" class="rounded-lg px-4 py-2.5 text-sm font-semibold text-brand-100 transition hover:text-white">
                         Log in
                     </a>
@@ -147,6 +150,7 @@
                 <div class="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-sm text-brand-400 sm:flex-row sm:items-center sm:justify-between lg:px-8">
                     <p>&copy; {{ date('Y') }} {{ config('app.name', 'ERP2ALL') }}</p>
                     <div class="flex items-center gap-5">
+                        <a href="{{ route('pricing') }}" class="transition hover:text-white">Pricing</a>
                         <a href="{{ route('login') }}" class="transition hover:text-white">Log in</a>
                         <a href="{{ route('register') }}" class="transition hover:text-white">Register company</a>
                     </div>

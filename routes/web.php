@@ -17,6 +17,8 @@ Route::get('/', function () {
     return redirect()->route($user->isSuperAdmin() ? 'admin.dashboard' : 'dashboard');
 })->name('home');
 
+Route::view('/pricing', 'pricing')->name('pricing');
+
 // The company dashboard runs inside the user's company ("tenant"), like module pages.
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified', 'tenant', 'tenant.settings'])
