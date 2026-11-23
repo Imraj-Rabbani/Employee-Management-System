@@ -4,6 +4,7 @@ namespace App\Modules\Payroll\Models;
 
 use App\Core\Casts\MoneyCast;
 use App\Core\Models\TenantModel;
+use App\Modules\Payroll\Concerns\GuardedByRunStatus;
 use App\Core\Support\Money;
 use App\Modules\Payroll\Enums\ArrearReason;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,6 +33,8 @@ use Illuminate\Support\Carbon;
  */
 class PayrollArrear extends TenantModel
 {
+    use GuardedByRunStatus;
+
     /** @var list<string> no activity log entries */
     protected static $recordEvents = [];
 

@@ -9,6 +9,9 @@ use App\Modules\Hrm\Contracts\WorkCalendar;
 use App\Modules\Payroll\Console\ProcessAttendanceCommand;
 use App\Modules\Payroll\Console\SyncDevicePunches;
 use App\Modules\Payroll\Contracts\LeaveCalendar;
+use App\Modules\Payroll\Listeners\ReopenSentBackRun;
+use App\Modules\Workflow\Events\ApprovalAnswered;
+use Illuminate\Support\Facades\Event;
 use App\Modules\Payroll\Contracts\PunchDeviceClient;
 use App\Modules\Payroll\Services\AttendanceWorkCalendar;
 use App\Modules\Payroll\Services\ComparableSalaries;
@@ -36,6 +39,9 @@ class PayrollServiceProvider extends ModuleServiceProvider
     public function boot(): void
     {
         parent::boot();
+
+        // A payroll run that an approver sends back goes back to Processed (10.10).
+        Event::listen(ApprovalAnswered::class, ReopenSentBackRun::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([SyncDevicePunches::class, ProcessAttendanceCommand::class]);

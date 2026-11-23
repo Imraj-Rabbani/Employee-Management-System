@@ -2,7 +2,10 @@
 
 namespace App\Modules\Payroll\Livewire;
 
+use App\Modules\Payroll\Actions\LockPayrollRun;
 use App\Modules\Payroll\Actions\ProcessPayrollRun;
+use App\Modules\Payroll\Actions\SubmitPayrollRun;
+use App\Modules\Workflow\Exceptions\WorkflowException;
 use App\Modules\Payroll\Enums\PayrollCalcStatus;
 use App\Modules\Payroll\Enums\PayrollRunStatus;
 use App\Modules\Payroll\Models\PayrollRun;
@@ -15,7 +18,8 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * The run page's header: what the run is, its totals against the previous period, and Calculate / Progress / Edit.
+ * The run page's header: what the run is, its totals against the previous period, the approval history, and the
+ * actions its status allows (PayrollRunPolicy): Calculate / Edit / Submit for approval / Take back / Lock / Progress.
  * Polls while the run is processing; when the calculation ends it tells the register and the exception list
  * ("payroll-run-refreshed").
  *
@@ -37,8 +41,8 @@ class PayrollRunSummary extends Component
 
     public function calculate(ProcessPayrollRun $action): void
     {
-        Gate::authorize('payroll.run.process');
         $run = $this->run();
+        Gate::authorize('calculate', $run);
         if ($problem = $action->problem($run)) {
             $this->dispatch('toast', variant: 'error', message: $problem);
 
@@ -57,6 +61,45 @@ class PayrollRunSummary extends Component
             $this->lastStatus = $run->fresh()->status->value;
             $this->dispatch('payroll-run-refreshed');
         }
+    }
+
+    public function submit(SubmitPayrollRun $action): void
+    {
+        $run = $this->run();
+        Gate::authorize('submit', $run);
+        if ($problem = $action->problem($run)) {
+            $this->dispatch('toast', variant: 'error', message: $problem);
+
+            return;
+        }
+
+        try {
+            $action->handle($run);
+        } catch (WorkflowException $e) {
+            $this->dispatch('toast', variant: 'error', message: $e->getMessage());
+
+            return;
+        }
+        $this->dispatch('payroll-run-refreshed');
+        $this->dispatch('toast', variant: 'success', message: __(':code sent for approval. Its numbers can no longer change.', ['code' => $run->code]));
+    }
+
+    public function withdraw(SubmitPayrollRun $action): void
+    {
+        $run = $this->run();
+        Gate::authorize('withdraw', $run);
+        $action->withdraw($run);
+        $this->dispatch('payroll-run-refreshed');
+        $this->dispatch('toast', variant: 'success', message: __(':code taken back: it can be changed again.', ['code' => $run->code]));
+    }
+
+    public function lock(LockPayrollRun $action): void
+    {
+        $run = $this->run();
+        Gate::authorize('lock', $run);
+        $action->handle($run);
+        $this->dispatch('payroll-run-refreshed');
+        $this->dispatch('toast', variant: 'success', message: __(':code locked. Changes for this period are paid as arrears from now on.', ['code' => $run->code]));
     }
 
     #[On('payroll-run-saved')]

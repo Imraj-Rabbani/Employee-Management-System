@@ -17,11 +17,35 @@
         </div>
         <div class="flex shrink-0 flex-wrap items-center gap-2">
             <x-ui.badge :color="$run->status->color()">{{ $run->status->label() }}</x-ui.badge>
-            @can('payroll.run.process')
-                @if ($run->status->isEditable() || $busy)
-                    <flux:button size="sm" icon="play" wire:click="calculate">{{ $run->status === \App\Modules\Payroll\Enums\PayrollRunStatus::Draft ? __('Calculate') : __('Calculate again') }}</flux:button>
-                @endif
+            @can('calculate', $run)
+                <flux:button size="sm" icon="play" wire:click="calculate">{{ $run->status === \App\Modules\Payroll\Enums\PayrollRunStatus::Draft ? __('Calculate') : __('Calculate again') }}</flux:button>
+            @endcan
+            @can('update', $run)
                 <flux:button size="sm" icon="pencil-square" x-on:click="$dispatch('edit-payroll-run', { id: {{ $run->id }} })">{{ __('Edit') }}</flux:button>
+            @endcan
+            @can('submit', $run)
+                <flux:button size="sm" variant="primary" icon="paper-airplane" x-on:click="$dispatch('confirm', {
+                    title: @js(__('Submit :code for approval?', ['code' => $run->code])),
+                    message: @js(__('From now on its numbers cannot change, unless an approver sends it back or you take it back.')),
+                    confirmText: @js(__('Submit')),
+                    onConfirm: () => $wire.submit(),
+                })">{{ __('Submit for approval') }}</flux:button>
+            @endcan
+            @can('withdraw', $run)
+                <flux:button size="sm" icon="arrow-uturn-left" x-on:click="$dispatch('confirm', {
+                    title: @js(__('Take :code back?', ['code' => $run->code])),
+                    message: @js(__('The approvers are no longer asked; the run can be changed and submitted again.')),
+                    confirmText: @js(__('Take back')),
+                    onConfirm: () => $wire.withdraw(),
+                })">{{ __('Take back') }}</flux:button>
+            @endcan
+            @can('lock', $run)
+                <flux:button size="sm" variant="primary" icon="lock-closed" x-on:click="$dispatch('confirm', {
+                    title: @js(__('Lock :code?', ['code' => $run->code])),
+                    message: @js(__('Locking is final: the run and the attendance of its period can never change again. Later changes are paid as arrears.')),
+                    confirmText: @js(__('Lock')),
+                    onConfirm: () => $wire.lock(),
+                })">{{ __('Lock') }}</flux:button>
             @endcan
             <flux:button size="sm" icon="chart-bar" x-on:click="$dispatch('show-payroll-run', { id: {{ $run->id }} })">{{ __('Progress') }}</flux:button>
         </div>
@@ -62,5 +86,15 @@
 
     @if ($run->note)
         <div class="border-t border-white/50 px-6 py-3 text-sm text-zinc-600 dark:border-white/10 dark:text-zinc-300">{{ $run->note }}</div>
+    @endif
+
+    @if ($run->approvalStatus() || $run->locked_at)
+        <div class="border-t border-white/50 px-6 py-4 dark:border-white/10">
+            <flux:heading size="sm" class="mb-3">{{ __('Approval') }}</flux:heading>
+            <x-approval-timeline :document="$run" />
+            @if ($run->locked_at)
+                <flux:text class="mt-3 text-sm">{{ __('Locked :date by :name.', ['date' => format_date($run->locked_at), 'name' => \App\Models\User::find($run->locked_by_user_id)?->name ?? '?']) }}</flux:text>
+            @endif
+        </div>
     @endif
 </div>

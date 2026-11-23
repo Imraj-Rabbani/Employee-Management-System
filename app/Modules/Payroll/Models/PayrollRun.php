@@ -13,7 +13,15 @@ use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Payroll\Database\Factories\PayrollRunFactory;
 use App\Modules\Payroll\Enums\PayrollRunStatus;
 use App\Modules\Payroll\Enums\PayrollRunType;
+use App\Modules\Payroll\Exceptions\PayrollLockedException;
+use App\Modules\Payroll\Policies\PayrollRunPolicy;
+use App\Modules\Payroll\Services\PayrollReview;
+use App\Modules\Workflow\Concerns\HasApprovals;
+use App\Modules\Workflow\Contracts\Approvable;
+use App\Modules\Workflow\Contracts\ShowsApprovalDetails;
+use App\Modules\Workflow\Models\Approval;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -49,16 +57,50 @@ use Illuminate\Support\Carbon;
  * @property int|null $created_by_user_id
  * @property bool $limited_to_list made for a list of codes: calculating again adds nobody (10.9)
  * @property Carbon|null $processed_at
+ * @property Carbon|null $submitted_at
+ * @property int|null $submitted_by_user_id
+ * @property Carbon|null $approved_at
  * @property Carbon|null $locked_at
  * @property int|null $locked_by_user_id
  * @property-read Entity|null $entity
  * @property-read SalaryHead|null $head
  */
 #[UseFactory(PayrollRunFactory::class)]
-class PayrollRun extends TenantModel
+#[UsePolicy(PayrollRunPolicy::class)]
+class PayrollRun extends TenantModel implements Approvable, ShowsApprovalDetails
 {
+    use HasApprovals;
+
     /** @use HasFactory<PayrollRunFactory> */
     use HasFactory;
+
+    /** Once locked only these may still change (locked → disbursed, Phase 13's disbursement stamps). */
+    private const CHANGEABLE_WHEN_FINAL = ['status', 'updated_at'];
+
+    /**
+     * The guard on the run itself (10.10): a locked / disbursed run keeps its numbers, dates and note; totals change
+     * only while it is open; only a draft / processed run may be deleted (its employees and items go with it).
+     */
+    protected static function booted(): void
+    {
+        static::updating(function (self $run) {
+            $was = PayrollRunStatus::from($run->getRawOriginal('status'));
+            $dirty = array_keys($run->getDirty());
+            if ($was->isFinal() && array_diff($dirty, self::CHANGEABLE_WHEN_FINAL) !== []) {
+                throw PayrollLockedException::for($run->code, $was->value);
+            }
+            $totals = ['total_gross', 'total_deductions', 'total_net', 'employee_count'];
+            if (! in_array($was, [PayrollRunStatus::Draft, PayrollRunStatus::Processing, PayrollRunStatus::Processed], true) && array_intersect($dirty, $totals) !== []) {
+                throw PayrollLockedException::for($run->code, $was->value);
+            }
+        });
+
+        static::deleting(function (self $run) {
+            if (! PayrollRunStatus::from($run->getRawOriginal('status'))->isEditable()) {
+                throw PayrollLockedException::for($run->code, $run->getRawOriginal('status'));
+            }
+        });
+    }
 
     /** status, totals and the lock stamps are NOT fillable: only the run's own steps may set them. */
     protected $fillable = ['code', 'year', 'month', 'cycle', 'period_start', 'period_end', 'pay_date', 'run_type', 'salary_head_id', 'entity_id', 'limited_to_list', 'note', 'created_by_user_id'];
@@ -85,6 +127,8 @@ class PayrollRun extends TenantModel
             'total_net' => MoneyCast::class,
             'employee_count' => 'integer',
             'processed_at' => 'datetime',
+            'submitted_at' => 'datetime',
+            'approved_at' => 'datetime',
             'limited_to_list' => 'boolean',
             'locked_at' => 'datetime',
         ];
@@ -202,5 +246,58 @@ class PayrollRun extends TenantModel
     public function head(): BelongsTo
     {
         return $this->belongsTo(SalaryHead::class, 'salary_head_id');
+    }
+
+    // ---- Approvable ------------------------------------------------------------------------
+
+    public function approvalType(): string
+    {
+        return 'payroll_run';
+    }
+
+    public function approvalSubject(): string
+    {
+        return __('Payroll run :code: :title, :count employees, net :net', [
+            'code' => $this->code, 'title' => $this->title(), 'count' => $this->employee_count, 'net' => $this->total_net->format(),
+        ]);
+    }
+
+    public function approvalContext(): array
+    {
+        return [
+            'entity_ids' => $this->entity_id ? [$this->entity_id] : [],
+            'amount' => (float) $this->total_net->toDecimal(),   // a workflow can add a level above some total
+        ];
+    }
+
+    public function onApproved(Approval $final): void
+    {
+        $this->status = PayrollRunStatus::Approved;
+        $this->approved_at = now();
+        $this->save();
+    }
+
+    /** Rejected: back to Processed, so it can be fixed, calculated again and submitted again. */
+    public function onRejected(Approval $final): void
+    {
+        $this->moveTo(PayrollRunStatus::Processed);
+    }
+
+    public function approvalDetailsView(): string
+    {
+        return 'payroll::approvals.payroll-run';
+    }
+
+    /** For the approval view: totals against the previous period and what the review found. */
+    public function reviewSummary(): array
+    {
+        $review = app(PayrollReview::class);
+        $previous = $review->previousRun($this);
+
+        return [
+            'previous' => $previous,
+            'net' => PayrollReview::change($this->total_net, $previous?->total_net),
+            'exceptions' => array_map(fn (array $g) => ['label' => $g['label'], 'count' => count($g['items'])], $review->exceptions($this)),
+        ];
     }
 }

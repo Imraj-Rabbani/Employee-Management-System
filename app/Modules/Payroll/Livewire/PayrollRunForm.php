@@ -126,7 +126,7 @@ class PayrollRunForm extends Component
     private function update(): void
     {
         $run = $this->find((int) $this->recordId);
-        if (! $run->status->isEditable()) {
+        if (! Gate::allows('update', $run)) {
             $this->addError('form.note', __('This run has been submitted, so it cannot be changed.'));
 
             return;
@@ -165,7 +165,7 @@ class PayrollRunForm extends Component
         $deleted = 0;
         $problems = [];
         foreach (PayrollRun::query()->visibleTo(Auth::user())->whereKey($ids)->get() as $run) {
-            if (! $run->status->isEditable()) {
+            if (! Gate::allows('delete', $run)) {
                 $problems[] = $run->code.': '.__('only a run not yet submitted can be deleted.');
 
                 continue;
