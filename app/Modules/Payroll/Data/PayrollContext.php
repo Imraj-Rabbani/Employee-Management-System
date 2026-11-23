@@ -18,8 +18,10 @@ use Illuminate\Support\Collection;
  *   ResolvePeriod         period, periodDays, cycleShare, workFrom, workTo
  *   LoadSalaryStructure   salary, salaryFrom
  *   ComputePayableDays    payScale, payableDays, lwpDays, absentDays
- *   CalculateEarnings     lines
- *   Persist               writes lines + totals to the database
+ *   CalculateEarnings     lines (the salary)
+ *   Overtime              overtimeHours, a line on the Overtime head
+ *   Adjustments           adjustmentIds, a line per approved adjustment of the month
+ *   Persist               writes lines + totals to the database, marks the adjustments as taken by the run
  *
  * Any stage can add a note for the reviewer with warn(); the notes are saved with the employee's row.
  */
@@ -54,6 +56,12 @@ final class PayrollContext
     public float $lwpDays = 0.0;
 
     public float $absentDays = 0.0;
+
+    /** Approved overtime hours paid in this period. */
+    public float $overtimeHours = 0.0;
+
+    /** @var list<int> the payroll_adjustments this run pays for the employee (Persist stamps payroll_run_id) */
+    public array $adjustmentIds = [];
 
     /** @var list<PayrollLine> */
     public array $lines = [];

@@ -67,6 +67,7 @@ return [
             ['label' => 'Salary Setup', 'route' => 'payroll.setup', 'current' => 'payroll.setup*', 'can' => 'payroll.salary.manage'],
             ['label' => 'Employee Salaries', 'route' => null],
             ['label' => 'Payroll Runs', 'route' => 'payroll.runs', 'current' => 'payroll.runs*', 'can' => 'payroll.run.view'],
+            ['label' => 'Adjustments', 'route' => 'payroll.adjustments', 'current' => 'payroll.adjustments*', 'can' => 'payroll.adjustment.view'],
             ['label' => 'Increments', 'route' => null],
             ['label' => 'Incentives', 'route' => null],
             ['label' => 'Tax', 'route' => null],

@@ -3,6 +3,7 @@
 use App\Modules\Hrm\Exports\TemplateSheet;
 use App\Modules\Payroll\Exports\RosterExport;
 use App\Modules\Payroll\Exports\SalaryImportTemplate;
+use App\Modules\Payroll\Imports\AdjustmentImporter;
 use App\Modules\Payroll\Models\Roster;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
@@ -83,3 +84,15 @@ Route::middleware('can:payroll.salary.manage')->group(function () {
 
 // Payroll → Payroll runs: the list of runs (only those the user may see) and the New run form.
 Route::middleware('can:payroll.run.view')->get('runs', fn () => view('payroll::runs'))->name('runs');
+
+// Payroll → Adjustments: one-time earnings / deductions of the employees the user can see, and the import template.
+Route::middleware('can:payroll.adjustment.view')->prefix('adjustments')->name('adjustments')->group(function () {
+    Route::view('/', 'payroll::adjustments');
+    Route::get('template', fn () => Excel::download(
+        new TemplateSheet('Adjustments', AdjustmentImporter::COLUMNS, [
+            ['1001', 'SHIFT', now()->year, now()->month, '2000', 'Night shift allowance'],
+            ['1002', 'CANTEEN', now()->year, now()->month, '500', 'Canteen bill'],
+        ]),
+        'payroll-adjustments-template.xlsx',
+    ))->middleware('can:payroll.adjustment.manage')->name('.template');
+});

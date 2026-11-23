@@ -22,5 +22,7 @@ return [
         'payroll.run.view' => 'View payroll runs',
         'payroll.run.process' => 'Process payroll runs',
         'payroll.run.approve' => 'Approve payroll runs',
+        'payroll.adjustment.view' => 'View payroll adjustments (of the employees they can see)',
+        'payroll.adjustment.manage' => 'Enter, import and withdraw payroll adjustments (of the employees they can see)',
     ],
 ];

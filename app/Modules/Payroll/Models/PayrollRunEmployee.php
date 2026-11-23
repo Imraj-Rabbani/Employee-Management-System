@@ -29,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property string $payable_days
  * @property string $lwp_days
  * @property string $absent_days
+ * @property string $overtime_hours approved overtime hours paid (10.6)
  * @property Money $basic
  * @property Money $gross
  * @property Money $deductions
@@ -50,7 +51,7 @@ class PayrollRunEmployee extends TenantModel
 
     protected $fillable = [
         'payroll_run_id', 'employee_id', 'entity_id', 'bank_account_id',
-        'period_days', 'payable_days', 'lwp_days', 'absent_days', 'basic', 'gross', 'deductions', 'net',
+        'period_days', 'payable_days', 'lwp_days', 'absent_days', 'overtime_hours', 'basic', 'gross', 'deductions', 'net',
         'is_on_hold', 'hold_bank_transfer', 'is_separated', 'calc_status', 'warnings', 'error', 'calculated_at',
     ];
 
@@ -64,6 +65,7 @@ class PayrollRunEmployee extends TenantModel
             'payable_days' => 'decimal:2',
             'lwp_days' => 'decimal:2',
             'absent_days' => 'decimal:2',
+            'overtime_hours' => 'decimal:2',
             'basic' => MoneyCast::class,
             'gross' => MoneyCast::class,
             'deductions' => MoneyCast::class,

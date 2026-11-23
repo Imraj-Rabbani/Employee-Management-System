@@ -2,6 +2,7 @@
 
 namespace App\Modules\Payroll\Livewire;
 
+use App\Modules\Payroll\Enums\DayType;
 use App\Modules\Payroll\Enums\HeadRole;
 use App\Modules\Payroll\Models\PayScaleProfile;
 use App\Modules\Payroll\Models\SalaryHead;
@@ -13,7 +14,7 @@ use Livewire\Component;
 
 /**
  * Payroll → Salary Setup → Settings: which head does which job for the payroll run (head mapping, legacy headTax,
- * headPF ...) and the default pay scale profile.
+ * headPF ...), the default pay scale profile and how overtime is priced (basic ÷ divisor × multiplier of the day type).
  *
  * A head must be of the role's type (tax: deduction, overtime: earning ...), not the basic, and do one job only.
  */
@@ -24,6 +25,11 @@ class PayrollSettingsForm extends Component
 
     public string $defaultPayScale = '';
 
+    public string $otDivisor = '';
+
+    /** @var array<int, string> DayType value => multiplier */
+    public array $otMultipliers = [];
+
     public function mount(PayrollSettings $settings): void
     {
         $ids = $settings->headIds();
@@ -31,6 +37,10 @@ class PayrollSettingsForm extends Component
             $this->heads[$role->value] = (string) ($ids[$role->value] ?? '');
         }
         $this->defaultPayScale = (string) ($settings->defaultPayScale()->id ?? '');
+        $this->otDivisor = (string) $settings->overtimeDivisor();
+        foreach (DayType::cases() as $type) {
+            $this->otMultipliers[$type->value] = $settings->overtimeMultiplier($type);
+        }
     }
 
     public function save(): void
@@ -40,7 +50,13 @@ class PayrollSettingsForm extends Component
             'heads' => ['array'],
             'heads.*' => ['nullable', Rule::exists(SalaryHead::class, 'id')],
             'defaultPayScale' => ['nullable', Rule::exists(PayScaleProfile::class, 'id')],
-        ], attributes: ['heads.*' => __('head'), 'defaultPayScale' => __('default pay scale profile')]);
+            'otDivisor' => ['required', 'integer', 'between:1,744'],   // 744 = hours in a 31-day month
+            'otMultipliers' => ['array'],
+            'otMultipliers.*' => ['required', 'numeric', 'between:0,10', 'decimal:0,2'],
+        ], attributes: [
+            'heads.*' => __('head'), 'defaultPayScale' => __('default pay scale profile'),
+            'otDivisor' => __('hours per month'), 'otMultipliers.*' => __('times the hourly rate'),
+        ]);
 
         $chosen = array_filter(
             array_intersect_key($this->heads, array_flip(array_column(HeadRole::cases(), 'value'))),
@@ -71,6 +87,10 @@ class PayrollSettingsForm extends Component
         settings()->setMany([
             PayrollSettings::HEADS => array_map('intval', $chosen),
             PayrollSettings::DEFAULT_PAY_SCALE => $this->defaultPayScale !== '' ? (int) $this->defaultPayScale : null,
+            PayrollSettings::OVERTIME => [
+                'divisor' => (int) $this->otDivisor,
+                'multipliers' => collect(DayType::cases())->mapWithKeys(fn (DayType $t) => [$t->value => (string) ($this->otMultipliers[$t->value] ?? PayrollSettings::DEFAULT_OT_MULTIPLIER)])->all(),
+            ],
         ]);
         $this->dispatch('toast', message: __('Payroll settings saved.'), variant: 'success');
     }
@@ -88,6 +108,7 @@ class PayrollSettingsForm extends Component
 
         return view('payroll::livewire.payroll-settings-form', [
             'roles' => HeadRole::cases(),
+            'dayTypes' => DayType::cases(),
             'options' => $options,
             'payScales' => PayScaleProfile::where('is_active', true)->orWhere('id', (int) ($this->defaultPayScale ?: 0))->orderBy('name')->pluck('name', 'id')->all(),
         ]);
