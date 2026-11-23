@@ -10,9 +10,12 @@ use App\Modules\Payroll\Enums\PayrollRunStatus;
 use App\Modules\Payroll\Enums\PayrollRunType;
 use App\Modules\Payroll\Exceptions\PayrollException;
 use App\Modules\Payroll\Models\PayrollAdjustment;
+use App\Modules\Payroll\Models\PayrollArrear;
 use App\Modules\Payroll\Models\PayrollItem;
 use App\Modules\Payroll\Models\PayrollRunEmployee;
+use App\Modules\Payroll\Services\PayrollRunScope;
 use App\Modules\Payroll\Stages\Adjustments;
+use App\Modules\Payroll\Stages\Arrears;
 use App\Modules\Payroll\Stages\CalculateEarnings;
 use App\Modules\Payroll\Stages\ComputePayableDays;
 use App\Modules\Payroll\Stages\LoadSalaryStructure;
@@ -46,8 +49,11 @@ class CalculateEmployeePayroll
         CalculateEarnings::class,
         Overtime::class,
         Adjustments::class,
+        Arrears::class,
         Persist::class,
     ];
+
+    public function __construct(private PayrollRunScope $scope) {}
 
     public function handle(PayrollRunEmployee $row): PayrollRunEmployee
     {
@@ -62,7 +68,9 @@ class CalculateEmployeePayroll
             }
 
             // Payroll sees every employee of the run, whoever is logged in (or nobody: a queued job).
-            $employee = Employee::withoutGlobalScopes()->findOrFail($row->employee_id);
+            $employee = Employee::withoutGlobalScopes()->with(PayrollRunScope::WITH)->findOrFail($row->employee_id);
+            // Bank account, holds, entity, leaving: as they are NOW, not when the run was made (10.9).
+            $this->scope->refresh($row, $employee);
 
             app(Pipeline::class)
                 ->send(new PayrollContext($run, $row, $employee))
@@ -79,11 +87,12 @@ class CalculateEmployeePayroll
     {
         $row->getConnection()->transaction(function () use ($row, $message) {
             PayrollItem::where('payroll_run_employee_id', $row->id)->delete();   // no stale numbers next to an error
+            PayrollArrear::where('payroll_run_employee_id', $row->id)->delete();
             PayrollAdjustment::where('payroll_run_id', $row->payroll_run_id)->where('employee_id', $row->employee_id)
                 ->update(['payroll_run_id' => null]);                              // a later calculation takes them again
 
             $row->forceFill([
-                'payable_days' => 0, 'lwp_days' => 0, 'absent_days' => 0, 'overtime_hours' => 0,
+                'payable_days' => 0, 'lwp_days' => 0, 'absent_days' => 0, 'overtime_hours' => 0, 'joiner_deferred' => false,
                 'basic' => Money::zero(), 'gross' => Money::zero(), 'deductions' => Money::zero(), 'net' => Money::zero(),
                 'calc_status' => PayrollCalcStatus::Failed,
                 'warnings' => null,

@@ -4,6 +4,7 @@ use App\Modules\Hrm\Exports\TemplateSheet;
 use App\Modules\Payroll\Exports\RosterExport;
 use App\Modules\Payroll\Exports\SalaryImportTemplate;
 use App\Modules\Payroll\Imports\AdjustmentImporter;
+use App\Modules\Payroll\Models\PayrollRun;
 use App\Modules\Payroll\Models\Roster;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
@@ -82,8 +83,13 @@ Route::middleware('can:payroll.salary.manage')->group(function () {
     }
 });
 
-// Payroll → Payroll runs: the list of runs (only those the user may see) and the New run form.
-Route::middleware('can:payroll.run.view')->get('runs', fn () => view('payroll::runs'))->name('runs');
+// Payroll → Payroll runs: the list of runs (only those the user may see) and the New run form; one run's review page.
+Route::middleware('can:payroll.run.view')->prefix('runs')->name('runs')->group(function () {
+    Route::get('/', fn () => view('payroll::runs'));
+    Route::get('{id}', fn (int $id) => view('payroll::run-show', [
+        'run' => PayrollRun::query()->visibleTo(auth()->user())->findOrFail($id),
+    ]))->whereNumber('id')->name('.show');
+});
 
 // Payroll → Adjustments: one-time earnings / deductions of the employees the user can see, and the import template.
 Route::middleware('can:payroll.adjustment.view')->prefix('adjustments')->name('adjustments')->group(function () {

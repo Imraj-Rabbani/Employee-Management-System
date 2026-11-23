@@ -21,6 +21,7 @@ use Illuminate\Support\Collection;
  *   CalculateEarnings     lines (the salary)
  *   Overtime              overtimeHours, a line on the Overtime head
  *   Adjustments           adjustmentIds, a line per approved adjustment of the month
+ *   Arrears               arrears; adds them to the head's line (or a new line)
  *   Persist               writes lines + totals to the database, marks the adjustments as taken by the run
  *
  * Any stage can add a note for the reviewer with warn(); the notes are saved with the employee's row.
@@ -48,6 +49,14 @@ final class PayrollContext
     /** The employee's pay scale profile (own, else the company default); null = the default rules (deduct LWP and absence). */
     public ?PayScaleProfile $payScale = null;
 
+    /**
+     * Joined after the pay scale's threshold day: nothing is paid in this run; the next run pays it as arrears.
+     * ignoreThreshold: the Arrears stage recalculating that earlier period wants the days, not the deferral.
+     */
+    public bool $joinerDeferred = false;
+
+    public bool $ignoreThreshold = false;
+
     /** Days paid: the days worked in the period minus deducted LWP and absent days. 0 = nothing is paid. */
     public float $payableDays = 0.0;
 
@@ -62,6 +71,9 @@ final class PayrollContext
 
     /** @var list<int> the payroll_adjustments this run pays for the employee (Persist stamps payroll_run_id) */
     public array $adjustmentIds = [];
+
+    /** @var list<ArrearLine> back pay for earlier periods (the amounts are also in $lines) */
+    public array $arrears = [];
 
     /** @var list<PayrollLine> */
     public array $lines = [];

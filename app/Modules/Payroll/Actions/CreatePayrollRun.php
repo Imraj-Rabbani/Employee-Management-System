@@ -5,7 +5,6 @@ namespace App\Modules\Payroll\Actions;
 use App\Models\User;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\Entity;
-use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Payroll\Data\NewPayrollRun;
 use App\Modules\Payroll\Enums\HeadType;
@@ -13,8 +12,8 @@ use App\Modules\Payroll\Enums\PayrollRunType;
 use App\Modules\Payroll\Models\PayrollRun;
 use App\Modules\Payroll\Models\PayrollRunEmployee;
 use App\Modules\Payroll\Models\SalaryHead;
+use App\Modules\Payroll\Services\PayrollRunScope;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use InvalidArgumentException;
 
 /**
@@ -38,7 +37,10 @@ use InvalidArgumentException;
  */
 class CreatePayrollRun
 {
-    public function __construct(private EmployeeVisibility $visibility) {}
+    public function __construct(
+        private EmployeeVisibility $visibility,
+        private PayrollRunScope $runScope,
+    ) {}
 
     /** @return array{field: string, message: string}|null */
     public function problem(NewPayrollRun $input, User $user): ?array
@@ -114,13 +116,14 @@ class CreatePayrollRun
                 'run_type' => $input->type,
                 'salary_head_id' => $input->type->needsHead() ? $input->salaryHeadId : null,
                 'entity_id' => $input->entityId,
+                'limited_to_list' => $input->employeeCodes !== [],
                 'pay_date' => $input->payDate,
                 'note' => $input->note,
                 'created_by_user_id' => $user->id,
             ]);
             $run->setPeriod($input->period)->save();
 
-            $this->addEmployees($run, $this->scope($input)->with(['bankAccounts', 'entities.type'])->get());
+            $this->runScope->insertRows($run, $this->scope($input)->with(PayrollRunScope::WITH)->get());
             $run->refreshTotals();
 
             return $run;
@@ -133,14 +136,10 @@ class CreatePayrollRun
      *
      * @return Builder<Employee>
      */
+    /** @return Builder<Employee> */
     private function scope(NewPayrollRun $input): Builder
     {
-        return Employee::withoutGlobalScope(VisibleToCurrentUser::class)
-            ->whereDate('join_date', '<=', $input->period->end())
-            ->where(fn (Builder $q) => $q->whereNull('separation_date')->orWhereDate('separation_date', '>=', $input->period->start()))
-            ->when($input->entityId !== null, fn (Builder $q) => $q->inEntities([$input->entityId]))
-            ->when($input->employeeCodes !== [], fn (Builder $q) => $q->whereIn('code', $input->employeeCodes))
-            ->orderBy('code');
+        return $this->runScope->employees($input->period, $input->entityId, $input->employeeCodes);
     }
 
     /** Regular runs, and head-wise runs of one head, are guarded against paying the same people twice. */
@@ -190,36 +189,5 @@ class CreatePayrollRun
             ->map(fn (string $code) => (int) substr($code, strlen($prefix)))->max() ?? 0;
 
         return $prefix.str_pad((string) ($last + 1), 2, '0', STR_PAD_LEFT);
-    }
-
-    /** @param  Collection<int, Employee>  $employees */
-    private function addEmployees(PayrollRun $run, Collection $employees): void
-    {
-        $period = $run->period();
-        $now = now();
-        $rows = [];
-        foreach ($employees as $employee) {
-            // Whole-company run: the employee's entity of the first type (e.g. Department), for grouping and reports.
-            $entityId = $run->entity_id ?? $employee->entities->sortBy(fn (Entity $e) => [$e->type->sequence, $e->type->name])->first()?->id;
-
-            $rows[] = [
-                'payroll_run_id' => $run->id,
-                'employee_id' => $employee->id,
-                'entity_id' => $entityId,
-                'bank_account_id' => $employee->bankAccounts->firstWhere('is_primary', true)?->id,
-                'period_days' => $period->days(),
-                'is_on_hold' => (bool) $employee->salary_on_hold,
-                'hold_bank_transfer' => (bool) $employee->bank_transfer_on_hold,
-                'is_separated' => $employee->separation_date !== null && $period->contains($employee->separation_date->toDateString()),
-                'calc_status' => 'pending',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ];
-        }
-
-        // One INSERT per 500 rows instead of one per employee: a company payroll can have thousands.
-        foreach (array_chunk($rows, 500) as $chunk) {
-            PayrollRunEmployee::insert($chunk);
-        }
     }
 }

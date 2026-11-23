@@ -21,7 +21,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Payroll → Payroll runs: the list, newest period first. Only runs the user may see (PayrollRun::visibleTo).
- * Filters: year, type, status. Click a code to edit the run's pay date / note (the run's own page is 10.8).
+ * Filters: year, type, status. Click a code for the run's own page (review: register, exceptions); Edit changes
+ * its pay date / note.
  *
  * View: app/Modules/Payroll/resources/views/livewire/payroll-run-table.blade.php
  */

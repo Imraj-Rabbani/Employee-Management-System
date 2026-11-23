@@ -20,7 +20,7 @@ use Closure;
  * The rules come from the employee's pay scale profile (PayrollSettings::payScaleFor); without one both are deducted.
  *
  * Late joiners: with a threshold day (pay scale), someone who joined in this period AFTER that day of the month is
- * not paid in this run (payable 0, a warning); their days are paid in next month's run as arrears (10.7).
+ * not paid in this run (payable 0, joinerDeferred, a warning); the next run pays those days as arrears (Stages\Arrears).
  *
  * Attendance: an employee with NO processed days in the period is taken as "not on attendance" (nothing deducted,
  * no warning). Some days processed but others missing → a warning: the missing days are not counted as absent.
@@ -41,9 +41,10 @@ class ComputePayableDays
         $ctx->absentDays = 0.0;
         $worked = (float) ((int) $ctx->workFrom->diffInDays($ctx->workTo) + 1);
 
-        if ($this->joinedAfterThreshold($ctx)) {
+        if (! $ctx->ignoreThreshold && $this->joinedAfterThreshold($ctx)) {
             $ctx->payableDays = 0.0;
-            $ctx->warn(__('Joined on :date, after the threshold day :day: this period is paid with next month\'s salary.', [
+            $ctx->joinerDeferred = true;
+            $ctx->warn(__('Joined on :date, after the threshold day :day: this period is paid with next month\'s salary as arrears.', [
                 'date' => format_date($ctx->employee->join_date), 'day' => $ctx->payScale->threshold_day,
             ]));
 

@@ -8,6 +8,7 @@ use App\Core\Tenancy\TenantAwareJob;
 use App\Modules\Payroll\Actions\CalculateEmployeePayroll;
 use App\Modules\Payroll\Enums\PayrollCalcStatus;
 use App\Modules\Payroll\Models\PayrollAdjustment;
+use App\Modules\Payroll\Models\PayrollArrear;
 use App\Modules\Payroll\Models\PayrollItem;
 use App\Modules\Payroll\Models\PayrollRunEmployee;
 use Illuminate\Bus\Batchable;
@@ -62,6 +63,7 @@ class CalculateEmployeePayrollJob implements ShouldQueue
 
             report($e);
             PayrollItem::where('payroll_run_employee_id', $row->id)->delete();
+            PayrollArrear::where('payroll_run_employee_id', $row->id)->delete();
             PayrollAdjustment::where('payroll_run_id', $row->payroll_run_id)->where('employee_id', $row->employee_id)->update(['payroll_run_id' => null]);
             $row->forceFill([
                 'basic' => Money::zero(), 'gross' => Money::zero(), 'deductions' => Money::zero(), 'net' => Money::zero(),

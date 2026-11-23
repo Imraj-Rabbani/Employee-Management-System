@@ -7,7 +7,9 @@ use App\Modules\Payroll\Data\PayrollLine;
 use App\Modules\Payroll\Data\SalaryBreakdown;
 use App\Modules\Payroll\Data\SalaryLine;
 use App\Modules\Payroll\Enums\PayrollCalcStatus;
+use App\Modules\Payroll\Data\ArrearLine;
 use App\Modules\Payroll\Models\PayrollAdjustment;
+use App\Modules\Payroll\Models\PayrollArrear;
 use App\Modules\Payroll\Models\PayrollItem;
 use Closure;
 
@@ -20,7 +22,8 @@ use Closure;
  * the same rows, never double ones. One transaction: a half-written payslip cannot exist.
  *
  * Adjustments: the ones paid now are stamped with the run; ones this run took before but no longer pays (withdrawn
- * meanwhile) are let go. A negative net pay is saved, with a warning for the reviewer.
+ * meanwhile) are let go. Arrears (back pay for earlier periods) are written to the payroll_arrears ledger.
+ * A negative net pay is saved, with a warning for the reviewer.
  */
 class Persist
 {
@@ -49,9 +52,28 @@ class Persist
             'updated_at' => $now,
         ], $ctx->lines);
 
-        $ctx->row->getConnection()->transaction(function () use ($ctx, $totals, $items, $now) {
+        $arrears = array_map(fn (ArrearLine $a) => [
+            'payroll_run_id' => $ctx->run->id,
+            'payroll_run_employee_id' => $ctx->row->id,
+            'employee_id' => $ctx->employee->id,
+            'salary_head_id' => $a->head->id,
+            'for_payroll_run_id' => $a->forRow->payroll_run_id,
+            'for_payroll_run_employee_id' => $a->forRow->id,
+            'for_period_start' => $a->forRow->run->period_start->toDateString(),
+            'for_period_end' => $a->forRow->run->period_end->toDateString(),
+            'reason' => $a->reason->value,
+            'due' => $a->due->toDecimal(),
+            'paid_before' => $a->paidBefore->toDecimal(),
+            'amount' => $a->amount->toDecimal(),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], $ctx->arrears);
+
+        $ctx->row->getConnection()->transaction(function () use ($ctx, $totals, $items, $arrears, $now) {
             PayrollItem::where('payroll_run_employee_id', $ctx->row->id)->delete();
             PayrollItem::insert($items);
+            PayrollArrear::where('payroll_run_employee_id', $ctx->row->id)->delete();
+            PayrollArrear::insert($arrears);
 
             PayrollAdjustment::query()->where('payroll_run_id', $ctx->run->id)->where('employee_id', $ctx->employee->id)
                 ->whereNotIn('id', $ctx->adjustmentIds)->update(['payroll_run_id' => null]);
@@ -65,6 +87,7 @@ class Persist
                 'lwp_days' => $ctx->lwpDays,
                 'absent_days' => $ctx->absentDays,
                 'overtime_hours' => $ctx->overtimeHours,
+                'joiner_deferred' => $ctx->joinerDeferred,
                 'basic' => $totals->basic,
                 'gross' => $totals->gross,
                 'deductions' => $totals->deductions,

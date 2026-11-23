@@ -11,7 +11,7 @@
     Open:   <flux:modal.trigger name="employee-form"><flux:button>Add</flux:button></flux:modal.trigger>
     Close from Livewire after saving:   Flux::modal('employee-form')->close();
 
-    size: md (default, one column of fields) or lg (wider, for two-column forms).
+    size: md (default, one column of fields), lg (wider, for two-column forms) or xl (tables, e.g. a payroll breakdown).
 --}}
 @props(['name', 'heading' => null, 'subheading' => null, 'size' => 'md'])
 
@@ -20,6 +20,7 @@
         'w-full rounded-2xl dark:!bg-brand-900',
         'md:max-w-lg' => $size === 'md',
         'md:max-w-3xl' => $size === 'lg',
+        'md:max-w-5xl' => $size === 'xl',
     ]) }}>
     <div class="space-y-6">
         @if ($heading)

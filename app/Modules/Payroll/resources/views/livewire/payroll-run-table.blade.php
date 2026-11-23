@@ -128,11 +128,8 @@
                             <input type="checkbox" wire:model="selected" value="{{ $run->getKey() }}" class="size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 dark:border-white/20 dark:bg-white/10" aria-label="{{ __('Tick this row') }}">
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap">
-                            @can('payroll.run.process')
-                                <button type="button" x-on:click="$dispatch('edit-payroll-run', { id: {{ $run->id }} })" class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $run->code }}</button>
-                            @else
-                                {{ $run->code }}
-                            @endcan
+                            {{-- The run's own page: register, exceptions, per-employee breakdown (10.8). --}}
+                            <a href="{{ route('payroll.runs.show', $run->id) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $run->code }}</a>
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap">{{ $run->period()->label() }}</td>
                         <td class="px-4 py-3">{{ $run->run_type->label() }}@if ($run->head) <span class="text-zinc-500 dark:text-zinc-400">· {{ $run->head->name }}</span>@endif</td>

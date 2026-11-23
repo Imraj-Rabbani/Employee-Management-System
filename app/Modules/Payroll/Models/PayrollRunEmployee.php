@@ -30,6 +30,7 @@ use Illuminate\Support\Carbon;
  * @property string $lwp_days
  * @property string $absent_days
  * @property string $overtime_hours approved overtime hours paid (10.6)
+ * @property bool $joiner_deferred joined after the threshold day: nothing paid here, the next run pays it as arrears
  * @property Money $basic
  * @property Money $gross
  * @property Money $deductions
@@ -52,7 +53,7 @@ class PayrollRunEmployee extends TenantModel
     protected $fillable = [
         'payroll_run_id', 'employee_id', 'entity_id', 'bank_account_id',
         'period_days', 'payable_days', 'lwp_days', 'absent_days', 'overtime_hours', 'basic', 'gross', 'deductions', 'net',
-        'is_on_hold', 'hold_bank_transfer', 'is_separated', 'calc_status', 'warnings', 'error', 'calculated_at',
+        'is_on_hold', 'hold_bank_transfer', 'is_separated', 'joiner_deferred', 'calc_status', 'warnings', 'error', 'calculated_at',
     ];
 
     protected $attributes = ['calc_status' => 'pending'];
@@ -73,6 +74,7 @@ class PayrollRunEmployee extends TenantModel
             'is_on_hold' => 'boolean',
             'hold_bank_transfer' => 'boolean',
             'is_separated' => 'boolean',
+            'joiner_deferred' => 'boolean',
             'calc_status' => PayrollCalcStatus::class,
             'warnings' => 'array',
             'calculated_at' => 'datetime',

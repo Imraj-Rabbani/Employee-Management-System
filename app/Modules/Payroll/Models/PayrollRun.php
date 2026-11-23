@@ -47,6 +47,7 @@ use Illuminate\Support\Carbon;
  * @property int $employee_count
  * @property string|null $note
  * @property int|null $created_by_user_id
+ * @property bool $limited_to_list made for a list of codes: calculating again adds nobody (10.9)
  * @property Carbon|null $processed_at
  * @property Carbon|null $locked_at
  * @property int|null $locked_by_user_id
@@ -60,7 +61,7 @@ class PayrollRun extends TenantModel
     use HasFactory;
 
     /** status, totals and the lock stamps are NOT fillable: only the run's own steps may set them. */
-    protected $fillable = ['code', 'year', 'month', 'cycle', 'period_start', 'period_end', 'pay_date', 'run_type', 'salary_head_id', 'entity_id', 'note', 'created_by_user_id'];
+    protected $fillable = ['code', 'year', 'month', 'cycle', 'period_start', 'period_end', 'pay_date', 'run_type', 'salary_head_id', 'entity_id', 'limited_to_list', 'note', 'created_by_user_id'];
 
     protected $attributes = ['status' => 'draft', 'cycle' => 'monthly', 'run_type' => 'regular'];
 
@@ -84,6 +85,7 @@ class PayrollRun extends TenantModel
             'total_net' => MoneyCast::class,
             'employee_count' => 'integer',
             'processed_at' => 'datetime',
+            'limited_to_list' => 'boolean',
             'locked_at' => 'datetime',
         ];
     }
