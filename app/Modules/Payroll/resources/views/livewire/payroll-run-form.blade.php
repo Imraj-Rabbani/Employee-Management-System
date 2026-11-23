@@ -64,6 +64,47 @@
                     @endif
                 </div>
 
+                @php
+                    $headWise = ($form['run_type'] ?? '') === 'head_wise';
+                    $upload = ($form['run_type'] ?? '') === 'off_cycle' || ($headWise && ($form['amount_basis'] ?? '') === 'upload');
+                @endphp
+                @if ($headWise)
+                    <flux:field>
+                        <flux:label>{{ __('Amounts from') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                        <flux:select aria-required="true" wire:model.live="form.amount_basis">
+                            @foreach ($bases as $basis)
+                                <flux:select.option :value="$basis->value">{{ $basis->label() }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:description>{{ \App\Modules\Payroll\Enums\AmountBasis::tryFrom($form['amount_basis'] ?? '')?->hint() }}</flux:description>
+                        <flux:error name="form.amount_basis" />
+                    </flux:field>
+
+                    @unless ($upload)
+                        {{-- Who is paid (legacy scheduled disbursements): empty = everyone in the scope. --}}
+                        <div class="space-y-4 rounded-xl border border-zinc-200/70 p-4 dark:border-white/10">
+                            <flux:checkbox.group wire:model="form.religions" :label="__('Religions')" :description="__('None ticked = everyone.')" class="flex flex-wrap gap-x-6">
+                                @foreach ($religionOptions as $optionValue => $optionLabel)
+                                    <flux:checkbox :value="$optionValue" :label="$optionLabel" />
+                                @endforeach
+                            </flux:checkbox.group>
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <flux:field>
+                                    <flux:label>{{ __('Joined before') }}</flux:label>
+                                    <flux:input type="date" wire:model="form.joined_before" />
+                                    <flux:error name="form.joined_before" />
+                                </flux:field>
+                                <div class="space-y-3 pt-1">
+                                    <flux:switch wire:model="form.confirmed_only" :label="__('Confirmed employees only')" />
+                                    <flux:switch wire:model="form.prorate_by_service" :label="__('Prorate by service this year')" />
+                                </div>
+                            </div>
+                        </div>
+                    @endunless
+                @elseif (($form['run_type'] ?? '') === 'off_cycle')
+                    <flux:text class="text-sm">{{ __('An off-cycle run pays uploaded amounts: upload the file on the run\'s page after saving.') }}</flux:text>
+                @endif
+
                 <flux:field>
                     <flux:label>{{ __('Scope') }}@unless ($wholeCompany) <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span>@endunless</flux:label>
                     <flux:select wire:model="form.entity_id" :aria-required="$wholeCompany ? 'false' : 'true'">
@@ -77,11 +118,13 @@
                     <flux:error name="form.entity_id" />
                 </flux:field>
 
-                <flux:field>
-                    <flux:label>{{ __('Only these employees') }}</flux:label>
-                    <flux:textarea wire:model="form.employee_codes" rows="2" :placeholder="__('e.g. E001, E002 (empty = everyone in the scope)')" />
-                    <flux:error name="form.employee_codes" />
-                </flux:field>
+                @unless ($upload)
+                    <flux:field>
+                        <flux:label>{{ __('Only these employees') }}</flux:label>
+                        <flux:textarea wire:model="form.employee_codes" rows="2" :placeholder="__('e.g. E001, E002 (empty = everyone in the scope)')" />
+                        <flux:error name="form.employee_codes" />
+                    </flux:field>
+                @endunless
             @endif
 
             <flux:field>

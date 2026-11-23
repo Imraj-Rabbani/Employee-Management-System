@@ -7,6 +7,8 @@ use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Payroll\Data\NewPayrollRun;
+use App\Modules\Payroll\Enums\AmountBasis;
+use App\Modules\Payroll\Enums\CalcMethod;
 use App\Modules\Payroll\Enums\HeadType;
 use App\Modules\Payroll\Enums\PayrollRunType;
 use App\Modules\Payroll\Models\PayrollRun;
@@ -55,9 +57,18 @@ class CreatePayrollRun
 
         if ($input->type->needsHead()) {
             $head = $input->salaryHeadId ? SalaryHead::find($input->salaryHeadId) : null;
-            if ($head === null || $head->type !== HeadType::Earning || ! $head->is_active) {
-                return ['field' => 'salary_head_id', 'message' => __('Choose the earning head this run pays.')];
+            if ($head === null || $head->type !== HeadType::Earning || ! $head->is_active || $head->is_basic) {
+                return ['field' => 'salary_head_id', 'message' => __('Choose the earning head this run pays (not the basic).')];
             }
+            if ($input->basis() === AmountBasis::HeadRule && ! in_array($head->calc_method, [CalcMethod::Fixed, CalcMethod::PercentOfBasic, CalcMethod::PercentOfGross], true)) {
+                return ['field' => 'amount_basis', 'message' => __(':head has no rule the run can use (fixed, % of basic or % of gross). Choose another basis.', ['head' => $head->name])];
+            }
+        }
+        if ($input->basis() === AmountBasis::Upload && $input->employeeCodes !== []) {
+            return ['field' => 'employee_codes', 'message' => __('An upload run takes the employees of its file: leave the codes empty.')];
+        }
+        if ($input->type === PayrollRunType::HeadWise && $input->joinedBefore !== null && $input->joinedBefore->gt($input->period->end()->addDay())) {
+            return ['field' => 'joined_before', 'message' => __('"Joined before" cannot be after the period.')];
         }
 
         if ($input->payDate !== null && $input->payDate->lt($input->period->start())) {
@@ -76,11 +87,12 @@ class CreatePayrollRun
 
         if ($clash = $this->clashingRun($input)) {
             return ['field' => 'period', 'message' => __(':code already pays :period for :scope. Open that run, or delete it first.', [
-                'code' => $clash->code, 'period' => $input->period->label(), 'scope' => $clash->entity?->name ?? __('the whole company'),
+                'code' => $clash->code, 'period' => $input->period->label(), 'scope' => $clash->entity->name ?? __('the whole company'),
             ])];
         }
 
-        if ($this->guarded($input)) {
+        // Upload runs: checked per employee when the file is uploaded (RunAmountImporter).
+        if ($this->guarded($input) && $input->basis()?->usesScope() !== false) {
             $taken = PayrollRunEmployee::query()
                 ->whereIn('payroll_run_id', $this->overlappingRuns($input)->select('id'))
                 ->whereIn('employee_id', $this->scope($input)->select('employees.id'))
@@ -94,7 +106,7 @@ class CreatePayrollRun
             }
         }
 
-        if (! $this->scope($input)->exists()) {
+        if ($input->basis()?->usesScope() !== false && ! $this->scope($input)->exists()) {
             return ['field' => 'entity_id', 'message' => __('Nobody in this scope is employed in :period.', ['period' => $input->period->label()])];
         }
 
@@ -115,6 +127,11 @@ class CreatePayrollRun
                 'code' => $this->nextCode($input),
                 'run_type' => $input->type,
                 'salary_head_id' => $input->type->needsHead() ? $input->salaryHeadId : null,
+                'amount_basis' => $input->basis(),
+                'religions' => $input->eligibility()['religions'] ?: null,
+                'confirmed_only' => $input->eligibility()['confirmed_only'],
+                'joined_before' => $input->eligibility()['joined_before'],
+                'prorate_by_service' => $input->type === PayrollRunType::HeadWise && $input->prorateByService,
                 'entity_id' => $input->entityId,
                 'limited_to_list' => $input->employeeCodes !== [],
                 'pay_date' => $input->payDate,
@@ -123,7 +140,10 @@ class CreatePayrollRun
             ]);
             $run->setPeriod($input->period)->save();
 
-            $this->runScope->insertRows($run, $this->scope($input)->with(PayrollRunScope::WITH)->get());
+            // An upload run starts empty: its file brings the employees (RunAmountImporter).
+            if ($input->basis()?->usesScope() !== false) {
+                $this->runScope->insertRows($run, $this->scope($input)->with(PayrollRunScope::WITH)->get());
+            }
             $run->refreshTotals();
 
             return $run;
@@ -139,7 +159,7 @@ class CreatePayrollRun
     /** @return Builder<Employee> */
     private function scope(NewPayrollRun $input): Builder
     {
-        return $this->runScope->employees($input->period, $input->entityId, $input->employeeCodes);
+        return $this->runScope->employees($input->period, $input->entityId, $input->employeeCodes, $input->eligibility());
     }
 
     /** Regular runs, and head-wise runs of one head, are guarded against paying the same people twice. */
@@ -165,7 +185,9 @@ class CreatePayrollRun
     /** A run of the same kind and overlapping period for the same entity, or where either side is the whole company. */
     private function clashingRun(NewPayrollRun $input): ?PayrollRun
     {
-        if (! $this->guarded($input)) {
+        // Only regular runs: head-wise runs of one head may be split by eligibility (Eid bonus for some, Puja bonus
+        // for others, same head and month); paying someone twice is stopped per employee ($taken in problem()).
+        if ($input->type !== PayrollRunType::Regular) {
             return null;
         }
 

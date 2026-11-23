@@ -30,16 +30,33 @@ class PayrollRunScope
 
     /**
      * @param  list<string>  $codes  [] = everyone in the scope
+     * @param  array{religions?: list<int>, confirmed_only?: bool, joined_before?: \DateTimeInterface|null}  $eligibility  head-wise runs
      * @return Builder<Employee>
      */
-    public function employees(Period $period, ?int $entityId, array $codes = []): Builder
+    public function employees(Period $period, ?int $entityId, array $codes = [], array $eligibility = []): Builder
     {
+        $religions = $eligibility['religions'] ?? [];
+        $joinedBefore = $eligibility['joined_before'] ?? null;
+
         return Employee::withoutGlobalScope(VisibleToCurrentUser::class)
             ->whereDate('join_date', '<=', $period->end())
             ->where(fn (Builder $q) => $q->whereNull('separation_date')->orWhereDate('separation_date', '>=', $period->start()))
             ->when($entityId !== null, fn (Builder $q) => $q->inEntities([$entityId]))
             ->when($codes !== [], fn (Builder $q) => $q->whereIn('code', $codes))
+            ->when($religions !== [], fn (Builder $q) => $q->whereIn('religion', $religions))
+            ->when($eligibility['confirmed_only'] ?? false, fn (Builder $q) => $q->whereNotNull('confirmation_date')->whereDate('confirmation_date', '<=', $period->end()))
+            ->when($joinedBefore !== null, fn (Builder $q) => $q->whereDate('join_date', '<', $joinedBefore))
             ->orderBy('code');
+    }
+
+    /** @return array{religions: list<int>, confirmed_only: bool, joined_before: ?\DateTimeInterface} the run's head-wise rules */
+    public function eligibilityOf(PayrollRun $run): array
+    {
+        return [
+            'religions' => array_map('intval', $run->religions ?? []),
+            'confirmed_only' => $run->confirmed_only,
+            'joined_before' => $run->joined_before,
+        ];
     }
 
     /** @return array<string, mixed> the snapshot columns of payroll_run_employees */
@@ -75,10 +92,15 @@ class PayrollRunScope
     public function sync(PayrollRun $run): array
     {
         $current = $run->employees()->pluck('employee_id')->all();
-        $codes = $run->limited_to_list
-            ? Employee::withoutGlobalScopes()->whereIn('id', $current)->pluck('code')->all()
-            : [];
-        $inScope = $this->employees($run->period(), $run->entity_id, $codes)->pluck('employees.id')->all();
+        if ($run->isUploadRun()) {
+            // The upload says who: still employed in the period and in the run's entity.
+            $inScope = $this->employees($run->period(), $run->entity_id)->whereIn('employees.id', $run->amounts()->select('employee_id'))->pluck('employees.id')->all();
+        } else {
+            $codes = $run->limited_to_list
+                ? Employee::withoutGlobalScopes()->whereIn('id', $current)->pluck('code')->all()
+                : [];
+            $inScope = $this->employees($run->period(), $run->entity_id, $codes, $this->eligibilityOf($run))->pluck('employees.id')->all();
+        }
 
         $out = array_values(array_diff($current, $inScope));
         if ($out !== []) {
@@ -100,7 +122,7 @@ class PayrollRunScope
     }
 
     /** @return list<int> employees in another run of the same guarded kind whose period overlaps */
-    private function paidElsewhere(PayrollRun $run): array
+    public function paidElsewhere(PayrollRun $run): array
     {
         if (! in_array($run->run_type, [PayrollRunType::Regular, PayrollRunType::HeadWise], true)) {
             return [];

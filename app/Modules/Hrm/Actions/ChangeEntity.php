@@ -6,6 +6,7 @@ use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\EmployeeEntity;
 use App\Modules\Hrm\Models\Entity;
 use DateTimeInterface;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use LogicException;
@@ -136,7 +137,7 @@ class ChangeEntity
         });
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\HasMany<EmployeeEntity, Employee> newest first */
+    /** @return HasMany<EmployeeEntity, Employee> newest first */
     private function rowsOfType(Employee $employee, int $typeId)
     {
         return $employee->entityAssignments()->where('entity_type_id', $typeId);

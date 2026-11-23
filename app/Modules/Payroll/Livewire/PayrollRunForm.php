@@ -4,9 +4,11 @@ namespace App\Modules\Payroll\Livewire;
 
 use App\Core\Support\Period;
 use App\Core\Support\PeriodCycle;
+use App\Modules\Hrm\Enums\Religion;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Payroll\Actions\CreatePayrollRun;
 use App\Modules\Payroll\Data\NewPayrollRun;
+use App\Modules\Payroll\Enums\AmountBasis;
 use App\Modules\Payroll\Enums\HeadType;
 use App\Modules\Payroll\Enums\PayrollRunType;
 use App\Modules\Payroll\Models\PayrollRun;
@@ -54,6 +56,11 @@ class PayrollRunForm extends Component
             'cycle' => PeriodCycle::Monthly->value,
             'run_type' => PayrollRunType::Regular->value,
             'salary_head_id' => '',
+            'amount_basis' => AmountBasis::HeadRule->value,
+            'religions' => [],
+            'confirmed_only' => false,
+            'joined_before' => '',
+            'prorate_by_service' => false,
             'entity_id' => $limited ? (string) (array_key_first($this->entities()) ?? '') : '',
             'employee_codes' => '',
             'pay_date' => '',
@@ -93,6 +100,12 @@ class PayrollRunForm extends Component
             'form.cycle' => ['required', Rule::enum(PeriodCycle::class)],
             'form.run_type' => ['required', Rule::in([PayrollRunType::Regular->value, PayrollRunType::HeadWise->value, PayrollRunType::OffCycle->value])],
             'form.salary_head_id' => ['nullable', 'integer'],
+            'form.amount_basis' => ['nullable', Rule::enum(AmountBasis::class)],
+            'form.religions' => ['array'],
+            'form.religions.*' => [Rule::enum(Religion::class)],
+            'form.confirmed_only' => ['boolean'],
+            'form.joined_before' => ['nullable', 'date'],
+            'form.prorate_by_service' => ['boolean'],
             'form.entity_id' => ['nullable', 'integer'],
             'form.employee_codes' => ['nullable', 'string', 'max:20000'],
             'form.pay_date' => ['nullable', 'date'],
@@ -109,6 +122,11 @@ class PayrollRunForm extends Component
             employeeCodes: self::codes($values['employee_codes'] ?? ''),
             payDate: ($values['pay_date'] ?? '') === '' ? null : CarbonImmutable::parse($values['pay_date']),
             note: ($values['note'] ?? '') === '' ? null : $values['note'],
+            amountBasis: ($values['amount_basis'] ?? '') === '' ? null : AmountBasis::from($values['amount_basis']),
+            religions: array_map('intval', $values['religions'] ?? []),
+            confirmedOnly: (bool) ($values['confirmed_only'] ?? false),
+            joinedBefore: ($values['joined_before'] ?? '') === '' ? null : CarbonImmutable::parse($values['joined_before']),
+            prorateByService: (bool) ($values['prorate_by_service'] ?? false),
         );
 
         if ($problem = $action->problem($input, Auth::user())) {
@@ -215,6 +233,8 @@ class PayrollRunForm extends Component
             'units' => $this->entities(),
             'wholeCompany' => app(EmployeeVisibility::class)->entityIdsFor(Auth::user()) === null,
             'heads' => $run ? [] : SalaryHead::query()->where('type', HeadType::Earning)->where('is_active', true)->where('is_basic', false)->ordered()->pluck('name', 'id')->all(),
+            'bases' => AmountBasis::cases(),
+            'religionOptions' => Religion::options(),
             'types' => array_intersect_key(PayrollRunType::options(), array_flip([PayrollRunType::Regular->value, PayrollRunType::HeadWise->value, PayrollRunType::OffCycle->value])),
         ]);
     }

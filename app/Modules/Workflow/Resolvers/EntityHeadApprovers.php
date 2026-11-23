@@ -2,8 +2,8 @@
 
 namespace App\Modules\Workflow\Resolvers;
 
-use App\Modules\Hrm\Models\EmployeeEntity;
 use App\Modules\Hrm\Models\Employee;
+use App\Modules\Hrm\Models\EmployeeEntity;
 use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use App\Modules\Workflow\Contracts\Approvable;

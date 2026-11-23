@@ -165,8 +165,10 @@ class ProcessPayrollRunTest extends TestCase
         $action = app(ProcessPayrollRun::class);
         $this->employee('A1');
 
-        $run = $this->makeRun(PayrollRunType::OffCycle);
-        $this->assertSame('Off-cycle runs cannot be calculated yet.', $action->problem($run));
+        $run = $this->makeRun(PayrollRunType::OffCycle);   // an upload run (10.11)
+        $this->assertSame('Upload the amounts first.', $action->problem($run));
+        $settlement = PayrollRun::factory()->forPeriod(Period::of(2027, 2))->create(['run_type' => PayrollRunType::FinalSettlement]);
+        $this->assertSame('Final settlement runs cannot be calculated yet.', $action->problem($settlement));
 
         $run = $this->makeRun();
         $run->forceFill(['status' => PayrollRunStatus::Pending])->save();

@@ -2,12 +2,12 @@
 
 namespace App\Modules\Payroll\Stages;
 
+use App\Modules\Payroll\Data\ArrearLine;
 use App\Modules\Payroll\Data\PayrollContext;
 use App\Modules\Payroll\Data\PayrollLine;
 use App\Modules\Payroll\Data\SalaryBreakdown;
 use App\Modules\Payroll\Data\SalaryLine;
 use App\Modules\Payroll\Enums\PayrollCalcStatus;
-use App\Modules\Payroll\Data\ArrearLine;
 use App\Modules\Payroll\Models\PayrollAdjustment;
 use App\Modules\Payroll\Models\PayrollArrear;
 use App\Modules\Payroll\Models\PayrollItem;

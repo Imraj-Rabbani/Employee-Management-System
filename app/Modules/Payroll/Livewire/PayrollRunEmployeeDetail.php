@@ -86,7 +86,9 @@ class PayrollRunEmployeeDetail extends Component
                     ->sortBy(fn (PayrollItem $i) => [$i->head->sequence, $i->head->name])->values();
                 if ($items->isNotEmpty()) {
                     $groups[] = [
-                        'label' => match ($type) { HeadType::Earning => __('Earnings'), HeadType::Deduction => __('Deductions'), default => __('Information (not paid)') },
+                        'label' => match ($type) {
+                            HeadType::Earning => __('Earnings'), HeadType::Deduction => __('Deductions'), default => __('Information (not paid)')
+                        },
                         'items' => $items,
                         'total' => $items->reduce(fn (Money $sum, PayrollItem $i) => $sum->add($i->amount), Money::zero()),
                     ];

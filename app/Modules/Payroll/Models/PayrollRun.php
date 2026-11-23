@@ -8,9 +8,11 @@ use App\Core\Support\Money;
 use App\Core\Support\Period;
 use App\Core\Support\PeriodCycle;
 use App\Models\User;
+use App\Modules\Hrm\Enums\Religion;
 use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Services\EmployeeVisibility;
 use App\Modules\Payroll\Database\Factories\PayrollRunFactory;
+use App\Modules\Payroll\Enums\AmountBasis;
 use App\Modules\Payroll\Enums\PayrollRunStatus;
 use App\Modules\Payroll\Enums\PayrollRunType;
 use App\Modules\Payroll\Exceptions\PayrollLockedException;
@@ -46,6 +48,11 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $pay_date
  * @property PayrollRunType $run_type
  * @property int|null $salary_head_id head-wise runs only
+ * @property AmountBasis|null $amount_basis head-wise: where the amounts come from; off-cycle: Upload; regular: null
+ * @property list<int>|null $religions head-wise eligibility: Religion values, null = any
+ * @property bool $confirmed_only head-wise eligibility: confirmed employees only
+ * @property Carbon|null $joined_before head-wise eligibility: joined before this date
+ * @property bool $prorate_by_service head-wise: joined this year → share of the year since joining
  * @property int|null $entity_id NULL = whole company
  * @property PayrollRunStatus $status
  * @property string|null $batch_id
@@ -61,6 +68,8 @@ use Illuminate\Support\Carbon;
  * @property int|null $submitted_by_user_id
  * @property Carbon|null $approved_at
  * @property Carbon|null $locked_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property int|null $locked_by_user_id
  * @property-read Entity|null $entity
  * @property-read SalaryHead|null $head
@@ -103,7 +112,7 @@ class PayrollRun extends TenantModel implements Approvable, ShowsApprovalDetails
     }
 
     /** status, totals and the lock stamps are NOT fillable: only the run's own steps may set them. */
-    protected $fillable = ['code', 'year', 'month', 'cycle', 'period_start', 'period_end', 'pay_date', 'run_type', 'salary_head_id', 'entity_id', 'limited_to_list', 'note', 'created_by_user_id'];
+    protected $fillable = ['code', 'year', 'month', 'cycle', 'period_start', 'period_end', 'pay_date', 'run_type', 'salary_head_id', 'amount_basis', 'religions', 'confirmed_only', 'joined_before', 'prorate_by_service', 'entity_id', 'limited_to_list', 'note', 'created_by_user_id'];
 
     protected $attributes = ['status' => 'draft', 'cycle' => 'monthly', 'run_type' => 'regular'];
 
@@ -128,6 +137,11 @@ class PayrollRun extends TenantModel implements Approvable, ShowsApprovalDetails
             'employee_count' => 'integer',
             'processed_at' => 'datetime',
             'submitted_at' => 'datetime',
+            'amount_basis' => AmountBasis::class,
+            'religions' => 'array',
+            'confirmed_only' => 'boolean',
+            'joined_before' => 'date',
+            'prorate_by_service' => 'boolean',
             'approved_at' => 'datetime',
             'limited_to_list' => 'boolean',
             'locked_at' => 'datetime',
@@ -146,8 +160,8 @@ class PayrollRun extends TenantModel implements Approvable, ShowsApprovalDetails
         $this->year = $period->year;
         $this->month = $period->month;
         $this->cycle = $period->cycle;
-        $this->period_start = $period->start();
-        $this->period_end = $period->end();
+        $this->period_start = Carbon::instance($period->start());
+        $this->period_end = Carbon::instance($period->end());
 
         return $this;
     }
@@ -213,7 +227,7 @@ class PayrollRun extends TenantModel implements Approvable, ShowsApprovalDetails
         if ($this->run_type->needsHead() && $this->head) {
             $parts[] = $this->head->name;
         }
-        $parts[] = $this->entity?->name ?? __('Whole company');
+        $parts[] = $this->entity->name ?? __('Whole company');
 
         return implode(' · ', $parts);
     }
@@ -230,7 +244,11 @@ class PayrollRun extends TenantModel implements Approvable, ShowsApprovalDetails
         return $this->hasMany(PayrollItem::class);
     }
 
-    /** Adjustments this run has taken. @return HasMany<PayrollAdjustment, $this> */
+    /**
+     * Adjustments this run has taken.
+     *
+     * @return HasMany<PayrollAdjustment, $this>
+     */
     public function adjustments(): HasMany
     {
         return $this->hasMany(PayrollAdjustment::class);
@@ -288,7 +306,11 @@ class PayrollRun extends TenantModel implements Approvable, ShowsApprovalDetails
         return 'payroll::approvals.payroll-run';
     }
 
-    /** For the approval view: totals against the previous period and what the review found. */
+    /**
+     * For the approval view: totals against the previous period and what the review found.
+     *
+     * @return array{previous: ?PayrollRun, net: array{diff: Money, percent: float|null}, exceptions: list<array{label: string, count: int}>}
+     */
     public function reviewSummary(): array
     {
         $review = app(PayrollReview::class);
@@ -297,7 +319,32 @@ class PayrollRun extends TenantModel implements Approvable, ShowsApprovalDetails
         return [
             'previous' => $previous,
             'net' => PayrollReview::change($this->total_net, $previous?->total_net),
-            'exceptions' => array_map(fn (array $g) => ['label' => $g['label'], 'count' => count($g['items'])], $review->exceptions($this)),
+            'exceptions' => array_values(array_map(fn (array $g) => ['label' => $g['label'], 'count' => count($g['items'])], $review->exceptions($this))),
         ];
+    }
+
+    /** Takes only the employees of its upload (head-wise with uploaded amounts, or off-cycle). */
+    public function isUploadRun(): bool
+    {
+        return $this->amount_basis === AmountBasis::Upload;
+    }
+
+    /** "Islam, Hinduism · confirmed · joined before 1 Apr 2027 · prorated by service", for the header. */
+    public function eligibilitySummary(): ?string
+    {
+        $parts = array_filter([
+            $this->religions ? implode(', ', array_map(fn ($r) => Religion::from((int) $r)->label(), $this->religions)) : null,
+            $this->confirmed_only ? __('confirmed only') : null,
+            $this->joined_before ? __('joined before :date', ['date' => format_date($this->joined_before)]) : null,
+            $this->prorate_by_service ? __('prorated by service this year') : null,
+        ]);
+
+        return $parts === [] ? null : implode(' · ', $parts);
+    }
+
+    /** @return HasMany<PayrollRunAmount, $this> */
+    public function amounts(): HasMany
+    {
+        return $this->hasMany(PayrollRunAmount::class);
     }
 }

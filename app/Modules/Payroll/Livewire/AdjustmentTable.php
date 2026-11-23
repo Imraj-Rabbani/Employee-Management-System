@@ -101,7 +101,7 @@ class AdjustmentTable extends Component
             $a->employee ? $a->employee->code.' · '.$a->employee->name : '—',
             $a->period()->label(),
             $a->head->name ?? '—',
-            $a->head?->type->label() ?? '—',
+            $a->head->type->label(),
             $a->amount->toDecimal(),
             $a->reason,
             $a->statusBadge()[0],

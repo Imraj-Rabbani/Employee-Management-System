@@ -105,7 +105,7 @@ class PayrollAdjustment extends TenantModel implements Approvable, ShowsApproval
     /** +1 000.00 for an earning, −500.00 for a deduction: how lists show it. */
     public function signedAmount(): string
     {
-        return ($this->head?->type === HeadType::Deduction ? '−' : '+').$this->amount->format();
+        return ($this->head->type === HeadType::Deduction ? '−' : '+').$this->amount->format();
     }
 
     /** @param  Builder<self>  $query */

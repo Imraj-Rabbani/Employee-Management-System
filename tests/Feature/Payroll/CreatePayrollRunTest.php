@@ -138,11 +138,11 @@ class CreatePayrollRunTest extends TestCase
         Employee::factory()->create(['code' => 'A2', 'join_date' => '2025-01-01']);
         Employee::factory()->create(['code' => 'A3', 'join_date' => '2025-01-01']);
 
-        $problem = $this->problem(new NewPayrollRun(Period::of(2026, 12), PayrollRunType::OffCycle, employeeCodes: ['A1', 'ZZ9']));
+        $problem = $this->problem(new NewPayrollRun(Period::of(2026, 12), employeeCodes: ['A1', 'ZZ9']));
         $this->assertSame('employee_codes', $problem['field']);
         $this->assertStringContainsString('ZZ9', $problem['message']);
 
-        $run = $this->make(new NewPayrollRun(Period::of(2026, 12), PayrollRunType::OffCycle, employeeCodes: ['A1', 'A3']));
+        $run = $this->make(new NewPayrollRun(Period::of(2026, 12), employeeCodes: ['A1', 'A3']));
         $this->assertSame(2, $run->employee_count);
         $this->assertSame(['A1', 'A3'], $run->employees()->with('employee')->get()->pluck('employee.code')->sort()->values()->all());
     }

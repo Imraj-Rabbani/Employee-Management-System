@@ -53,7 +53,7 @@ class ComputePayableDays
 
         $unpaid = $this->leave->unpaidLeaveDays($ctx->employee, $ctx->workFrom, $ctx->workTo);
         $lwp = (float) array_sum($unpaid);
-        if ($lwp > 0 && ($ctx->payScale?->deduct_lwp ?? true)) {
+        if ($lwp > 0 && ($ctx->payScale->deduct_lwp ?? true)) {
             $ctx->lwpDays = $lwp;
         } elseif ($lwp > 0) {
             $ctx->warn(__(':days day(s) of leave without pay not deducted (pay scale profile :name).', [
@@ -61,7 +61,7 @@ class ComputePayableDays
             ]));
         }
 
-        if ($ctx->payScale?->deduct_absent ?? true) {
+        if ($ctx->payScale->deduct_absent ?? true) {
             $ctx->absentDays = $this->absentDays($ctx, $unpaid, $worked);
         }
 
@@ -75,7 +75,7 @@ class ComputePayableDays
 
     private function joinedAfterThreshold(PayrollContext $ctx): bool
     {
-        $threshold = $ctx->payScale?->threshold_day ?? 0;
+        $threshold = $ctx->payScale->threshold_day ?? 0;
         $join = $ctx->employee->join_date;
 
         return $threshold > 0

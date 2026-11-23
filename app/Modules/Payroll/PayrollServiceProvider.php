@@ -9,14 +9,14 @@ use App\Modules\Hrm\Contracts\WorkCalendar;
 use App\Modules\Payroll\Console\ProcessAttendanceCommand;
 use App\Modules\Payroll\Console\SyncDevicePunches;
 use App\Modules\Payroll\Contracts\LeaveCalendar;
-use App\Modules\Payroll\Listeners\ReopenSentBackRun;
-use App\Modules\Workflow\Events\ApprovalAnswered;
-use Illuminate\Support\Facades\Event;
 use App\Modules\Payroll\Contracts\PunchDeviceClient;
+use App\Modules\Payroll\Listeners\ReopenSentBackRun;
 use App\Modules\Payroll\Services\AttendanceWorkCalendar;
 use App\Modules\Payroll\Services\ComparableSalaries;
 use App\Modules\Payroll\Services\NoLeaveCalendar;
 use App\Modules\Payroll\Services\ZktecoClient;
+use App\Modules\Workflow\Events\ApprovalAnswered;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 
 class PayrollServiceProvider extends ModuleServiceProvider

@@ -21,8 +21,9 @@ use Illuminate\Database\Eloquent\Collection;
  *     $review->exceptions($run)         what a reviewer should look at before submitting, grouped
  *     PayrollReview::change($now, $before)   ['diff' => Money, 'percent' => ?float]
  *
- * "Previous period" = the latest regular run that ended before this one started, at most two months back (a
- * half-month run compares with the other half). Only rows that were calculated Ok count.
+ * "Previous period" = the latest run OF THE SAME KIND (regular with regular; head-wise with the same head; off-cycle
+ * with off-cycle) that ended before this one started: at most two months back for regular runs (a half-month run
+ * compares with the other half), a year back for the others (last year's festival bonus). Only Ok rows count.
  */
 class PayrollReview
 {
@@ -35,10 +36,11 @@ class PayrollReview
         return PayrollRunEmployee::query()
             ->select('payroll_run_employees.*')
             ->join('payroll_runs as r', 'r.id', '=', 'payroll_run_employees.payroll_run_id')
-            ->where('r.run_type', PayrollRunType::Regular->value)
+            ->where('r.run_type', $run->run_type->value)
+            ->when($run->salary_head_id !== null, fn ($q) => $q->where('r.salary_head_id', $run->salary_head_id))
             ->where('r.id', '!=', $run->id)
             ->where('r.period_end', '<', $run->period_start->toDateString())
-            ->where('r.period_start', '>=', $run->period_start->copy()->subMonthsNoOverflow(2)->startOfMonth()->toDateString())
+            ->where('r.period_start', '>=', $run->period_start->copy()->subMonthsNoOverflow($this->lookBack($run))->startOfMonth()->toDateString())
             ->where('payroll_run_employees.calc_status', PayrollCalcStatus::Ok->value)
             ->whereIn('payroll_run_employees.employee_id', PayrollRunEmployee::query()->where('payroll_run_id', $run->id)->select('employee_id'))
             ->orderBy('r.period_start')->orderBy('r.id')
@@ -47,10 +49,17 @@ class PayrollReview
             ->keyBy('employee_id');   // the latest period wins
     }
 
+    /** Months back to look for the previous run. */
+    private function lookBack(PayrollRun $run): int
+    {
+        return $run->run_type === PayrollRunType::Regular ? 2 : 13;
+    }
+
     public function previousRun(PayrollRun $run): ?PayrollRun
     {
         return PayrollRun::query()
-            ->where('run_type', PayrollRunType::Regular)
+            ->where('run_type', $run->run_type)
+            ->when($run->salary_head_id !== null, fn ($q) => $q->where('salary_head_id', $run->salary_head_id))
             ->whereKeyNot($run->id)
             ->where('entity_id', $run->entity_id)
             ->where('cycle', $run->cycle)
@@ -156,7 +165,7 @@ class PayrollReview
                 $add('net', __('Net :net.', ['net' => $row->net->format()]));
             }
             if ($row->is_separated) {
-                $add('leaving', __('Leaves on :date.', ['date' => format_date($row->employee?->separation_date)]));
+                $add('leaving', __('Leaves on :date.', ['date' => format_date($row->employee->separation_date)]));
             }
             if ($row->is_on_hold || $row->hold_bank_transfer) {
                 $add('hold', $row->is_on_hold ? __('Salary on hold.') : __('Bank transfer on hold.'));

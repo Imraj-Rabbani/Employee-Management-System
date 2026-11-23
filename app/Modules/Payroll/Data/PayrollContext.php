@@ -5,9 +5,9 @@ namespace App\Modules\Payroll\Data;
 use App\Core\Support\Period;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Payroll\Models\EmployeeSalary;
-use App\Modules\Payroll\Models\PayScaleProfile;
 use App\Modules\Payroll\Models\PayrollRun;
 use App\Modules\Payroll\Models\PayrollRunEmployee;
+use App\Modules\Payroll\Models\PayScaleProfile;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
@@ -61,7 +61,6 @@ final class PayrollContext
     public float $payableDays = 0.0;
 
     /** Deducted days only: LWP that the pay scale does not deduct is 0 here (and a warning). */
-
     public float $lwpDays = 0.0;
 
     public float $absentDays = 0.0;
@@ -72,7 +71,7 @@ final class PayrollContext
     /** @var list<int> the payroll_adjustments this run pays for the employee (Persist stamps payroll_run_id) */
     public array $adjustmentIds = [];
 
-    /** @var list<ArrearLine> back pay for earlier periods (the amounts are also in $lines) */
+    /** @var list<ArrearLine> back pay for earlier periods (the amounts are also in) */
     public array $arrears = [];
 
     /** @var list<PayrollLine> */

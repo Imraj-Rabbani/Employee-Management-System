@@ -6,6 +6,7 @@ use App\Modules\Payroll\Exports\SalaryImportTemplate;
 use App\Modules\Payroll\Imports\AdjustmentImporter;
 use App\Modules\Payroll\Models\PayrollRun;
 use App\Modules\Payroll\Models\Roster;
+use App\Modules\Payroll\Services\PayrollRunScope;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -89,6 +90,14 @@ Route::middleware('can:payroll.run.view')->prefix('runs')->name('runs')->group(f
     Route::get('{id}', fn (int $id) => view('payroll::run-show', [
         'run' => PayrollRun::query()->visibleTo(auth()->user())->findOrFail($id),
     ]))->whereNumber('id')->name('.show');
+    // An upload run's template: its scope's employees, prefilled with the run's head (head-wise).
+    Route::get('{id}/amounts-template', function (int $id) {
+        $run = PayrollRun::query()->visibleTo(auth()->user())->with('head')->findOrFail($id);
+        $rows = app(PayrollRunScope::class)->employees($run->period(), $run->entity_id)->get(['code', 'first_name', 'last_name'])
+            ->map(fn ($e) => [$e->code, $e->name, $run->head->code ?? '', '', ''])->all();
+
+        return Excel::download(new TemplateSheet('Amounts', ['employee_code', 'employee_name', 'head', 'amount', 'note'], $rows), $run->code.'-amounts.xlsx');
+    })->whereNumber('id')->middleware('can:payroll.run.process')->name('.amounts-template');
 });
 
 // Payroll → Adjustments: one-time earnings / deductions of the employees the user can see, and the import template.

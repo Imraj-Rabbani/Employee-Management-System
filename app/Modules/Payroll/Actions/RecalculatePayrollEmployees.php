@@ -6,7 +6,6 @@ use App\Modules\Payroll\Enums\PayrollCalcStatus;
 use App\Modules\Payroll\Enums\PayrollRunStatus;
 use App\Modules\Payroll\Enums\PayrollRunType;
 use App\Modules\Payroll\Models\PayrollRun;
-use App\Modules\Payroll\Models\PayrollRunEmployee;
 use InvalidArgumentException;
 
 /**
@@ -29,7 +28,7 @@ class RecalculatePayrollEmployees
     public function problem(PayrollRun $run, array $rowIds): ?string
     {
         return match (true) {
-            $run->run_type !== PayrollRunType::Regular => __(':type runs cannot be calculated yet.', ['type' => $run->run_type->label()]),
+            $run->run_type === PayrollRunType::FinalSettlement => __(':type runs cannot be calculated yet.', ['type' => $run->run_type->label()]),
             ! $run->status->isEditable() => __('This run is :status, so it cannot be calculated again.', ['status' => strtolower($run->status->label())]),
             $rowIds === [] => __('Tick the employees to calculate again.'),
             count($rowIds) > self::MAX => __('At most :max employees at a time: calculate the whole run instead.', ['max' => self::MAX]),

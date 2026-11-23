@@ -18,10 +18,12 @@ use App\Modules\Payroll\Stages\Adjustments;
 use App\Modules\Payroll\Stages\Arrears;
 use App\Modules\Payroll\Stages\CalculateEarnings;
 use App\Modules\Payroll\Stages\ComputePayableDays;
+use App\Modules\Payroll\Stages\HeadWiseAmount;
 use App\Modules\Payroll\Stages\LoadSalaryStructure;
 use App\Modules\Payroll\Stages\Overtime;
 use App\Modules\Payroll\Stages\Persist;
 use App\Modules\Payroll\Stages\ResolvePeriod;
+use App\Modules\Payroll\Stages\UploadedAmounts;
 use Illuminate\Pipeline\Pipeline;
 use LogicException;
 
@@ -53,6 +55,12 @@ class CalculateEmployeePayroll
         Persist::class,
     ];
 
+    /** A head-wise run that pays by the head's rule or the employee's salary (10.11). */
+    public const HEAD_WISE_STAGES = [ResolvePeriod::class, HeadWiseAmount::class, Persist::class];
+
+    /** An upload run: off-cycle, or head-wise with uploaded amounts (10.11). */
+    public const UPLOAD_STAGES = [ResolvePeriod::class, UploadedAmounts::class, Persist::class];
+
     public function __construct(private PayrollRunScope $scope) {}
 
     public function handle(PayrollRunEmployee $row): PayrollRunEmployee
@@ -63,9 +71,12 @@ class CalculateEmployeePayroll
         }
 
         try {
-            if ($run->run_type !== PayrollRunType::Regular) {
-                throw new PayrollException(__(':type runs are not calculated yet.', ['type' => $run->run_type->label()]));
-            }
+            $stages = match (true) {
+                $run->run_type === PayrollRunType::Regular => self::STAGES,
+                $run->isUploadRun() => self::UPLOAD_STAGES,
+                $run->run_type === PayrollRunType::HeadWise => self::HEAD_WISE_STAGES,
+                default => throw new PayrollException(__(':type runs are not calculated yet.', ['type' => $run->run_type->label()])),
+            };
 
             // Payroll sees every employee of the run, whoever is logged in (or nobody: a queued job).
             $employee = Employee::withoutGlobalScopes()->with(PayrollRunScope::WITH)->findOrFail($row->employee_id);
@@ -74,7 +85,7 @@ class CalculateEmployeePayroll
 
             app(Pipeline::class)
                 ->send(new PayrollContext($run, $row, $employee))
-                ->through(self::STAGES)
+                ->through($stages)
                 ->thenReturn();
         } catch (PayrollException $e) {
             $this->fail($row, $e->getMessage());

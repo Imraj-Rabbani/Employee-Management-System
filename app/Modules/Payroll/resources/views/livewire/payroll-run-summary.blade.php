@@ -10,6 +10,8 @@
             <flux:heading size="lg">{{ $run->code }} · {{ $run->title() }}</flux:heading>
             <flux:text class="mt-1">
                 {{ $run->run_type->label() }}@if ($run->head) · {{ $run->head->name }}@endif
+                @if ($run->amount_basis) · {{ $run->amount_basis->label() }}@endif
+                @if ($run->eligibilitySummary()) · {{ $run->eligibilitySummary() }}@endif
                 · {{ $run->entity?->label() ?? __('Whole company') }}
                 · {{ __('Pay date :date', ['date' => format_date($run->pay_date) ?: '—']) }}
                 @if ($run->processed_at) · {{ __('Calculated :when', ['when' => $run->processed_at->diffForHumans()]) }}@endif

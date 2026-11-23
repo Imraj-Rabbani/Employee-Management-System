@@ -31,8 +31,8 @@ use App\Modules\Workflow\Models\Workflow;
 use App\Modules\Workflow\Models\WorkflowStep;
 use App\Modules\Workflow\Services\WorkflowEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use LogicException;
 use Livewire\Livewire;
+use LogicException;
 use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 

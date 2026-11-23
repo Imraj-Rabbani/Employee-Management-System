@@ -12,6 +12,10 @@
 
         <livewire:payroll::payroll-run-summary :run-id="$run->id" />
 
+        @if ($run->isUploadRun())
+            <livewire:payroll::payroll-run-amounts :run-id="$run->id" />
+        @endif
+
         <div class="flex gap-1 border-b border-white/50 dark:border-white/10" role="tablist">
             @foreach (['register' => __('Register'), 'exceptions' => __('Exceptions')] as $tabKey => $tabLabel)
                 <button type="button" role="tab" x-on:click="tab = '{{ $tabKey }}'" x-bind:aria-selected="tab === '{{ $tabKey }}'"

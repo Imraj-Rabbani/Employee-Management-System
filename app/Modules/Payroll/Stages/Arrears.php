@@ -18,6 +18,7 @@ use App\Modules\Payroll\Models\PayrollRunEmployee;
 use App\Modules\Payroll\Models\SalaryHead;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Pipeline\Pipeline;
 
@@ -56,7 +57,7 @@ class Arrears
             return $next($ctx);
         }
 
-        if (! ($ctx->payScale?->pays_arrear ?? true)) {
+        if (! ($ctx->payScale->pays_arrear ?? true)) {
             $ctx->warn(__(':count earlier period(s) have back pay due: not paid (pay scale profile :name pays no arrears).', [
                 'count' => $rows->count(), 'name' => $ctx->payScale->name,
             ]));
@@ -77,8 +78,8 @@ class Arrears
         return $next($ctx);
     }
 
-    /** @return \Illuminate\Database\Eloquent\Collection<int, PayrollRunEmployee> oldest period first */
-    private function periodsToCorrect(PayrollContext $ctx): \Illuminate\Database\Eloquent\Collection
+    /** @return Collection<int, PayrollRunEmployee> oldest period first */
+    private function periodsToCorrect(PayrollContext $ctx): Collection
     {
         return PayrollRunEmployee::query()
             ->select('payroll_run_employees.*')

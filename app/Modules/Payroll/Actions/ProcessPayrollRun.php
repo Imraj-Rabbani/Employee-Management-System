@@ -43,7 +43,8 @@ class ProcessPayrollRun
     public function problem(PayrollRun $run): ?string
     {
         return match (true) {
-            $run->run_type !== PayrollRunType::Regular => __(':type runs cannot be calculated yet.', ['type' => $run->run_type->label()]),
+            $run->run_type === PayrollRunType::FinalSettlement => __(':type runs cannot be calculated yet.', ['type' => $run->run_type->label()]),
+            $run->isUploadRun() && ! $run->amounts()->exists() => __('Upload the amounts first.'),
             ! $run->status->isEditable() && $run->status !== PayrollRunStatus::Processing => __('This run is :status, so it cannot be calculated again.', ['status' => strtolower($run->status->label())]),
             $run->status === PayrollRunStatus::Processing && $this->isRunning($run) => __('This run is being calculated right now.'),
             ! $run->employees()->exists() => __('This run has no employees.'),

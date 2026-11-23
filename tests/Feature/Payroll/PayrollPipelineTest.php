@@ -218,16 +218,17 @@ class PayrollPipelineTest extends TestCase
         $this->assertStringContainsString('paid in a head-wise run', $row->warnings[0]);
     }
 
-    public function test_only_regular_runs_are_calculated_for_now(): void
+    public function test_final_settlement_runs_are_not_calculated_yet(): void
     {
         $employee = Employee::factory()->create(['join_date' => '2025-01-01']);
         $this->giveSalary($employee);
-        $run = app(CreatePayrollRun::class)->handle(new NewPayrollRun(Period::of(2026, 12), PayrollRunType::OffCycle), $this->admin);
+        $run = app(CreatePayrollRun::class)->handle(new NewPayrollRun(Period::of(2026, 12)), $this->admin);
+        $run->forceFill(['run_type' => PayrollRunType::FinalSettlement])->save();   // made in Phase 13
 
-        $row = app(CalculateEmployeePayroll::class)->handle($run->employees()->sole())->fresh();
+        $row = app(CalculateEmployeePayroll::class)->handle($run->employees()->sole()->fresh())->fresh();
 
         $this->assertSame(PayrollCalcStatus::Failed, $row->calc_status);
-        $this->assertSame('Off-cycle runs are not calculated yet.', $row->error);
+        $this->assertSame('Final settlement runs are not calculated yet.', $row->error);
     }
 
     public function test_a_submitted_run_cannot_be_calculated_again(): void
