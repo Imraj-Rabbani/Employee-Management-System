@@ -161,6 +161,11 @@ class AttendanceProcessingTest extends TestCase
             {
                 return ['2026-12-03' => true];
             }
+
+            public function unpaidLeaveDays(Employee $employee, CarbonImmutable $from, CarbonImmutable $to): array
+            {
+                return [];
+            }
         });
 
         $this->processDays('2026-12-03');

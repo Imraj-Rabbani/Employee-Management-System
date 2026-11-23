@@ -45,7 +45,7 @@ class PayrollSettingsTest extends TestCase
         $profile = PayScaleProfile::sole();
         $this->assertTrue($profile->pays_arrear);
         $this->assertSame(15, $profile->threshold_day);
-        $this->assertSame('Arrears paid · threshold day 15 · LWP deducted (not from lates)', $profile->summary());
+        $this->assertSame('Arrears paid · threshold day 15 · LWP deducted (not from lates) · absence deducted', $profile->summary());
 
         Livewire::test(PayScaleProfileTable::class)->assertSee('Regular staff')->assertSee('threshold day 15');
     }

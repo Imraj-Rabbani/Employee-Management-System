@@ -13,4 +13,9 @@ class NoLeaveCalendar implements LeaveCalendar
     {
         return [];
     }
+
+    public function unpaidLeaveDays(Employee $employee, CarbonImmutable $from, CarbonImmutable $to): array
+    {
+        return [];
+    }
 }

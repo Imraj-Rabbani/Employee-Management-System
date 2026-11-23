@@ -23,7 +23,7 @@ class PayScaleProfileForm extends LookupForm
     {
         return [
             'code' => '', 'name' => '', 'pays_arrear' => true, 'threshold_day' => 0,
-            'deduct_lwp' => true, 'ignore_late_lwp' => false, 'detail' => '', 'is_active' => true,
+            'deduct_lwp' => true, 'ignore_late_lwp' => false, 'deduct_absent' => true, 'detail' => '', 'is_active' => true,
         ];
     }
 
@@ -36,6 +36,7 @@ class PayScaleProfileForm extends LookupForm
             'threshold_day' => ['required', 'integer', 'between:0,28'],   // 28: every month has that day
             'deduct_lwp' => ['boolean'],
             'ignore_late_lwp' => ['boolean'],
+            'deduct_absent' => ['boolean'],
             'detail' => ['nullable', 'string', 'max:1000'],
             'is_active' => ['boolean'],
         ];

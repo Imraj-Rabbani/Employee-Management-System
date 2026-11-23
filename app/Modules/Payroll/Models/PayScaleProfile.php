@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $threshold_day joined AFTER this day of the month → first paid in the next month's run; 0 = no threshold
  * @property bool $deduct_lwp leave without pay reduces the salary
  * @property bool $ignore_late_lwp LWP that comes from late attendance is not deducted
+ * @property bool $deduct_absent absent days (attendance) reduce the salary; a half day counts 0.5
  * @property string|null $detail
  * @property bool $is_active
  */
@@ -29,9 +30,9 @@ class PayScaleProfile extends TenantModel
     /** @use HasFactory<PayScaleProfileFactory> */
     use HasFactory;
 
-    protected $fillable = ['code', 'name', 'pays_arrear', 'threshold_day', 'deduct_lwp', 'ignore_late_lwp', 'detail', 'is_active'];
+    protected $fillable = ['code', 'name', 'pays_arrear', 'threshold_day', 'deduct_lwp', 'ignore_late_lwp', 'deduct_absent', 'detail', 'is_active'];
 
-    protected $attributes = ['pays_arrear' => true, 'threshold_day' => 0, 'deduct_lwp' => true, 'ignore_late_lwp' => false, 'is_active' => true];
+    protected $attributes = ['pays_arrear' => true, 'threshold_day' => 0, 'deduct_lwp' => true, 'ignore_late_lwp' => false, 'deduct_absent' => true, 'is_active' => true];
 
     /** @return array<string, string> */
     protected function casts(): array
@@ -41,11 +42,12 @@ class PayScaleProfile extends TenantModel
             'threshold_day' => 'integer',
             'deduct_lwp' => 'boolean',
             'ignore_late_lwp' => 'boolean',
+            'deduct_absent' => 'boolean',
             'is_active' => 'boolean',
         ];
     }
 
-    /** "Arrears · threshold day 15 · LWP deducted (not from lates)", for the list. */
+    /** "Arrears · threshold day 15 · LWP deducted (not from lates) · absence deducted", for the list. */
     public function summary(): string
     {
         return collect([
@@ -56,6 +58,7 @@ class PayScaleProfile extends TenantModel
                 $this->ignore_late_lwp => __('LWP deducted (not from lates)'),
                 default => __('LWP deducted'),
             },
+            $this->deduct_absent ? __('absence deducted') : __('absence not deducted'),
         ])->implode(' · ');
     }
 

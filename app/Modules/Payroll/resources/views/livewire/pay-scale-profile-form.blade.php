@@ -29,6 +29,9 @@
             @if ($form['deduct_lwp'] ?? true)
                 <flux:switch wire:model="form.ignore_late_lwp" :label="__('Except LWP from late attendance')" :description="__('LWP that comes from lates (e.g. 3 lates = 1 day) is not deducted.')" />
             @endif
+
+            <flux:switch wire:model="form.deduct_absent" :label="__('Deduct absent days')" :description="__('Absent days from attendance reduce the salary; a half day counts as half. Switch off for staff who do not punch.')" />
+
             <flux:field>
                 <flux:label>{{ __('Detail') }}</flux:label>
                 <flux:textarea wire:model="form.detail" rows="2" />

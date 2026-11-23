@@ -13,18 +13,14 @@
 
     size: md (default, one column of fields) or lg (wider, for two-column forms).
 --}}
-@props([
-    'name',
-    'heading' => null,
-    'subheading' => null,
-    'size' => 'md',
-])
+@props(['name', 'heading' => null, 'subheading' => null, 'size' => 'md'])
 
-<flux:modal :name="$name" {{ $attributes->class([
-    'w-full rounded-2xl dark:!bg-brand-900',
-    'md:max-w-lg' => $size === 'md',
-    'md:max-w-3xl' => $size === 'lg',
-]) }}>
+<flux:modal :name="$name"
+    {{ $attributes->class([
+        'w-full rounded-2xl dark:!bg-brand-900',
+        'md:max-w-lg' => $size === 'md',
+        'md:max-w-3xl' => $size === 'lg',
+    ]) }}>
     <div class="space-y-6">
         @if ($heading)
             <div>

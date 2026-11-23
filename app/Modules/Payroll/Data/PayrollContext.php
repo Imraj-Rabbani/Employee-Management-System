@@ -5,6 +5,7 @@ namespace App\Modules\Payroll\Data;
 use App\Core\Support\Period;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Payroll\Models\EmployeeSalary;
+use App\Modules\Payroll\Models\PayScaleProfile;
 use App\Modules\Payroll\Models\PayrollRun;
 use App\Modules\Payroll\Models\PayrollRunEmployee;
 use Carbon\CarbonImmutable;
@@ -16,7 +17,7 @@ use Illuminate\Support\Collection;
  *
  *   ResolvePeriod         period, periodDays, cycleShare, workFrom, workTo
  *   LoadSalaryStructure   salary, salaryFrom
- *   ComputePayableDays    payableDays, lwpDays, absentDays
+ *   ComputePayableDays    payScale, payableDays, lwpDays, absentDays
  *   CalculateEarnings     lines
  *   Persist               writes lines + totals to the database
  *
@@ -42,7 +43,13 @@ final class PayrollContext
 
     public ?CarbonImmutable $salaryFrom = null;
 
+    /** The employee's pay scale profile (own, else the company default); null = the default rules (deduct LWP and absence). */
+    public ?PayScaleProfile $payScale = null;
+
+    /** Days paid: the days worked in the period minus deducted LWP and absent days. 0 = nothing is paid. */
     public float $payableDays = 0.0;
+
+    /** Deducted days only: LWP that the pay scale does not deduct is 0 here (and a warning). */
 
     public float $lwpDays = 0.0;
 

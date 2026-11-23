@@ -253,7 +253,7 @@ class PayrollPipelineTest extends TestCase
         $this->assertSame('2026-12-25', $ctx->workTo->toDateString());
         $this->assertSame('100', $ctx->cycleShare);
 
-        (new ComputePayableDays)->handle($ctx, fn ($c) => $c);
+        app(ComputePayableDays::class)->handle($ctx, fn ($c) => $c);
         $this->assertSame(6.0, $ctx->payableDays);
 
         // Left before the period: the stage refuses.
