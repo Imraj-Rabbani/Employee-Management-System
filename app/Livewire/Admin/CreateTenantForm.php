@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Core\Enums\Plan;
 use App\Core\Tenancy\CreateTenant;
 use App\Models\Tenant;
 use App\Models\User;
@@ -26,6 +27,8 @@ class CreateTenantForm extends Component
     /** @var list<string> */
     public array $modules = ['hrm', 'payroll'];
 
+    public string $plan = 'free';
+
     public string $adminName = '';
 
     public string $adminEmail = '';
@@ -48,6 +51,7 @@ class CreateTenantForm extends Component
             // Becomes part of the database name and the files folder, so keep it simple.
             'code' => ['required', 'string', 'max:30', 'regex:/^[a-z][a-z0-9_]*$/', Rule::unique(Tenant::class, 'code')],
             'name' => ['required', 'string', 'max:255'],
+            'plan' => ['required', Rule::enum(Plan::class)],
             'modules' => ['array'],
             'modules.*' => [Rule::in(array_keys(Tenant::OPTIONAL_MODULES))],
             'adminName' => ['required', 'string', 'max:255'],
@@ -92,6 +96,7 @@ class CreateTenantForm extends Component
                 adminEmail: $this->adminEmail,
                 adminPassword: $this->adminPassword,
                 modules: $this->modules,
+                plan: Plan::from($this->plan),
             );
         } catch (RuntimeException $e) {
             // e.g. "Database [ems_tenant_x] already exists". Everything was undone; show it on the form.

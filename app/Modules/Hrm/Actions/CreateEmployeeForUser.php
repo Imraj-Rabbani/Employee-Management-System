@@ -2,6 +2,7 @@
 
 namespace App\Modules\Hrm\Actions;
 
+use App\Core\Support\PlanLimits;
 use App\Models\User;
 use App\Modules\Hrm\Enums\Gender;
 use App\Modules\Hrm\Models\Employee;
@@ -38,21 +39,6 @@ class CreateEmployeeForUser
         ];
     }
 
-    /**
-     * "Md. Rahim Uddin" → first name "Md. Rahim", last name "Uddin" (one word: first name only).
-     *
-     * @return array{first_name: string, last_name: string|null}
-     */
-    public static function splitName(string $fullName): array
-    {
-        $fullName = trim((string) preg_replace('/\s+/', ' ', $fullName));
-        $last = strrpos($fullName, ' ');
-
-        return $last === false
-            ? ['first_name' => $fullName, 'last_name' => null]
-            : ['first_name' => substr($fullName, 0, $last), 'last_name' => substr($fullName, $last + 1)];
-    }
-
     /** @param  array<string, mixed>  $details  code, first_name, and optionally last_name, mobile, gender, birth_date */
     public function handle(User $user, array $details): Employee
     {
@@ -62,6 +48,11 @@ class CreateEmployeeForUser
 
         if (Employee::withoutGlobalScope(VisibleToCurrentUser::class)->where('user_id', $user->id)->exists()) {
             throw new LogicException('This login already belongs to an employee.');
+        }
+
+        // Callers check this first to show it nicely (JoinController); this only stops the rest.
+        if ($problem = app(PlanLimits::class)->employeeProblem()) {
+            throw new LogicException($problem);
         }
 
         $values = array_map(

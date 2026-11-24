@@ -2,6 +2,7 @@
 
 namespace App\Modules\Hrm\Livewire\Employees;
 
+use App\Core\Support\PlanLimits;
 use App\Modules\Hrm\Actions\ChangeEntity;
 use App\Modules\Hrm\Enums\Gender;
 use App\Modules\Hrm\Models\Designation;
@@ -34,6 +35,13 @@ class CreateEmployee extends Component
     {
         Gate::authorize('create', Employee::class);
 
+        // Plan full: say so at once instead of letting them fill in the whole form.
+        if ($problem = app(PlanLimits::class)->employeeProblem()) {
+            $this->dispatch('toast', message: $problem, variant: 'danger');
+
+            return;
+        }
+
         $this->form = [
             'code' => '', 'title' => '', 'first_name' => '', 'last_name' => '', 'name_local' => '', 'gender' => '',
             'join_date' => now()->toDateString(), 'designation_id' => '',
@@ -50,6 +58,12 @@ class CreateEmployee extends Component
     public function save(): void
     {
         Gate::authorize('create', Employee::class);
+
+        if ($problem = app(PlanLimits::class)->employeeProblem()) {
+            $this->addError('form.code', $problem);
+
+            return;
+        }
 
         $choices = $this->choices();
         $values = $this->validate([

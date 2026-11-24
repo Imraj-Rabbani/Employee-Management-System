@@ -2,6 +2,7 @@
 
 namespace App\Modules\Hrm\Livewire\Employees;
 
+use App\Core\Rules\FitsInStorage;
 use App\Core\Support\TenantUploads;
 use App\Modules\Hrm\Models\Employee;
 use Flux\Flux;
@@ -53,7 +54,7 @@ class PhotoForm extends Component
     public function save(TenantUploads $uploads): void
     {
         $employee = $this->employee();
-        $this->validate(['photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048']], attributes: ['photo' => __('photo')]);
+        $this->validate(['photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', new FitsInStorage]], attributes: ['photo' => __('photo')]);
 
         /** @var TemporaryUploadedFile $file */
         $file = $this->photo;

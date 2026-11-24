@@ -2,12 +2,14 @@
 
 namespace App\Modules\Core\Livewire;
 
+use App\Core\Support\PlanLimits;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 /**
  * Setup → Company Settings. The current company's general settings, saved with the Settings service.
+ * Also shows the company's plan and how much of its limits is used (PlanLimits), read-only.
  * The timezone is applied by the ApplyTenantSettings middleware; who may open this page: the route's can: rule.
  */
 class CompanySettings extends Component
@@ -67,8 +69,14 @@ class CompanySettings extends Component
             $currencies[$code] = "{$code} — {$name}";
         }
 
+        $limits = app(PlanLimits::class);
+        $plan = tenant()->plan;
+
         return view('core::livewire.company-settings', [
             'companyName' => tenant()?->name,
+            'plan' => $plan,
+            'employeesUsed' => $limits->employeeCount(),
+            'storageUsed' => $limits->storageUsed(),
             'timezones' => array_combine($timezones, array_map(fn (string $zone) => str_replace('_', ' ', $zone), $timezones)),
             'currencies' => $currencies,
             // e.g. "d/m/Y" => "05/11/2026"

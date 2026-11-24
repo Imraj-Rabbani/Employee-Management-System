@@ -51,7 +51,7 @@
                             <ul class="flex flex-1 flex-col gap-4 text-sm text-brand-100">
                                 <li class="flex gap-3">
                                     <span class="mt-1 size-1.5 shrink-0 rounded-full bg-brand-300"></span>
-                                    <span><strong class="text-white">Up to 10 users</strong></span>
+                                    <span><strong class="text-white">Up to 10 employees</strong></span>
                                 </li>
                                 <li class="flex gap-3">
                                     <span class="mt-1 size-1.5 shrink-0 rounded-full bg-brand-300"></span>
@@ -62,7 +62,7 @@
                                     <span>Core employee management features</span>
                                 </li>
                             </ul>
-                            <a href="{{ route('register') }}" class="mt-8 inline-flex w-full items-center justify-center rounded-lg border border-brand-500 bg-brand-800/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-700">
+                            <a href="{{ route('register', ['plan' => 'free']) }}" class="mt-8 inline-flex w-full items-center justify-center rounded-lg border border-brand-500 bg-brand-800/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-700">
                                 Start for free
                             </a>
                         </article>
@@ -98,7 +98,7 @@
                                     <span>Full HR, payroll, attendance, and workflow access</span>
                                 </li>
                             </ul>
-                            <a href="{{ route('register') }}" class="mt-8 inline-flex w-full items-center justify-center rounded-lg bg-ember-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-ember-950/20 transition hover:-translate-y-0.5 hover:bg-ember-500">
+                            <a href="{{ route('register', ['plan' => 'business']) }}" class="mt-8 inline-flex w-full items-center justify-center rounded-lg bg-ember-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-ember-950/20 transition hover:-translate-y-0.5 hover:bg-ember-500">
                                 Choose Business
                             </a>
                         </article>

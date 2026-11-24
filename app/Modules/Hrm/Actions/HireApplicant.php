@@ -2,6 +2,7 @@
 
 namespace App\Modules\Hrm\Actions;
 
+use App\Core\Support\PlanLimits;
 use App\Core\Support\TenantUploads;
 use App\Modules\Hrm\Enums\ApplicationStage;
 use App\Modules\Hrm\Enums\DocumentType;
@@ -35,7 +36,7 @@ use Throwable;
  * Salary is NOT set here: employee salaries are set in Payroll (the offer keeps the agreed gross).
  *
  * Rules: the offer is accepted, the application still at "Offered" and not hired before, the request
- * still has an opening, a unique employee code, and the position (if chosen) free.
+ * still has an opening, a unique employee code, the position (if chosen) free, and room in the plan.
  */
 class HireApplicant
 {
@@ -74,6 +75,10 @@ class HireApplicant
         };
         if ($message !== null) {
             return ['field' => 'code', 'message' => $message];
+        }
+
+        if ($problem = app(PlanLimits::class)->employeeProblem()) {
+            return ['field' => 'code', 'message' => $problem];
         }
 
         $employees = Employee::withoutGlobalScope(VisibleToCurrentUser::class);

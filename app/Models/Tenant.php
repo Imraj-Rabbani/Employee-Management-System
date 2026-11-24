@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Core\Enums\Plan;
 use App\Modules\Core\Models\FiscalYear;
 use Database\Factories\TenantFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +18,7 @@ use LogicException;
  * @property int $id
  * @property string $code
  * @property string $name
+ * @property Plan $plan
  * @property string $database
  * @property string|null $db_host
  * @property int|null $db_port
@@ -50,6 +52,7 @@ class Tenant extends Model
     protected $fillable = [
         'code',
         'name',
+        'plan',
         'database',
         'db_host',
         'db_port',
@@ -61,6 +64,11 @@ class Tenant extends Model
         'expires_at',
     ];
 
+    /** A new company is on the Free plan until it chooses otherwise (same as the column default). */
+    protected $attributes = [
+        'plan' => 'free',
+    ];
+
     /** Never include the DB password when a tenant is turned into an array/JSON. */
     protected $hidden = [
         'db_password',
@@ -70,6 +78,7 @@ class Tenant extends Model
     protected function casts(): array
     {
         return [
+            'plan' => Plan::class,
             'db_password' => 'encrypted',
             'modules' => 'array',
             'plugins' => 'array',

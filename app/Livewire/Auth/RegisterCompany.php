@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Auth;
 
+use App\Core\Enums\Plan;
 use App\Core\Tenancy\CreateTenant;
 use App\Models\Tenant;
 use App\Models\User;
@@ -19,11 +20,11 @@ use RuntimeException;
  * Public sign-up page (/register): someone registers their organisation and starts using it right away.
  *
  * One click does it all (CreateTenant action):
- *   - the company, with its own database and every module switched on; its code (used in the
+ *   - the company, on the plan they picked (Free / Business), with its own database and every module switched on; its code (used in the
  *     database name) is made from the organisation name, so the person never has to think of one
  *   - their login, with the company's Administrator role (every screen of THIS company only;
  *     "super admin" in this app is the platform owner, which a sign-up never becomes)
- *   - their employee record (Employee ID they chose), so they appear in HRM → Employees
+ *   - their employee record (Employee ID EMP-001, changeable later), so they appear in HRM → Employees
  * Then they are logged in and land on the dashboard. From Employees they can invite others.
  *
  * Each sign-up creates a whole database, so one IP address may sign up at most 3 times an hour.
@@ -33,29 +34,38 @@ class RegisterCompany extends Component
     /** Sign-ups allowed per IP address per hour. */
     public const MAX_PER_HOUR = 3;
 
+    /** The founder's Employee ID. Not asked on the form (kept short); they can change it on their profile. */
+    public const FIRST_EMPLOYEE_CODE = 'EMP-001';
+
+    /** "free" or "business" (App\Core\Enums\Plan). The pricing page links here with ?plan=business. */
+    public string $plan = 'free';
+
     public string $organisation = '';
 
-    public string $name = '';
+    public string $firstName = '';
+
+    /** Optional: some people have only one name. */
+    public string $lastName = '';
 
     public string $email = '';
 
-    public string $employeeCode = '';
-
     public string $password = '';
 
-    public string $passwordConfirmation = '';
+    public function mount(): void
+    {
+        $this->plan = Plan::tryFrom((string) request()->query('plan'))?->value ?? Plan::Free->value;
+    }
 
     /** @return array<string, mixed> */
     protected function rules(): array
     {
         return [
+            'plan' => ['required', Rule::enum(Plan::class)],
             'organisation' => ['required', 'string', 'max:255'],
-            'name' => ['required', 'string', 'max:200'],
+            'firstName' => ['required', 'string', 'max:100'],
+            'lastName' => ['nullable', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:255', Rule::unique(User::class, 'email')],
-            // The company's database is still empty, so any Employee ID is free.
-            'employeeCode' => ['required', 'string', 'max:50'],
             'password' => ['required', 'string', Password::min(8)],
-            'passwordConfirmation' => ['required', 'same:password'],
         ];
     }
 
@@ -64,8 +74,8 @@ class RegisterCompany extends Component
     {
         return [
             'organisation' => __('organisation name'),
-            'employeeCode' => __('employee ID'),
-            'passwordConfirmation' => __('password confirmation'),
+            'firstName' => __('first name'),
+            'lastName' => __('last name'),
         ];
     }
 
@@ -87,13 +97,15 @@ class RegisterCompany extends Component
             $tenant = $createTenant->handle(
                 code: $createTenant->codeFor($this->organisation),
                 name: $this->organisation,
-                adminName: $this->name,
+                adminName: trim($this->firstName.' '.$this->lastName),
                 adminEmail: $this->email,
                 adminPassword: $this->password,
                 modules: array_keys(Tenant::OPTIONAL_MODULES),
+                plan: Plan::from($this->plan),
                 then: fn (Tenant $tenant, User $admin) => $createEmployee->handle($admin, [
-                    'code' => $this->employeeCode,
-                    ...CreateEmployeeForUser::splitName($this->name),
+                    'code' => self::FIRST_EMPLOYEE_CODE,
+                    'first_name' => trim($this->firstName),
+                    'last_name' => trim($this->lastName),
                 ]),
             );
         } catch (RuntimeException $e) {
@@ -115,6 +127,6 @@ class RegisterCompany extends Component
 
     public function render(): View
     {
-        return view('livewire.auth.register-company');
+        return view('livewire.auth.register-company', ['plans' => Plan::cases()]);
     }
 }

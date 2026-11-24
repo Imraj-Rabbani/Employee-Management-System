@@ -2,6 +2,7 @@
 
 namespace App\Modules\Workflow\Livewire;
 
+use App\Core\Rules\FitsInStorage;
 use App\Core\Support\TenantUploads;
 use App\Models\User;
 use App\Modules\Workflow\Contracts\Approvable;
@@ -71,7 +72,7 @@ class RespondForm extends Component
     {
         $this->validate([
             'comment' => ['nullable', 'string', 'max:1000'],
-            'attachment' => ['nullable', 'file', 'max:5120', 'mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx'],
+            'attachment' => ['nullable', 'file', 'max:5120', 'mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx', new FitsInStorage],
             'amount' => ['nullable', 'numeric', 'min:0'],
         ]);
 

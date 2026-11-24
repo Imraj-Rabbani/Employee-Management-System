@@ -2,6 +2,7 @@
 
 namespace App\Modules\Hrm\Livewire\Employees;
 
+use App\Core\Rules\FitsInStorage;
 use App\Core\Support\TenantUploads;
 use App\Modules\Hrm\Enums\ImportStatus;
 use App\Modules\Hrm\Imports\EmployeeImporter;
@@ -28,7 +29,7 @@ class EmployeeImports extends Component
     public function start(TenantUploads $uploads): void
     {
         Gate::authorize('create', Employee::class);
-        $this->validate(['file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:10240']], attributes: ['file' => __('file')]);
+        $this->validate(['file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:10240', new FitsInStorage]], attributes: ['file' => __('file')]);
 
         /** @var TemporaryUploadedFile $file */
         $file = $this->file;

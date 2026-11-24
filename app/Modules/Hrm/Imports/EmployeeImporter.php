@@ -2,6 +2,7 @@
 
 namespace App\Modules\Hrm\Imports;
 
+use App\Core\Support\PlanLimits;
 use App\Core\Support\TenantUploads;
 use App\Models\User;
 use App\Modules\Hrm\Actions\ChangeEntity;
@@ -183,6 +184,24 @@ class EmployeeImporter
         }
         if (count($rows) > self::MAX_ROWS) {
             $this->error(0, '', __('At most :max rows per file. Split the file and import the parts one by one.', ['max' => self::MAX_ROWS]));
+
+            return [];
+        }
+        // The plan's employee limit (PlanLimits): the whole file must fit, or nothing is imported.
+        $limits = app(PlanLimits::class);
+        if ($limits->employeeProblem(adding: count($rows)) !== null) {
+            $plan = tenant()->plan;
+            $left = $limits->employeesLeft();
+            $this->error(0, '', $left === 0
+                ? __('Your :plan plan is full (:max of :max employees). Upgrade your plan to import more.', ['plan' => $plan->label(), 'max' => $plan->maxEmployees()])
+                : __('This file has :rows employees, but your :plan plan only has room for :left more (:used of :max used). Remove :extra or upgrade your plan.', [
+                    'rows' => count($rows),
+                    'plan' => $plan->label(),
+                    'left' => $left,
+                    'used' => $plan->maxEmployees() - $left,
+                    'max' => $plan->maxEmployees(),
+                    'extra' => trans_choice('{1} 1 row|[2,*] :count rows', count($rows) - $left),
+                ]));
 
             return [];
         }

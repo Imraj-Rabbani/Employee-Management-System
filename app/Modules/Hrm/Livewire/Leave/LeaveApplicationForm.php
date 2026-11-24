@@ -2,6 +2,7 @@
 
 namespace App\Modules\Hrm\Livewire\Leave;
 
+use App\Core\Rules\FitsInStorage;
 use App\Modules\Hrm\Actions\ApplyForLeave;
 use App\Modules\Hrm\Data\LeaveCheck;
 use App\Modules\Hrm\Data\LeaveYear;
@@ -132,7 +133,7 @@ class LeaveApplicationForm extends Component
             'delegateeId' => ['nullable', 'integer', 'different:employeeId'],
             'contact' => ['nullable', 'string', 'max:100'],
             'reason' => ['nullable', 'string', 'max:1000'],
-            'upload' => ['nullable', 'file', 'max:5120', 'mimes:pdf,jpg,jpeg,png,docx'],
+            'upload' => ['nullable', 'file', 'max:5120', 'mimes:pdf,jpg,jpeg,png,docx', new FitsInStorage],
         ], attributes: [
             'employeeId' => __('employee'), 'leaveTypeId' => __('leave type'), 'fromDate' => __('first day'),
             'toDate' => __('last day'), 'delegateeId' => __('delegatee'), 'upload' => __('attachment'),

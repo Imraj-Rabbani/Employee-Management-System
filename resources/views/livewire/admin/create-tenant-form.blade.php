@@ -17,6 +17,16 @@
                 </div>
             </div>
 
+            <flux:field>
+                <flux:label>{{ __('Plan') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                <flux:select aria-required="true" wire:model="plan">
+                    @foreach (\App\Core\Enums\Plan::cases() as $option)
+                        <flux:select.option :value="$option->value">{{ $option->label() }} — {{ $option->summary() }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:error name="plan" />
+            </flux:field>
+
             <flux:checkbox.group wire:model="modules" :label="__('Modules')" :description="__('Core and Self Service are always on.')">
                 @foreach ($moduleOptions as $key => $label)
                     <flux:checkbox :value="$key" :label="$label" />

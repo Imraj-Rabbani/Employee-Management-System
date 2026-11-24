@@ -88,7 +88,7 @@ class EmployeeLoginTest extends TestCase
         Auth::logout();
 
         $this->get($link)->assertOk()->assertSee('Choose a password');
-        $this->post($link, ['password' => 'Secret-pass-123', 'password_confirmation' => 'Secret-pass-123'])
+        $this->post($link, ['password' => 'Secret-pass-123'])
             ->assertRedirect(route('dashboard'));
 
         $this->assertAuthenticatedAs($user);
@@ -100,7 +100,7 @@ class EmployeeLoginTest extends TestCase
         // Second time: the password changed, so the fingerprint no longer matches.
         Auth::logout();
         $this->get($link)->assertOk()->assertSee('This link no longer works');
-        $this->post($link, ['password' => 'Other-pass-123', 'password_confirmation' => 'Other-pass-123'])->assertForbidden();
+        $this->post($link, ['password' => 'Other-pass-123'])->assertForbidden();
     }
 
     public function test_resending_kills_the_older_link(): void
@@ -218,7 +218,7 @@ class EmployeeLoginTest extends TestCase
         $user = User::where('email', 'rahim@acme.test')->sole();
         $link = $this->linkFor($user);
         Auth::logout();
-        $this->post($link, ['password' => 'Secret-pass-123', 'password_confirmation' => 'Secret-pass-123']);
+        $this->post($link, ['password' => 'Secret-pass-123']);
 
         $this->get(route('hrm.employees.show', $this->rahim))->assertOk()->assertSee('Rahim Uddin');
     }

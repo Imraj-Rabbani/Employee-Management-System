@@ -18,6 +18,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * Works the same with a Livewire upload (TemporaryUploadedFile is an UploadedFile).
  * Files live on Storage::disk('tenant'), i.e. storage/app/tenants/{code}/...
  * Always save the returned path in the database, never a full folder path.
+ *
+ * The company's plan storage (PlanLimits) is checked before saving or copying: a file that does not
+ * fit throws StorageLimitReached. Forms should catch that earlier with the FitsInStorage rule.
  */
 class TenantUploads
 {
@@ -27,6 +30,8 @@ class TenantUploads
      */
     public function store(UploadedFile $file, string $folder): string
     {
+        $this->ensureRoomFor((int) $file->getSize());
+
         $path = $file->store($this->safeFolder($folder), 'tenant');
 
         if ($path === false) {
@@ -69,6 +74,7 @@ class TenantUploads
     {
         $extension = pathinfo($path, PATHINFO_EXTENSION);
         $target = $this->safeFolder($folder).'/'.Str::random(40).($extension !== '' ? '.'.$extension : '');
+        $this->ensureRoomFor($this->disk()->size($path));
 
         if (! $this->disk()->copy($path, $target)) {
             throw new \RuntimeException("Could not copy [{$path}] to [{$folder}].");
@@ -88,6 +94,13 @@ class TenantUploads
     public function exists(string $path): bool
     {
         return $this->disk()->exists($path);
+    }
+
+    private function ensureRoomFor(int $bytes): void
+    {
+        if ($problem = app(PlanLimits::class)->storageProblem($bytes)) {
+            throw new StorageLimitReached($problem);
+        }
     }
 
     private function disk(): Filesystem

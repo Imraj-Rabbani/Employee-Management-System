@@ -2,6 +2,7 @@
 
 namespace App\Modules\Payroll\Livewire;
 
+use App\Core\Rules\FitsInStorage;
 use App\Core\Support\TenantUploads;
 use App\Modules\Hrm\Enums\ImportStatus;
 use App\Modules\Payroll\Imports\SalaryImporter;
@@ -24,7 +25,7 @@ class SalaryImports extends Component
     public function start(TenantUploads $uploads): void
     {
         Gate::authorize('payroll.salary.manage');
-        $this->validate(['file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:10240']], attributes: ['file' => __('file')]);
+        $this->validate(['file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:10240', new FitsInStorage]], attributes: ['file' => __('file')]);
 
         /** @var TemporaryUploadedFile $file */
         $file = $this->file;

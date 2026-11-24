@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Core\Enums\Plan;
 use App\Core\Tenancy\CreateTenant;
 use App\Core\Tenancy\TenantDatabase;
 use App\Core\Tenancy\TenantManager;
@@ -54,7 +55,7 @@ class RegisterCompanyTest extends TestCase
         $this->get('/register')
             ->assertOk()
             ->assertSee('Register your organisation')
-            ->assertSee('Your employee ID')
+            ->assertDontSee('Confirm password')
             ->assertSeeLivewire(RegisterCompany::class);
 
         $this->get('/login')->assertSee(route('register'));
@@ -76,6 +77,7 @@ class RegisterCompanyTest extends TestCase
 
         $tenant = Tenant::where('name', $this->organisation)->sole();
         $this->assertTrue($tenant->is_active, 'Usable right away.');
+        $this->assertSame(Plan::Free, $tenant->plan, 'Free unless Business is picked.');
         $this->assertSame(array_keys(Tenant::OPTIONAL_MODULES), $tenant->modules);
         $this->assertStringStartsWith('testorg', $tenant->code);   // made from the name
 
@@ -96,6 +98,17 @@ class RegisterCompanyTest extends TestCase
         $this->assertTrue($employee->join_date->isToday());
     }
 
+    public function test_the_business_plan_can_be_picked_and_the_pricing_page_preselects_it(): void
+    {
+        $this->get('/pricing')->assertSee(route('register', ['plan' => 'business']), false);
+        Livewire::withQueryParams(['plan' => 'business'])->test(RegisterCompany::class)->assertSet('plan', 'business');
+        Livewire::withQueryParams(['plan' => 'nonsense'])->test(RegisterCompany::class)->assertSet('plan', 'free');
+
+        $this->fillForm()->set('plan', 'business')->call('register')->assertHasNoErrors();
+
+        $this->assertSame(Plan::Business, Tenant::where('name', $this->organisation)->sole()->plan);
+    }
+
     public function test_the_new_administrator_sees_themselves_in_the_employee_list(): void
     {
         $this->fillForm()->call('register')->assertHasNoErrors();
@@ -111,9 +124,8 @@ class RegisterCompanyTest extends TestCase
         Livewire::test(RegisterCompany::class)
             ->set('email', 'used@example.com')
             ->set('password', 'short')
-            ->set('passwordConfirmation', 'different')
             ->call('register')
-            ->assertHasErrors(['organisation', 'name', 'employeeCode', 'email', 'password', 'passwordConfirmation']);
+            ->assertHasErrors(['organisation', 'firstName', 'email', 'password']);
 
         $this->assertGuest();
     }
@@ -151,10 +163,9 @@ class RegisterCompanyTest extends TestCase
     {
         return Livewire::test(RegisterCompany::class)
             ->set('organisation', $this->organisation)
-            ->set('name', 'Md. Rahim Uddin')
-            ->set('employeeCode', 'EMP-001')
+            ->set('firstName', 'Md. Rahim')
+            ->set('lastName', 'Uddin')
             ->set('email', $this->email())
-            ->set('password', 'secret-password')
-            ->set('passwordConfirmation', 'secret-password');
+            ->set('password', 'secret-password');
     }
 }

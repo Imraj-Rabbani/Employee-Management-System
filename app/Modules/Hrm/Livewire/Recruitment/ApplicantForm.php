@@ -2,6 +2,7 @@
 
 namespace App\Modules\Hrm\Livewire\Recruitment;
 
+use App\Core\Rules\FitsInStorage;
 use App\Core\Support\TenantUploads;
 use App\Modules\Hrm\Actions\ApplyToPosting;
 use App\Modules\Hrm\Enums\Gender;
@@ -104,7 +105,7 @@ class ApplicantForm extends Component
             'form.expected_salary' => ['nullable', 'numeric', 'min:0', 'max:999999999'],
             'form.notes' => ['nullable', 'string', 'max:5000'],
             'postingId' => $this->recordId ? [] : ['nullable', Rule::in(array_keys($this->postingOptions()))],
-            'cv' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
+            'cv' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120', new FitsInStorage],
         ], [
             'form.email.required_without' => __('Give an email or a phone number (or both).'),
             'form.phone.required_without' => __('Give a phone number or an email (or both).'),

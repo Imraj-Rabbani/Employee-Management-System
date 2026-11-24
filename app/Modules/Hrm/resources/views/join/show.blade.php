@@ -67,12 +67,6 @@
                     <flux:error name="password" />
                 </flux:field>
 
-                <flux:field>
-                    <flux:label>{{ __('Confirm password') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                    <flux:input aria-required="true" name="password_confirmation" type="password" autocomplete="new-password" viewable />
-                    <flux:error name="password_confirmation" />
-                </flux:field>
-
                 <flux:button type="submit" variant="primary" class="w-full">{{ __('Register and log in') }}</flux:button>
             </form>
         @else

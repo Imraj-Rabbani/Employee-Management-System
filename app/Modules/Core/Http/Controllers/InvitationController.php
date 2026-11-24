@@ -2,11 +2,11 @@
 
 namespace App\Modules\Core\Http\Controllers;
 
-use App\Actions\Fortify\PasswordValidationRules;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 /**
@@ -19,8 +19,6 @@ use Illuminate\View\View;
  */
 class InvitationController
 {
-    use PasswordValidationRules;
-
     public function show(Request $request, User $user): View
     {
         return view('core::invitation.accept', [
@@ -34,7 +32,8 @@ class InvitationController
     {
         abort_unless($this->isOpen($request, $user), 403, __('This invitation link no longer works.'));
 
-        $data = $request->validate(['password' => $this->passwordRules()]);
+        // No "confirm password" field: the box has a show/hide eye to check what was typed.
+        $data = $request->validate(['password' => ['required', 'string', Password::default()]]);
 
         $user->forceFill([
             'password' => $data['password'],             // hashed by the cast

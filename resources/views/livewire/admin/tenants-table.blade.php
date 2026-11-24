@@ -76,6 +76,7 @@
                     </th>
 
                     <th class="px-4 py-3 font-medium">{{ __('Database') }}</th>
+                    <th class="px-4 py-3 font-medium">{{ __('Plan') }}</th>
                     <th class="px-4 py-3 font-medium">{{ __('Modules') }}</th>
 
                     <th class="px-4 py-3 font-medium whitespace-nowrap">
@@ -119,6 +120,7 @@
 
                         <td class="px-4 py-3">{{ $tenant->name }}</td>
                         <td class="px-4 py-3">{{ $tenant->database }}</td>
+                        <td class="px-4 py-3"><x-ui.badge :color="$tenant->plan === \App\Core\Enums\Plan::Business ? 'brand' : 'neutral'">{{ $tenant->plan->label() }}</x-ui.badge></td>
                         <td class="px-4 py-3">{{ $this->moduleNames($tenant) }}</td>
                         <td class="px-4 py-3">{{ $tenant->users_count }}</td>
 

@@ -3,6 +3,7 @@
 namespace App\Modules\Hrm\Livewire\Employees;
 
 use App\Core\Models\TenantModel;
+use App\Core\Rules\FitsInStorage;
 use App\Core\Support\TenantUploads;
 use App\Modules\Hrm\Models\Employee;
 use BackedEnum;
@@ -90,7 +91,7 @@ abstract class EmployeeRecords extends Component
     /** @return list<string> */
     protected function attachmentRules(): array
     {
-        return ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,docx', 'max:5120'];
+        return ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,docx', 'max:5120', new FitsInStorage];
     }
 
     /** @param  array<string, mixed>  $values */

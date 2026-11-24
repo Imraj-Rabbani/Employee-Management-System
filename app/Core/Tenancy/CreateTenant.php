@@ -2,6 +2,7 @@
 
 namespace App\Core\Tenancy;
 
+use App\Core\Enums\Plan;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Core\Models\Role;
@@ -20,6 +21,7 @@ use Throwable;
  *      and gives it the company's Administrator role (seeded in step 3)
  *
  * Optional:
+ *   - plan: the pricing plan (App\Core\Enums\Plan), Free unless given
  *   - active: false creates the company switched off (its users cannot log in yet)
  *   - then: a function(Tenant $tenant, User $admin) run INSIDE the new company (its database is the
  *     current one) as the last step, e.g. the sign-up page creates the admin's employee record there.
@@ -46,6 +48,7 @@ class CreateTenant
         string $adminEmail,
         string $adminPassword,
         array $modules = [],
+        Plan $plan = Plan::Free,
         bool $active = true,
         ?callable $then = null,
     ): Tenant {
@@ -55,6 +58,7 @@ class CreateTenant
         $tenant = Tenant::create([
             'code' => $code,
             'name' => $name,
+            'plan' => $plan,
             'database' => Tenant::databaseNameFor($code),
             'modules' => $modules,
             'is_active' => $active,

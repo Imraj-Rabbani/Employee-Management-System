@@ -2,7 +2,7 @@
 
 namespace App\Modules\Hrm\Http\Controllers;
 
-use App\Actions\Fortify\PasswordValidationRules;
+use App\Core\Support\PlanLimits;
 use App\Core\Tenancy\TenantManager;
 use App\Models\User;
 use App\Modules\Hrm\Actions\CreateEmployeeForUser;
@@ -11,6 +11,8 @@ use App\Modules\Hrm\Enums\Gender;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 /**
@@ -25,8 +27,6 @@ use Illuminate\View\View;
  */
 class JoinController
 {
-    use PasswordValidationRules;
-
     public function __construct(
         private UserInvitations $invitations,
         private TenantManager $tenants,
@@ -50,8 +50,14 @@ class JoinController
         // isOpen() switched to the user's company, so "Employee ID already taken" is checked there.
         $data = $request->validate([
             ...CreateEmployeeForUser::rules(),
-            'password' => $this->passwordRules(),
+            // No "confirm password" field: the box has a show/hide eye to check what was typed.
+            'password' => ['required', 'string', Password::default()],
         ], attributes: ['code' => __('employee ID'), 'first_name' => __('first name')]);
+
+        // The company may have filled its plan since the invitation was sent.
+        if ($problem = app(PlanLimits::class)->employeeProblem()) {
+            throw ValidationException::withMessages(['code' => $problem]);
+        }
 
         $this->invitations->accept($user, $data, $data['password']);
 

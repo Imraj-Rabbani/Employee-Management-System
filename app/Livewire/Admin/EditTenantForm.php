@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Core\Enums\Plan;
 use App\Core\Plugins\PluginRegistry;
 use App\Models\Tenant;
 use Flux\Flux;
@@ -28,6 +29,8 @@ class EditTenantForm extends Component
 
     public string $name = '';
 
+    public string $plan = 'free';
+
     public bool $isActive = true;
 
     /** "YYYY-MM-DD" or "" for no expiry */
@@ -53,6 +56,7 @@ class EditTenantForm extends Component
         $this->tenantId = $tenant->id;
         $this->code = $tenant->code;
         $this->name = $tenant->name;
+        $this->plan = $tenant->plan->value;
         $this->isActive = $tenant->is_active;
         $this->expiresAt = $tenant->expires_at?->toDateString() ?? '';
         $this->modules = $tenant->modules ?? [];
@@ -67,6 +71,7 @@ class EditTenantForm extends Component
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'plan' => ['required', Rule::enum(Plan::class)],
             'isActive' => ['boolean'],
             'expiresAt' => ['nullable', 'date'],
             'modules' => ['array'],
@@ -88,6 +93,7 @@ class EditTenantForm extends Component
         $tenant = Tenant::findOrFail($this->tenantId);
         $tenant->update([
             'name' => $this->name,
+            'plan' => $this->plan,
             'is_active' => $this->isActive,
             'expires_at' => $this->expiresAt !== '' ? $this->expiresAt : null,
             'modules' => $this->modules,

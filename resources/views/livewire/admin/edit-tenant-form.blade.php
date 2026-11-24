@@ -7,6 +7,16 @@
                 <flux:error name="name" />
             </flux:field>
 
+            <flux:field>
+                <flux:label>{{ __('Plan') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                <flux:select aria-required="true" wire:model="plan">
+                    @foreach (\App\Core\Enums\Plan::cases() as $option)
+                        <flux:select.option :value="$option->value">{{ $option->label() }} — {{ $option->summary() }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:error name="plan" />
+            </flux:field>
+
             <div class="grid gap-4 sm:grid-cols-2 items-start">
                 <flux:switch wire:model="isActive" :label="__('Active')" :description="__('Inactive companies cannot log in.')" />
 

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Hrm\Actions;
 
+use App\Core\Support\PlanLimits;
 use App\Models\User;
 use App\Modules\Core\Models\Role;
 use App\Modules\Core\Models\UserRole;
@@ -34,11 +35,17 @@ class UserInvitations
 {
     public function __construct(private CreateEmployeeForUser $createEmployee) {}
 
+    /**
+     * Why this email may not be invited, or null. Each pending invitation will become an employee
+     * when accepted, so it already takes a place in the plan's employee limit.
+     */
     public function inviteProblem(string $email): ?string
     {
-        return User::where('email', $email)->exists()
-            ? __('This email address already has a login.')
-            : null;
+        if (User::where('email', $email)->exists()) {
+            return __('This email address already has a login.');
+        }
+
+        return app(PlanLimits::class)->employeeProblem(adding: $this->pending()->count() + 1);
     }
 
     public function invite(string $email, ?Role $role, User $invitedBy): User

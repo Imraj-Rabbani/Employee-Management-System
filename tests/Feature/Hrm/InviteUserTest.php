@@ -74,7 +74,7 @@ class InviteUserTest extends TestCase
         return [
             'first_name' => 'Karim', 'last_name' => 'Hasan', 'code' => 'EMP-002', 'mobile' => '01700000000',
             'gender' => '1', 'birth_date' => '1995-04-01',
-            'password' => 'Secret-pass-123', 'password_confirmation' => 'Secret-pass-123',
+            'password' => 'Secret-pass-123',
             ...$overrides,
         ];
     }
