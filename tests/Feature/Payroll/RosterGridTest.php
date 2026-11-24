@@ -19,11 +19,7 @@ use App\Modules\Payroll\Models\RosterItem;
 use App\Modules\Payroll\Models\Shift;
 use App\Modules\Payroll\Models\WeekendProfile;
 use App\Modules\Workflow\Enums\ApprovalStatus;
-use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Models\Approval;
-use App\Modules\Workflow\Models\ApprovalType;
-use App\Modules\Workflow\Models\Workflow;
-use App\Modules\Workflow\Models\WorkflowStep;
 use App\Modules\Workflow\Services\WorkflowEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -33,6 +29,7 @@ use Livewire\Livewire;
 use Maatwebsite\Excel\Excel as ExcelFormat;
 use Maatwebsite\Excel\Facades\Excel;
 use Tests\Concerns\ActsAsTenantUser;
+use Tests\Concerns\MakesWorkflows;
 use Tests\TestCase;
 
 /**
@@ -43,6 +40,7 @@ use Tests\TestCase;
 class RosterGridTest extends TestCase
 {
     use ActsAsTenantUser;
+    use MakesWorkflows;
     use RefreshDatabase;
 
     private Tenant $tenant;
@@ -89,10 +87,9 @@ class RosterGridTest extends TestCase
 
     private function useWorkflow(): User
     {
-        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('roster')?->id, 'name' => 'Roster']);
-        WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Role, 'approver_role_id' => Role::administrator()?->id]);
         $approver = User::factory()->for($this->tenant)->create();
         Role::administrator()?->assignTo($approver);
+        $this->workflowFor('roster', [$approver]);
 
         return $approver;
     }

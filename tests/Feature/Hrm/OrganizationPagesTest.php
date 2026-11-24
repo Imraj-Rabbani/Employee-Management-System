@@ -5,7 +5,6 @@ namespace Tests\Feature\Hrm;
 use App\Models\Tenant;
 use App\Modules\Core\Livewire\CurrencyForm;
 use App\Modules\Core\Models\Currency;
-use App\Modules\Core\Models\Role;
 use App\Modules\Hrm\Livewire\Organization\EntityForm;
 use App\Modules\Hrm\Livewire\Organization\EntityTable;
 use App\Modules\Hrm\Livewire\Organization\EntityTypeForm;
@@ -13,14 +12,10 @@ use App\Modules\Hrm\Livewire\Organization\GradeForm;
 use App\Modules\Hrm\Livewire\Organization\GradeTable;
 use App\Modules\Hrm\Livewire\Organization\PositionForm;
 use App\Modules\Hrm\Models\Employee;
-use App\Modules\Hrm\Models\EmploymentType;
 use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\EntityType;
 use App\Modules\Hrm\Models\Grade;
 use App\Modules\Hrm\Models\Position;
-use App\Modules\Workflow\Livewire\WorkflowForm;
-use App\Modules\Workflow\Models\ApprovalType;
-use App\Modules\Workflow\Models\Workflow;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\Concerns\ActsAsTenantUser;
@@ -258,36 +253,6 @@ class OrganizationPagesTest extends TestCase
             ->set('form.exchange_rate', '2')
             ->call('save')
             ->assertHasErrors('form.exchange_rate');
-    }
-
-    // ---------------------------------------------------------------- workflow scope
-
-    public function test_a_workflow_can_now_be_limited_to_an_entity_and_employment_type(): void
-    {
-        $unit = Entity::factory()->create(['name' => 'Finance']);
-        $type = EmploymentType::factory()->create(['name' => 'Contract']);
-        $approvalType = ApprovalType::forKey('leave');   // registered by the leave migration
-        $role = Role::create(['name' => 'Managers']);
-
-        Livewire::test(WorkflowForm::class)
-            ->dispatch('create-workflow')
-            ->set('approvalTypeId', (string) $approvalType->id)
-            ->set('name', 'Finance contract staff')
-            ->set('scopeEntityId', (string) $unit->id)
-            ->set('scopeEmploymentTypeId', (string) $type->id)
-            ->set('steps.0.approver_role_id', (string) $role->id)
-            ->call('save')
-            ->assertHasNoErrors();
-
-        $workflow = Workflow::sole();
-        $this->assertSame([$unit->id, $type->id], [$workflow->scope_entity_id, $workflow->scope_employment_type_id]);
-
-        Livewire::test(WorkflowForm::class)
-            ->dispatch('edit-workflow', id: $workflow->id)
-            ->assertSet('scopeEntityId', (string) $unit->id)
-            ->set('scopeEntityId', '')
-            ->call('save');
-        $this->assertNull($workflow->fresh()?->scope_entity_id);
     }
 
     // ---------------------------------------------------------------- helpers

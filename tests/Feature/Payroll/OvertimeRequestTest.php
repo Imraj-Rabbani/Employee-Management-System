@@ -15,19 +15,16 @@ use App\Modules\Payroll\Models\OvertimeRequest;
 use App\Modules\Payroll\Models\Shift;
 use App\Modules\Payroll\Services\AttendanceService;
 use App\Modules\Workflow\Enums\ApprovalStatus;
-use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Exceptions\WorkflowException;
 use App\Modules\Workflow\Livewire\RespondForm;
 use App\Modules\Workflow\Models\Approval;
-use App\Modules\Workflow\Models\ApprovalType;
-use App\Modules\Workflow\Models\Workflow;
-use App\Modules\Workflow\Models\WorkflowStep;
 use App\Modules\Workflow\Services\WorkflowEngine;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\Concerns\ActsAsTenantUser;
+use Tests\Concerns\MakesWorkflows;
 use Tests\TestCase;
 
 /**
@@ -39,6 +36,7 @@ use Tests\TestCase;
 class OvertimeRequestTest extends TestCase
 {
     use ActsAsTenantUser;
+    use MakesWorkflows;
     use RefreshDatabase;
 
     private Tenant $tenant;
@@ -62,16 +60,9 @@ class OvertimeRequestTest extends TestCase
         Shift::factory()->create(['code' => 'G', 'start_time' => '09:00', 'end_time' => '18:00', 'is_default' => true]);
         $this->karim = Employee::factory()->create(['join_date' => '2026-01-01']);
 
-        $leads = Role::create(['name' => 'Team leads']);
-        $managers = Role::create(['name' => 'Managers']);
         $this->lead = User::factory()->for($this->tenant)->create();
         $this->manager = User::factory()->for($this->tenant)->create();
-        $leads->assignTo($this->lead);
-        $managers->assignTo($this->manager);
-
-        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('overtime')?->id, 'name' => 'Overtime']);
-        WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Role, 'approver_role_id' => $leads->id]);
-        WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 2, 'approver_type' => ApproverType::Role, 'approver_role_id' => $managers->id]);
+        $this->workflowFor('overtime', [$this->lead, $this->manager]);
     }
 
     /** @param  array<string, string>  $values */
@@ -121,6 +112,7 @@ class OvertimeRequestTest extends TestCase
         $this->assertSame(['2.75', '2.50'], [$request->recommended_hours, $request->approved_hours]);
         $this->assertNotNull($request->approved_at);
         $this->assertSame(150, AttendanceDay::query()->whereDate('date', '2026-12-03')->sole()->ot_approved_minutes);
+        $this->actingAs($this->hr);   // HR's list (the approvers see only their own records)
         Livewire::test(OvertimeTable::class)->assertSee('OT-0001')->assertSee('2.75')->assertSee('2.5');
 
         // Reprocessing keeps the approved minutes.

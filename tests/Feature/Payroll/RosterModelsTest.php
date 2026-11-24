@@ -66,7 +66,7 @@ class RosterModelsTest extends TestCase
         $planner = Employee::factory()->inEntity($unit)->create(['supervisor_id' => $boss->id]);
         $planner->forceFill(['user_id' => User::factory()->for($this->tenant)->create()->id])->save();
 
-        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('roster')?->id, 'name' => 'Roster']);
+        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('roster')?->id]);
         WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Supervisor]);
 
         $roster = Roster::factory()->create(['entity_id' => $unit->id, 'requested_by_user_id' => $planner->user_id]);

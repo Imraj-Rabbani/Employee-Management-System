@@ -6,11 +6,7 @@ use App\Core\Tenancy\TenantManager;
 use App\Core\Tenancy\TenantMigrationPaths;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Core\Models\Role;
-use App\Modules\Hrm\Models\EmploymentType;
-use App\Modules\Hrm\Models\Entity;
 use App\Modules\Workflow\Enums\ApprovalStatus;
-use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Exceptions\WorkflowException;
 use App\Modules\Workflow\Listeners\NotifyApprover;
 use App\Modules\Workflow\Livewire\MyApprovalsTable;
@@ -18,24 +14,25 @@ use App\Modules\Workflow\Livewire\RespondForm;
 use App\Modules\Workflow\Models\Approval;
 use App\Modules\Workflow\Models\ApprovalType;
 use App\Modules\Workflow\Models\Workflow;
-use App\Modules\Workflow\Models\WorkflowStep;
 use App\Modules\Workflow\Services\WorkflowEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
 use Livewire\Livewire;
 use Tests\Concerns\CreatesTenantDatabases;
+use Tests\Concerns\MakesWorkflows;
 use Tests\Fixtures\ApprovableNote;
 use Tests\TestCase;
 
 /**
  * The whole workflow, end to end through the real screens, plus the gaps
- * the earlier tests did not cover (scope tie-breaks, late second answer, other companies).
+ * the earlier tests did not cover (a late second answer, other companies).
  *
- * Story: Rina (requester) submits. Level 1 = role "Managers" (Mina, Mahir), level 2 = role "Finance" (Farid).
+ * Story: Rina (requester) submits. Level 1 = Specific People: Mina, level 2 = Specific People: Farid.
  */
 class WorkflowEndToEndTest extends TestCase
 {
     use CreatesTenantDatabases;
+    use MakesWorkflows;
     use RefreshDatabase;
 
     private Tenant $tenant;
@@ -44,15 +41,9 @@ class WorkflowEndToEndTest extends TestCase
 
     private Workflow $workflow;
 
-    private Role $managers;
-
-    private Role $finance;
-
     private User $rina;
 
     private User $mina;
-
-    private User $mahir;
 
     private User $farid;
 
@@ -65,22 +56,19 @@ class WorkflowEndToEndTest extends TestCase
         $this->tenant = $this->createMigratedTenant();
         app(TenantManager::class)->switchTo($this->tenant);
 
-        $this->managers = Role::create(['name' => 'Managers']);
-        $this->finance = Role::create(['name' => 'Finance']);
         $this->rina = $this->user('Rina Requester');
-        $this->mina = $this->user('Mina Manager', $this->managers);
-        $this->mahir = $this->user('Mahir Manager', $this->managers);
-        $this->farid = $this->user('Farid Finance', $this->finance);
+        $this->mina = $this->user('Mina Manager');
+        $this->farid = $this->user('Farid Finance');
 
         $this->type = ApprovalType::create(['key' => 'note', 'name' => 'Note']);
-        $this->workflow = $this->workflow('Two levels', [$this->managers, $this->finance]);
+        $this->workflow = $this->workflowFor($this->type, [$this->mina, $this->farid]);
     }
 
     // ---------------------------------------------------------------- end to end
 
     public function test_two_levels_inbox_then_email_link_then_the_requester_is_told(): void
     {
-        // 1. Rina submits. Both managers are asked; finance is not yet.
+        // 1. Rina submits. Mina (level 1) is asked; Farid (level 2) is not yet.
         $note = ApprovableNote::create(['text' => 'Team lunch']);
         $this->actingAs($this->rina);
         $note->submitForApproval();
@@ -96,8 +84,7 @@ class WorkflowEndToEndTest extends TestCase
             ->call('approve')
             ->assertHasNoErrors();
 
-        // Mahir is no longer asked; Farid is, and got a notification.
-        $this->assertFalse($note->approvals()->where('approver_user_id', $this->mahir->id)->exists());
+        // Level 2 is asked automatically: Farid got a notification.
         $this->assertSame(1, $this->farid->unreadNotifications()->count());
 
         // 3. Farid approves level 2 from the email link, without logging in.
@@ -135,67 +122,28 @@ class WorkflowEndToEndTest extends TestCase
         $this->assertSame([], $note->approvals()->pending()->pluck('id')->all());
     }
 
-    // ---------------------------------------------------------------- scope matching: tie-breaks
-
-    public function test_with_two_amount_workflows_the_higher_limit_that_fits_wins(): void
-    {
-        $this->workflow->update(['is_active' => false]);
-        $any = $this->workflow('Any');
-        $from10k = $this->workflow('From 10k', attributes: ['min_amount' => 10000]);
-        $from50k = $this->workflow('From 50k', attributes: ['min_amount' => 50000]);
-        $engine = app(WorkflowEngine::class);
-
-        $this->assertTrue($any->is($engine->findWorkflow($this->note(['amount' => 9000]))));
-        $this->assertTrue($from10k->is($engine->findWorkflow($this->note(['amount' => 20000]))));
-        $this->assertTrue($from50k->is($engine->findWorkflow($this->note(['amount' => 60000]))));
-    }
-
-    public function test_unit_and_amount_together_beat_either_alone(): void
-    {
-        $unit = Entity::factory()->create();
-        $this->workflow('Unit', attributes: ['scope_entity_id' => $unit->id]);
-        $this->workflow('Big', attributes: ['min_amount' => 1000]);
-        $both = $this->workflow('Unit, big', attributes: ['scope_entity_id' => $unit->id, 'min_amount' => 1000]);
-
-        $this->assertTrue($both->is(app(WorkflowEngine::class)->findWorkflow($this->note(['entity_ids' => [$unit->id], 'amount' => 5000]))));
-    }
-
-    public function test_an_employment_type_mismatch_falls_back_to_the_general_workflow(): void
-    {
-        $contract = EmploymentType::factory()->create(['name' => 'Contract']);
-        $permanent = EmploymentType::factory()->create(['name' => 'Permanent']);
-        $this->workflow('Contract staff', attributes: ['scope_employment_type_id' => $contract->id]);
-
-        // The id as a string (as it comes from a form) is compared correctly too.
-        $found = app(WorkflowEngine::class)->findWorkflow($this->note(['employment_type_id' => (string) $permanent->id]));
-
-        $this->assertTrue($this->workflow->is($found));
-    }
-
     // ---------------------------------------------------------------- unauthorized responders
 
-    public function test_a_second_manager_answering_after_the_first_is_refused(): void
+    public function test_a_second_answer_on_the_same_row_is_refused(): void
     {
         $note = ApprovableNote::create(['text' => 'x']);
         $note->submitForApproval($this->rina);
-        $mahirsRow = $this->openRowFor($note, $this->mahir);   // opened before Mina answered
+        $row = $this->openRowFor($note, $this->mina);   // e.g. open in two browser tabs
 
-        app(WorkflowEngine::class)->respond($this->openRowFor($note, $this->mina), ApprovalStatus::Approved, $this->mina);
+        app(WorkflowEngine::class)->respond($row, ApprovalStatus::Approved, $this->mina);
 
         $this->expectException(WorkflowException::class);
         $this->expectExceptionMessage('already been answered');
-        app(WorkflowEngine::class)->respond($mahirsRow, ApprovalStatus::Rejected, $this->mahir, 'Too late');
+        app(WorkflowEngine::class)->respond($row, ApprovalStatus::Rejected, $this->mina, 'Changed my mind');
     }
 
-    public function test_the_requester_cannot_approve_their_own_document_even_with_the_role(): void
+    public function test_the_requester_cannot_answer_someone_elses_level(): void
     {
-        $this->managers->assignTo($this->rina);
         $note = ApprovableNote::create(['text' => 'x']);
         $note->submitForApproval($this->rina);
 
-        $this->assertFalse($note->approvals()->where('approver_user_id', $this->rina->id)->exists());
-
         $this->expectException(WorkflowException::class);
+        $this->expectExceptionMessage('not the approver');
         app(WorkflowEngine::class)->respond($this->openRowFor($note, $this->mina), ApprovalStatus::Approved, $this->rina);
     }
 
@@ -223,45 +171,13 @@ class WorkflowEndToEndTest extends TestCase
 
     // ---------------------------------------------------------------- helpers
 
-    /**
-     * @param  list<Role>  $levels  one "role" level per role; none = no steps (only for findWorkflow tests)
-     * @param  array<string, mixed>  $attributes
-     */
-    private function workflow(string $name, array $levels = [], array $attributes = []): Workflow
-    {
-        $workflow = Workflow::create(['approval_type_id' => $this->type->id, 'name' => $name, ...$attributes]);
-
-        foreach ($levels as $i => $role) {
-            WorkflowStep::create([
-                'workflow_id' => $workflow->id,
-                'level' => $i + 1,
-                'approver_type' => ApproverType::Role,
-                'approver_role_id' => $role->id,
-            ]);
-        }
-
-        return $workflow;
-    }
-
-    /** @param array<string, mixed> $context */
-    private function note(array $context): ApprovableNote
-    {
-        $note = ApprovableNote::create(['text' => 'scope']);
-        $note->context = $context;
-
-        return $note;
-    }
-
     private function openRowFor(ApprovableNote $note, User $approver): Approval
     {
         return $note->approvals()->pending()->where('approver_user_id', $approver->id)->firstOrFail();
     }
 
-    private function user(string $name, ?Role $role = null): User
+    private function user(string $name): User
     {
-        $user = User::factory()->for($this->tenant)->create(['name' => $name]);
-        $role?->assignTo($user);
-
-        return $user;
+        return User::factory()->for($this->tenant)->create(['name' => $name]);
     }
 }

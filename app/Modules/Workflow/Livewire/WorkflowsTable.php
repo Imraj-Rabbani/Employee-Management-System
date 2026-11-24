@@ -4,7 +4,6 @@ namespace App\Modules\Workflow\Livewire;
 
 use App\Core\Exports\ArrayExport;
 use App\Modules\Workflow\Models\ApprovalType;
-use App\Modules\Workflow\Models\Workflow;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,7 +14,11 @@ use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-/** Workflow → Workflow Setup → Workflows tab. */
+/**
+ * Workflow → Workflow Setup: one row per approval type the code offers (Leave, Manpower request ...),
+ * with its levels. Opening a row configures that type's workflow (WorkflowForm). No "Add new" /
+ * "Delete": the types come from the code, not from this screen.
+ */
 class WorkflowsTable extends Component
 {
     use WithPagination;
@@ -29,17 +32,19 @@ class WorkflowsTable extends Component
     #[Url(as: 'dir', except: 'asc')]
     public string $sortDir = 'asc';
 
-    /** Filter "Type": '' = all */
-    #[Url(as: 'approval_type_id', except: '')]
-    public string $approvalTypeId = '';
+    /** Filter "Status": '' = all, 'active', 'off', 'none' (not set up yet) */
+    #[Url(as: 'status', except: '')]
+    public string $status = '';
 
-    #[Url(as: 'per_page', except: 10)]
-    public int $perPage = 10;
+    #[Url(as: 'per_page', except: 25)]
+    public int $perPage = 25;
 
     /** Columns the user may sort by. Anything else sent from the browser is ignored. */
-    private const SORTABLE = ['name', 'steps_count', 'is_active'];
+    private const SORTABLE = ['name'];
 
-    /** @var list<string> ids of the ticked rows (the checkboxes). Edit needs one; Delete / Request approval any number. */
+    private const STATUSES = ['active', 'off', 'none'];
+
+    /** @var list<string> ids (approval type ids) of the ticked rows. Edit needs exactly one. */
     public array $selected = [];
 
     public function clearSelection(): void
@@ -74,7 +79,7 @@ class WorkflowsTable extends Component
 
     public function clearFilters(): void
     {
-        $this->reset('search', 'approvalTypeId');
+        $this->reset('search', 'status');
         $this->resetPage();
         $this->selected = [];
         Flux::modal('workflow-filters')->close();
@@ -82,78 +87,62 @@ class WorkflowsTable extends Component
 
     public function export(): BinaryFileResponse
     {
-        $rows = $this->filteredQuery()->get()->map(fn (Workflow $workflow) => [
-            $workflow->name,
-            $workflow->approvalType->name,
-            collect([
-                $workflow->scopeEntity?->name,
-                $workflow->scopeEmploymentType?->name,
-                $workflow->min_amount !== null ? __('from :amount', ['amount' => number_format((float) $workflow->min_amount, 2)]) : null,
-            ])->filter()->implode(' · ') ?: __('Everything'),
-            $workflow->steps_count,
-            $workflow->send_email ? __('Yes') : __('No'),
-            $workflow->is_active ? __('Active') : __('Inactive'),
+        $rows = $this->filteredQuery()->get()->map(fn (ApprovalType $type) => [
+            $type->name,
+            $type->workflow?->levelsText() ?? '',
+            $type->workflow === null ? '' : ($type->workflow->send_email ? __('Yes') : __('No')),
+            $type->workflowStatusLabel(),
         ])->all();
 
         return Excel::download(
-            new ArrayExport([__('Workflow'), __('Type'), __('Applies to'), __('Levels'), __('Email'), __('Active')], $rows),
-            'workflows-table-'.now()->format('Y-m-d').'.xlsx',
+            new ArrayExport([__('Workflow'), __('Levels'), __('Email'), __('Status')], $rows),
+            'workflows-'.now()->format('Y-m-d').'.xlsx',
         );
     }
 
     /** Typing a search or picking a filter or page size starts again at page 1. */
     public function updated(string $property): void
     {
-        if (in_array($property, ['search', 'approvalTypeId', 'perPage'], true)) {
+        if (in_array($property, ['search', 'status', 'perPage'], true)) {
             $this->resetPage();
         }
     }
 
-    /** @return Builder<Workflow> */
-    private function query(): Builder
-    {
-        return Workflow::query()->with(['approvalType', 'scopeEntity', 'scopeEmploymentType'])->withCount('steps');
-    }
-
-    /** @return array<int|string, string> choices of the "Type" filter */
-    private function approvalTypeIdOptions(): array
-    {
-        return ApprovalType::orderBy('name')->pluck('name', 'id')->mapWithKeys(fn ($name, $id) => [(string) $id => $name])->all();
-    }
-
-    /** @return Builder<Workflow> */
+    /**
+     * Active approval types (inactive ones are switched off in the code) with their workflow and
+     * everything describe() needs for the levels column.
+     *
+     * @return Builder<ApprovalType>
+     */
     private function filteredQuery(): Builder
     {
-        $query = $this->query();
+        $query = ApprovalType::query()
+            ->where('is_active', true)
+            ->with(['workflow.steps.approverEntityType', 'workflow.steps.approverEntity', 'workflow.steps.approverEmployee']);
 
         if (trim($this->search) !== '') {
             // addcslashes: a search for "50%" means the text "50%", not "50 followed by anything".
-            $like = '%'.addcslashes(trim($this->search), '%_\\').'%';
-            $query->where(fn (Builder $q) => $q->where('name', 'like', $like));
+            $query->where('name', 'like', '%'.addcslashes(trim($this->search), '%_\\').'%');
         }
 
-        if ($this->approvalTypeId !== '' && array_key_exists($this->approvalTypeId, $this->approvalTypeIdOptions())) {
-            $query->where('approval_type_id', $this->approvalTypeId);
-        }
+        match (in_array($this->status, self::STATUSES, true) ? $this->status : '') {
+            'active' => $query->whereHas('workflow', fn (Builder $q) => $q->where('is_active', true)->has('steps')),
+            'off' => $query->whereHas('workflow', fn (Builder $q) => $q->where('is_active', false)),
+            'none' => $query->where(fn (Builder $q) => $q->doesntHave('workflow')
+                ->orWhereHas('workflow', fn (Builder $w) => $w->where('is_active', true)->doesntHave('steps'))),
+            default => null,
+        };
 
-        if (in_array($this->sortBy, self::SORTABLE, true)) {
-            $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
-        } else {
-            $query->orderBy('approval_type_id', 'asc');
-            $query->orderBy('name', 'asc');
-        }
-
-        return $query;
+        return $query->orderBy('name', $this->sortBy === 'name' && $this->sortDir === 'desc' ? 'desc' : 'asc');
     }
 
     public function render(): View
     {
-        // A page size typed into the URL that is not offered falls back to 10.
-        $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
+        // A page size typed into the URL that is not offered falls back to 25.
+        $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 25;
 
         return view('workflow::livewire.workflows-table', [
             'rows' => $this->filteredQuery()->paginate($perPage),
-            'approvalTypeIdOptions' => $this->approvalTypeIdOptions(),
         ]);
     }
 }

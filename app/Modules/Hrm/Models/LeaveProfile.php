@@ -4,6 +4,7 @@ namespace App\Modules\Hrm\Models;
 
 use App\Core\Models\TenantModel;
 use App\Modules\Hrm\Database\Factories\LeaveProfileFactory;
+use App\Modules\Hrm\Services\CreditLeaveNow;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -65,6 +66,8 @@ class LeaveProfile extends TenantModel
         });
 
         if ($old !== $days) {
+            app(CreditLeaveNow::class)->forProfile($this);   // e.g. a type just added: its days now, not tonight
+
             activity()->performedOn($this)->event('updated')
                 ->withChanges(['old' => ['entitlements' => $this->readable($old)], 'attributes' => ['entitlements' => $this->readable($days)]])
                 ->log('updated');

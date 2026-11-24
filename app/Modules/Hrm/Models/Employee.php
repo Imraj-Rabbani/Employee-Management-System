@@ -13,6 +13,7 @@ use App\Modules\Hrm\Enums\PaymentMethod;
 use App\Modules\Hrm\Enums\Religion;
 use App\Modules\Hrm\Policies\EmployeePolicy;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
+use App\Modules\Hrm\Services\CreditLeaveNow;
 use App\Modules\Payroll\Models\HolidayProfile;
 use App\Modules\Payroll\Models\PayScaleProfile;
 use App\Modules\Payroll\Models\SalaryProfile;
@@ -159,6 +160,21 @@ class Employee extends TenantModel
             'salary_on_hold' => 'boolean',
             'bank_transfer_on_hold' => 'boolean',
         ];
+    }
+
+    /**
+     * Model events: code Laravel runs after every save, whichever screen or import did it.
+     * Getting a leave profile (or a new one, or a new join / separation date) credits the leave that is
+     * already due at once (CreditLeaveNow), so the balance shows today instead of after tonight's job.
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (Employee $employee) {
+            if ($employee->leave_profile_id !== null
+                && ($employee->wasRecentlyCreated || $employee->wasChanged(['leave_profile_id', 'join_date', 'separation_date']))) {
+                app(CreditLeaveNow::class)->forEmployees([$employee->id]);
+            }
+        });
     }
 
     /**

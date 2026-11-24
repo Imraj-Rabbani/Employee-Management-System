@@ -13,6 +13,7 @@ use App\Modules\Hrm\Models\LeaveBalance;
 use App\Modules\Hrm\Models\LeaveLedgerEntry;
 use App\Modules\Hrm\Models\LeaveProfile;
 use App\Modules\Hrm\Models\LeaveType;
+use App\Modules\Hrm\Services\CreditLeaveNow;
 use App\Modules\Hrm\Services\LeaveLedger;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -42,6 +43,9 @@ class LeaveLedgerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // These tests set balances themselves; crediting leave the moment a profile is given is tested in CreditLeaveNowTest.
+        $this->mock(CreditLeaveNow::class)->shouldIgnoreMissing();
 
         $this->tenant = $this->createMigratedTenant();
         $this->actingAsTenantUser(tenant: $this->tenant);   // Administrator

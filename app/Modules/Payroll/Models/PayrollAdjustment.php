@@ -180,7 +180,7 @@ class PayrollAdjustment extends TenantModel implements Approvable, ShowsApproval
             'employee_id' => $this->employee_id,
             'entity_ids' => $this->employee?->entityIds() ?? [],
             'employment_type_id' => $this->employee?->employment_type_id,
-            'amount' => (float) $this->amount->toDecimal(),   // a workflow can start from "more than 10,000" (min_amount)
+            'amount' => (float) $this->amount->toDecimal(),
         ];
     }
 

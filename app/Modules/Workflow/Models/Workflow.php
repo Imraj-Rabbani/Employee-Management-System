@@ -3,21 +3,18 @@
 namespace App\Modules\Workflow\Models;
 
 use App\Core\Models\TenantModel;
-use App\Modules\Hrm\Models\EmploymentType;
-use App\Modules\Hrm\Models\Entity;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * Who approves one approval type, for which documents (legacy `workflows` header).
- * Empty scope columns mean "any". The engine picks the most specific match.
+ * The approval workflow of ONE approval type (e.g. Leave): its settings and its levels.
+ * Each type has at most one (workflows.approval_type_id is unique); it is made the first time
+ * someone configures the type on Workflow → Workflow Setup.
+ *
+ *     ApprovalType::forKey('leave')->workflow?->steps
  *
  * @property int $id
  * @property int $approval_type_id
- * @property string $name
- * @property int|null $scope_entity_id
- * @property int|null $scope_employment_type_id
- * @property string|null $min_amount
  * @property bool $send_email
  * @property bool $allow_review
  * @property bool $allow_reject
@@ -25,10 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Workflow extends TenantModel
 {
-    protected $fillable = [
-        'approval_type_id', 'name', 'scope_entity_id', 'scope_employment_type_id', 'min_amount',
-        'send_email', 'allow_review', 'allow_reject', 'is_active',
-    ];
+    protected $fillable = ['approval_type_id', 'send_email', 'allow_review', 'allow_reject', 'is_active'];
 
     protected $attributes = ['send_email' => true, 'allow_review' => true, 'allow_reject' => true, 'is_active' => true];
 
@@ -36,9 +30,6 @@ class Workflow extends TenantModel
     protected function casts(): array
     {
         return [
-            'scope_entity_id' => 'integer',
-            'scope_employment_type_id' => 'integer',
-            'min_amount' => 'decimal:2',
             'send_email' => 'boolean',
             'allow_review' => 'boolean',
             'allow_reject' => 'boolean',
@@ -52,18 +43,6 @@ class Workflow extends TenantModel
         return $this->belongsTo(ApprovalType::class);
     }
 
-    /** @return BelongsTo<Entity, $this> */
-    public function scopeEntity(): BelongsTo
-    {
-        return $this->belongsTo(Entity::class, 'scope_entity_id');
-    }
-
-    /** @return BelongsTo<EmploymentType, $this> */
-    public function scopeEmploymentType(): BelongsTo
-    {
-        return $this->belongsTo(EmploymentType::class, 'scope_employment_type_id');
-    }
-
     /**
      * Steps in level order: 1, 2, 3 ...
      *
@@ -72,5 +51,11 @@ class Workflow extends TenantModel
     public function steps(): HasMany
     {
         return $this->hasMany(WorkflowStep::class)->orderBy('level');
+    }
+
+    /** "1. Reporting supervisor → 2. Head of Branch → 3. Rahim Uddin" (see WorkflowStep::describe()). */
+    public function levelsText(): string
+    {
+        return $this->steps->map(fn (WorkflowStep $step) => $step->level.'. '.$step->describe())->implode(' → ');
     }
 }

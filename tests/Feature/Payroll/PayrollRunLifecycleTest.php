@@ -6,7 +6,7 @@ use App\Core\Support\Money;
 use App\Core\Support\Period;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Core\Models\Role;
+use App\Modules\Hrm\Enums\EmployeeStatus;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Payroll\Actions\CalculateEmployeePayroll;
 use App\Modules\Payroll\Actions\CreatePayrollRun;
@@ -24,16 +24,14 @@ use App\Modules\Payroll\Models\PayrollItem;
 use App\Modules\Payroll\Models\PayrollRun;
 use App\Modules\Payroll\Models\SalaryHead;
 use App\Modules\Workflow\Enums\ApprovalStatus;
-use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Models\Approval;
-use App\Modules\Workflow\Models\ApprovalType;
 use App\Modules\Workflow\Models\Workflow;
-use App\Modules\Workflow\Models\WorkflowStep;
 use App\Modules\Workflow\Services\WorkflowEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use LogicException;
 use Tests\Concerns\ActsAsTenantUser;
+use Tests\Concerns\MakesWorkflows;
 use Tests\TestCase;
 
 /**
@@ -43,6 +41,7 @@ use Tests\TestCase;
 class PayrollRunLifecycleTest extends TestCase
 {
     use ActsAsTenantUser;
+    use MakesWorkflows;
     use RefreshDatabase;
 
     private Tenant $tenant;
@@ -66,11 +65,10 @@ class PayrollRunLifecycleTest extends TestCase
         $this->karim = Employee::factory()->create(['code' => 'E-001', 'join_date' => '2025-01-01']);
         EmployeeSalary::create(['employee_id' => $this->karim->id, 'salary_head_id' => $basic->id, 'amount' => '30000', 'effective_from' => '2025-01-01']);
 
-        $approvers = Role::create(['name' => 'Payroll approvers']);
         $this->approver = User::factory()->for($this->tenant)->create();
-        $approvers->assignTo($this->approver);
-        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('payroll_run')?->id, 'name' => 'Payroll', 'allow_review' => true]);
-        WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Role, 'approver_role_id' => $approvers->id]);
+        // The approver's employee record left long ago, so they are not part of the December run.
+        Employee::factory()->create(['user_id' => $this->approver->id, 'join_date' => '2020-01-01', 'status' => EmployeeStatus::Separated, 'separation_date' => '2025-12-31']);
+        $this->workflowFor('payroll_run', [$this->approver], ['allow_review' => true]);
 
         $run = app(CreatePayrollRun::class)->handle(new NewPayrollRun(Period::of(2026, 12)), $this->hr);
         $this->run = app(ProcessPayrollRun::class)->handle($run)->fresh();   // sync queue: Processed

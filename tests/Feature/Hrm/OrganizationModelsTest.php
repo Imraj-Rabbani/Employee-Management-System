@@ -12,8 +12,10 @@ use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\EntityType;
 use App\Modules\Hrm\Models\Grade;
 use App\Modules\Hrm\Models\Position;
+use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Models\ApprovalType;
 use App\Modules\Workflow\Models\Workflow;
+use App\Modules\Workflow\Models\WorkflowStep;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use LogicException;
@@ -151,14 +153,17 @@ class OrganizationModelsTest extends TestCase
 
     // ---------------------------------------------------------------- foreign keys added to earlier tables
 
-    public function test_an_entity_used_as_a_workflow_scope_cannot_be_deleted(): void
+    public function test_an_entity_chosen_on_a_workflow_level_cannot_be_deleted(): void
     {
         $unit = Entity::factory()->create();
-        $type = ApprovalType::forKey('leave');   // registered by the leave migration
-        Workflow::create(['approval_type_id' => $type->id, 'name' => 'Entity only', 'scope_entity_id' => $unit->id]);
+        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('leave')?->id]);   // type registered by the leave migration
+        WorkflowStep::create([
+            'workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::SpecificEntityHead,
+            'approver_entity_type_id' => $unit->entity_type_id, 'approver_entity_id' => $unit->id,
+        ]);
 
         $this->expectException(QueryException::class);
-        $unit->delete();   // otherwise the workflow would silently apply to EVERY entity
+        $unit->delete();   // otherwise level 1 would point at nothing
     }
 
     public function test_workflow_and_role_scopes_must_point_at_real_rows(): void

@@ -18,16 +18,14 @@ use App\Modules\Hrm\Models\JobPosting;
 use App\Modules\Hrm\Models\ManpowerRequest;
 use App\Modules\Hrm\Models\RejectionReason;
 use App\Modules\Workflow\Enums\ApprovalStatus;
-use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Models\Approval;
 use App\Modules\Workflow\Models\ApprovalType;
-use App\Modules\Workflow\Models\Workflow;
-use App\Modules\Workflow\Models\WorkflowStep;
 use App\Modules\Workflow\Services\WorkflowEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use LogicException;
 use Tests\Concerns\ActsAsTenantUser;
+use Tests\Concerns\MakesWorkflows;
 use Tests\TestCase;
 
 /**
@@ -36,6 +34,7 @@ use Tests\TestCase;
 class JobOfferTest extends TestCase
 {
     use ActsAsTenantUser;
+    use MakesWorkflows;
     use RefreshDatabase;
 
     private Tenant $tenant;
@@ -74,13 +73,12 @@ class JobOfferTest extends TestCase
         ], $this->hr->id);
     }
 
-    /** A one-level workflow answered by a second administrator (never the requester). */
+    /** A one-level workflow answered by a second administrator (Specific People: them). */
     private function approver(): User
     {
-        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('job_offer')?->id, 'name' => 'Offers']);
-        WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Role, 'approver_role_id' => Role::administrator()?->id]);
         $approver = User::factory()->for($this->tenant)->create();
         Role::administrator()?->assignTo($approver);
+        $this->workflowFor('job_offer', [$approver]);
 
         return $approver;
     }

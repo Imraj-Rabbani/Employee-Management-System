@@ -9,14 +9,11 @@ use App\Modules\Hrm\Models\Entity;
 use App\Modules\Payroll\Livewire\Attendance\RosterForm;
 use App\Modules\Payroll\Models\Roster;
 use App\Modules\Payroll\Models\RosterItem;
-use App\Modules\Workflow\Enums\ApproverType;
-use App\Modules\Workflow\Models\ApprovalType;
-use App\Modules\Workflow\Models\Workflow;
-use App\Modules\Workflow\Models\WorkflowStep;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 use Tests\Concerns\ActsAsTenantUser;
+use Tests\Concerns\MakesWorkflows;
 use Tests\TestCase;
 
 /**
@@ -25,6 +22,7 @@ use Tests\TestCase;
 class RosterPagesTest extends TestCase
 {
     use ActsAsTenantUser;
+    use MakesWorkflows;
     use RefreshDatabase;
 
     private Tenant $tenant;
@@ -143,10 +141,8 @@ class RosterPagesTest extends TestCase
         $this->assertModelMissing($draft);
         $this->assertSame(0, RosterItem::count());
 
-        // Sent for approval through a real one-level workflow (approver: the Administrator role).
-        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('roster')?->id, 'name' => 'Roster']);
-        WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Role, 'approver_role_id' => Role::administrator()?->id]);
-        Role::administrator()?->assignTo(User::factory()->for($this->tenant)->create());
+        // Sent for approval through a real one-level workflow (approver: another login).
+        $this->workflowFor('roster', [User::factory()->for($this->tenant)->create()]);
         $sent = Roster::factory()->create(['entity_id' => $this->factory->id]);
         $sent->submitForApproval(auth()->user());
         $this->assertFalse($sent->fresh()->isEditable());

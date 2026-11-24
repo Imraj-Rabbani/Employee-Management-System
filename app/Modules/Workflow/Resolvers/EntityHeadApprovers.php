@@ -31,7 +31,7 @@ class EntityHeadApprovers implements ResolvesApprovers
         $employees = Employee::withoutGlobalScope(VisibleToCurrentUser::class);
         $employeeId = $context['employee_id'] ?? null;
 
-        $entityId = $this->startingEntity($step->approver_entity_type_id, $context['entity_ids'] ?? [], $employeeId);
+        $entityId = $this->startingEntity($step, $context['entity_ids'] ?? [], $employeeId);
         $seen = [];
 
         while ($entityId !== null && ! in_array($entityId, $seen, true)) {
@@ -54,9 +54,14 @@ class EntityHeadApprovers implements ResolvesApprovers
         return [];
     }
 
-    /** @param  list<int>  $entityIds */
-    private function startingEntity(?int $typeId, array $entityIds, ?int $employeeId): ?int
+    /**
+     * The entity whose head is asked first (SpecificEntityHeadApprovers: the chosen one).
+     *
+     * @param  list<int>  $entityIds
+     */
+    protected function startingEntity(WorkflowStep $step, array $entityIds, ?int $employeeId): ?int
     {
+        $typeId = $step->approver_entity_type_id;
         if ($typeId === null) {
             return $entityIds[0] ?? null;   // old steps without a type: the document's first entity
         }

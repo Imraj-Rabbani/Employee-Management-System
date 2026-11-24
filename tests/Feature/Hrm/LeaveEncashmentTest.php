@@ -4,7 +4,6 @@ namespace Tests\Feature\Hrm;
 
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Core\Models\Role;
 use App\Modules\Hrm\Data\LeaveYear;
 use App\Modules\Hrm\Enums\LeaveEntryType;
 use App\Modules\Hrm\Livewire\Ess\MyLeave;
@@ -15,18 +14,17 @@ use App\Modules\Hrm\Models\LeaveBalance;
 use App\Modules\Hrm\Models\LeaveEncashment;
 use App\Modules\Hrm\Models\LeaveProfile;
 use App\Modules\Hrm\Models\LeaveType;
+use App\Modules\Hrm\Services\CreditLeaveNow;
 use App\Modules\Hrm\Services\LeaveLedger;
 use App\Modules\Workflow\Enums\ApprovalStatus;
-use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Models\Approval;
-use App\Modules\Workflow\Models\ApprovalType;
 use App\Modules\Workflow\Models\Workflow;
-use App\Modules\Workflow\Models\WorkflowStep;
 use App\Modules\Workflow\Services\WorkflowEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\Concerns\ActsAsTenantUser;
+use Tests\Concerns\MakesWorkflows;
 use Tests\TestCase;
 
 /**
@@ -36,6 +34,7 @@ use Tests\TestCase;
 class LeaveEncashmentTest extends TestCase
 {
     use ActsAsTenantUser;
+    use MakesWorkflows;
     use RefreshDatabase;
 
     private Tenant $tenant;
@@ -50,6 +49,9 @@ class LeaveEncashmentTest extends TestCase
     {
         parent::setUp();
 
+        // These tests set balances themselves; crediting leave the moment a profile is given is tested in CreditLeaveNowTest.
+        $this->mock(CreditLeaveNow::class)->shouldIgnoreMissing();
+
         $this->travelTo('2026-12-10 12:00');
         $this->tenant = $this->createMigratedTenant(['modules' => ['hrm', 'payroll', 'workflow']]);
         $this->actingAsTenantUser(tenant: $this->tenant);
@@ -61,11 +63,8 @@ class LeaveEncashmentTest extends TestCase
         $this->karim = Employee::factory()->create(['join_date' => '2020-01-01', 'leave_profile_id' => $profile->id]);
         app(LeaveLedger::class)->credit($this->karim, $this->earned, LeaveYear::of(2026), 12, LeaveEntryType::Earned);
 
-        $managers = Role::create(['name' => 'Managers']);
         $this->manager = User::factory()->for($this->tenant)->create();
-        $managers->assignTo($this->manager);
-        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('leave_encashment')?->id, 'name' => 'Encashment']);
-        WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Role, 'approver_role_id' => $managers->id]);
+        $this->workflowFor('leave_encashment', [$this->manager]);
     }
 
     private function ask(string $days = '5', bool $self = false, ?int $typeId = null): Testable

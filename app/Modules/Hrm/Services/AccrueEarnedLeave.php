@@ -15,7 +15,8 @@ use App\Modules\Payroll\Models\AttendanceDay;
 use Carbon\CarbonImmutable;
 
 /**
- * Credits earned leave for the current company: every night (hrm:accrue-leave, 03:00).
+ * Credits earned leave for the current company: every night (hrm:accrue-leave, 03:00), and at once for
+ * the employees affected when a profile / leave type / employee changes (CreditLeaveNow).
  *
  * For each employee with a leave profile, each ACTIVE leave type in it: LeaveEarning says which periods are
  * due; those without a leave_accruals row are credited (LeaveLedger::credit Earned, source = the accrual row).
@@ -32,6 +33,12 @@ class AccrueEarnedLeave
         private LeaveEarning $earning,
         private LeaveLedger $ledger,
     ) {}
+
+    /** Today in the company's timezone. */
+    public static function today(): CarbonImmutable
+    {
+        return CarbonImmutable::now(settings('timezone', config('app.timezone')));
+    }
 
     /**
      * @param  list<int>|null  $employeeIds  only these (null = everyone)

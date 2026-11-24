@@ -198,7 +198,7 @@ class LeaveApplication extends TenantModel implements Approvable, ShowsApprovalD
             'employee_id' => $this->employee_id,
             'entity_ids' => $this->employee?->entityIds() ?? [],
             'employment_type_id' => $this->employee?->employment_type_id,
-            'amount' => $this->days,   // a workflow can start from "more than 3 days" (min_amount)
+            'amount' => $this->days,
         ];
     }
 

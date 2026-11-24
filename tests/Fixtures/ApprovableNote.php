@@ -29,6 +29,14 @@ class ApprovableNote extends TenantModel implements Approvable
     public array $context = [];
 
     /**
+     * Context by note id, for a note the engine loads again from the database (respond() asking the
+     * next level): there $context is empty. Tests set it with ApprovableNote::$contexts[$note->id] = [...].
+     *
+     * @var array<int, array<string, mixed>>
+     */
+    public static array $contexts = [];
+
+    /**
      * Every onApproved / onRejected call, e.g. ['approved:3'], so tests can check it ran exactly once.
      *
      * @var list<string>
@@ -47,7 +55,7 @@ class ApprovableNote extends TenantModel implements Approvable
 
     public function approvalContext(): array
     {
-        return $this->context;
+        return $this->context ?: (static::$contexts[$this->getKey()] ?? []);
     }
 
     public function onApproved(Approval $final): void

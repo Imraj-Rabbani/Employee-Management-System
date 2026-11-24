@@ -61,7 +61,7 @@ class ManpowerRequestTest extends TestCase
 
     private function supervisorWorkflow(): void
     {
-        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('manpower_request')?->id, 'name' => 'Manpower']);
+        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('manpower_request')?->id]);
         WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Supervisor]);
     }
 

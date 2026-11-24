@@ -37,14 +37,14 @@ class ApprovableTest extends TestCase
         app(TenantManager::class)->switchTo($this->createMigratedTenant());
 
         $type = ApprovalType::create(['key' => 'note', 'name' => 'Note', 'model_class' => ApprovableNote::class]);
-        $workflow = Workflow::create(['approval_type_id' => $type->id, 'name' => 'Notes, any unit']);
+        $workflow = Workflow::create(['approval_type_id' => $type->id]);
         $this->level1 = WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Supervisor]);
-        $this->level2 = WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 2, 'approver_type' => ApproverType::Role]);
+        $this->level2 = WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 2, 'approver_type' => ApproverType::Employee]);
     }
 
     public function test_the_setup_models_are_linked_and_cast(): void
     {
-        $workflow = ApprovalType::forKey('note')?->workflows()->sole();
+        $workflow = ApprovalType::forKey('note')?->workflow;
 
         $this->assertNotNull($workflow);
         $this->assertSame([1, 2], $workflow->steps->pluck('level')->all());

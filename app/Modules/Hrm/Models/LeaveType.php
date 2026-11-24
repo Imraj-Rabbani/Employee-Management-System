@@ -9,6 +9,7 @@ use App\Modules\Hrm\Enums\LeaveBridging;
 use App\Modules\Hrm\Enums\LeaveEarnType;
 use App\Modules\Hrm\Enums\LeaveEligibleFrom;
 use App\Modules\Hrm\Enums\Religion;
+use App\Modules\Hrm\Services\CreditLeaveNow;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -104,6 +105,19 @@ class LeaveType extends TenantModel
             'is_encashable' => 'boolean',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Switching a type on, or changing how it is earned, credits what is now due at once for the employees
+     * whose profile has it (CreditLeaveNow) instead of waiting for tonight's job.
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (LeaveType $type) {
+            if ($type->is_active && $type->wasChanged(['is_active', 'earn_type', 'earn_per_days_worked'])) {
+                app(CreditLeaveNow::class)->forType($type);
+            }
+        });
     }
 
     /** "Casual leave (CL)" for dropdowns and lists. */

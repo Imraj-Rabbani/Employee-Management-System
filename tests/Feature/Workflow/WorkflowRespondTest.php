@@ -6,9 +6,7 @@ use App\Core\Tenancy\TenantManager;
 use App\Core\Tenancy\TenantMigrationPaths;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Core\Models\Role;
 use App\Modules\Workflow\Enums\ApprovalStatus;
-use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Exceptions\WorkflowException;
 use App\Modules\Workflow\Models\Approval;
 use App\Modules\Workflow\Models\ApprovalType;
@@ -17,17 +15,19 @@ use App\Modules\Workflow\Models\WorkflowStep;
 use App\Modules\Workflow\Services\WorkflowEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesTenantDatabases;
+use Tests\Concerns\MakesWorkflows;
 use Tests\Fixtures\ApprovableNote;
 use Tests\TestCase;
 
 /**
  * WorkflowEngine::respond(): approve / reject / send back, next level, ApprovalCompleted.
  *
- * Set-up: a 2-level workflow. Level 1 = role "Managers" (Mina), level 2 = role "Finance" (Farid).
+ * Set-up: a 2-level workflow. Level 1 = Specific People: Mina, level 2 = Specific People: Farid.
  */
 class WorkflowRespondTest extends TestCase
 {
     use CreatesTenantDatabases;
+    use MakesWorkflows;
     use RefreshDatabase;
 
     private Tenant $tenant;
@@ -35,8 +35,6 @@ class WorkflowRespondTest extends TestCase
     private ApprovalType $type;
 
     private Workflow $workflow;
-
-    private Role $managers;
 
     private User $requester;
 
@@ -53,22 +51,12 @@ class WorkflowRespondTest extends TestCase
         $this->tenant = $this->createMigratedTenant();
         app(TenantManager::class)->switchTo($this->tenant);
 
-        $this->managers = Role::create(['name' => 'Managers']);
-        $finance = Role::create(['name' => 'Finance']);
         $this->requester = $this->user();
-        $this->mina = $this->user($this->managers);
-        $this->farid = $this->user($finance);
+        $this->mina = $this->user();
+        $this->farid = $this->user();
 
         $this->type = ApprovalType::create(['key' => 'note', 'name' => 'Note']);
-        $this->workflow = Workflow::create(['approval_type_id' => $this->type->id, 'name' => 'Two levels']);
-        foreach ([$this->managers, $finance] as $i => $role) {
-            WorkflowStep::create([
-                'workflow_id' => $this->workflow->id,
-                'level' => $i + 1,
-                'approver_type' => ApproverType::Role,
-                'approver_role_id' => $role->id,
-            ]);
-        }
+        $this->workflow = $this->workflowFor($this->type, [$this->mina, $this->farid]);
     }
 
     // ---------------------------------------------------------------- the happy path
@@ -95,18 +83,6 @@ class WorkflowRespondTest extends TestCase
         $this->assertSame($this->farid->id, $level2->responded_by);
         $this->assertNotNull($level2->responded_at);
         $this->assertSame('Fine by finance', $level2->comment);
-    }
-
-    public function test_when_one_role_holder_approves_the_others_are_no_longer_asked(): void
-    {
-        $otherManager = $this->user($this->managers);
-        $note = $this->submitted();
-        $this->assertSame(2, $note->approvals()->pending()->where('level', 1)->count());
-
-        $this->answer($this->rowFor($note, $this->mina), ApprovalStatus::Approved, $this->mina);
-
-        $this->assertFalse($note->approvals()->where('approver_user_id', $otherManager->id)->exists());
-        $this->assertSame(1, $note->approvals()->where('level', 1)->count());
     }
 
     public function test_not_chained_completes_only_after_every_level_approved(): void
@@ -247,12 +223,9 @@ class WorkflowRespondTest extends TestCase
         app(WorkflowEngine::class)->respond($row, $decision, $by, $comment);
     }
 
-    private function user(?Role $role = null): User
+    private function user(): User
     {
-        $user = User::factory()->for($this->tenant)->create();
-        $role?->assignTo($user);
-
-        return $user;
+        return User::factory()->for($this->tenant)->create();
     }
 
     private function assertRefused(\Closure $action, string $message): void

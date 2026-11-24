@@ -20,11 +20,8 @@ use App\Modules\Payroll\Models\PunchLog;
 use App\Modules\Payroll\Models\Shift;
 use App\Modules\Payroll\Services\AttendanceService;
 use App\Modules\Workflow\Enums\ApprovalStatus;
-use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Models\Approval;
-use App\Modules\Workflow\Models\ApprovalType;
 use App\Modules\Workflow\Models\Workflow;
-use App\Modules\Workflow\Models\WorkflowStep;
 use App\Modules\Workflow\Services\WorkflowEngine;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -33,6 +30,7 @@ use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyExceptio
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\Concerns\ActsAsTenantUser;
+use Tests\Concerns\MakesWorkflows;
 use Tests\TestCase;
 
 /**
@@ -44,6 +42,7 @@ use Tests\TestCase;
 class AttendanceCorrectionTest extends TestCase
 {
     use ActsAsTenantUser;
+    use MakesWorkflows;
     use RefreshDatabase;
 
     private Tenant $tenant;
@@ -66,10 +65,9 @@ class AttendanceCorrectionTest extends TestCase
         $this->karim = Employee::factory()->create(['join_date' => '2026-01-01']);
 
         // One-level workflow, answered by another Administrator.
-        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('attendance_correction')?->id, 'name' => 'Corrections']);
-        WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Role, 'approver_role_id' => Role::administrator()?->id]);
         $this->approver = User::factory()->for($this->tenant)->create();
         Role::administrator()?->assignTo($this->approver);
+        $this->workflowFor('attendance_correction', [$this->approver]);
     }
 
     /** @param  array<string, string>  $values */

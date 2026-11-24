@@ -6,13 +6,15 @@ use App\Core\Tenancy\TenantMigrationPaths;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Core\Livewire\NotificationBell;
-use App\Modules\Core\Models\Role;
+use App\Modules\Hrm\Models\Employee;
+use App\Modules\Hrm\Models\Entity;
+use App\Modules\Hrm\Models\EntityType;
 use App\Modules\Workflow\Enums\ApprovalStatus;
 use App\Modules\Workflow\Enums\ApproverType;
-use App\Modules\Workflow\Livewire\ApprovalTypeForm;
 use App\Modules\Workflow\Livewire\MyApprovalsTable;
 use App\Modules\Workflow\Livewire\RespondForm;
 use App\Modules\Workflow\Livewire\WorkflowForm;
+use App\Modules\Workflow\Livewire\WorkflowsTable;
 use App\Modules\Workflow\Models\Approval;
 use App\Modules\Workflow\Models\ApprovalType;
 use App\Modules\Workflow\Models\Workflow;
@@ -25,21 +27,21 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\Concerns\ActsAsTenantUser;
+use Tests\Concerns\MakesWorkflows;
 use Tests\Fixtures\ApprovableNote;
 use Tests\TestCase;
 
 /**
- * Workflow Setup (types + workflows with levels), My Approvals inbox,
+ * Workflow Setup (one row per approval type, the levels form), My Approvals inbox,
  * <x-approval-timeline> and the notification bell.
  */
 class WorkflowPagesTest extends TestCase
 {
     use ActsAsTenantUser;
+    use MakesWorkflows;
     use RefreshDatabase;
 
     private Tenant $tenant;
-
-    private Role $managers;
 
     protected function setUp(): void
     {
@@ -48,7 +50,6 @@ class WorkflowPagesTest extends TestCase
         app(TenantMigrationPaths::class)->add(base_path('tests/Fixtures/TenantMigrations'));   // "notes" table
         $this->tenant = $this->createMigratedTenant();
         $this->actingAsTenantUser(tenant: $this->tenant);   // Administrator
-        $this->managers = Role::create(['name' => 'Managers']);
     }
 
     // ---------------------------------------------------------------- Workflow Setup
@@ -56,92 +57,152 @@ class WorkflowPagesTest extends TestCase
     public function test_the_setup_page_needs_the_permission(): void
     {
         $this->get('/dashboard')->assertSee(route('workflow.setup'));
-        $this->get('/workflow/setup')->assertOk()->assertSee('New workflow')->assertSee('Approval types');
+        $this->get('/workflow/setup')->assertOk()->assertSee('Workflow Setup')->assertDontSee('Approval types');
 
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: []);
         $this->get('/workflow/setup')->assertForbidden();
     }
 
-    public function test_an_approval_type_is_created_and_its_key_cannot_change(): void
+    public function test_the_list_shows_every_active_type_the_code_registered_with_its_levels(): void
     {
-        Livewire::test(ApprovalTypeForm::class)
-            ->dispatch('create-approval-type')
-            ->set('key', 'Business Trip')
-            ->set('name', 'Business trip')
-            ->call('save')
-            ->assertHasErrors(['key' => 'regex'])
-            ->set('key', 'business_trip')
-            ->call('save')
-            ->assertHasNoErrors()
-            ->assertDispatched('approval-type-saved');
+        $mina = $this->member('Mina Manager');
+        $this->workflowFor($this->type(), [['approver_type' => ApproverType::Supervisor], $mina]);
+        ApprovalType::create(['key' => 'hidden', 'name' => 'Switched off type', 'is_active' => false]);
 
-        $type = ApprovalType::forKey('business_trip');
-        $this->assertNotNull($type);
-
-        Livewire::test(ApprovalTypeForm::class)
-            ->dispatch('edit-approval-type', id: $type->id)
-            ->set('key', 'hacked')
-            ->set('name', 'Business trip request')
-            ->call('save')
-            ->assertHasNoErrors();
-
-        $this->assertSame(['business_trip', 'Business trip request'], [$type->fresh()?->key, $type->fresh()?->name]);
+        Livewire::test(WorkflowsTable::class)
+            ->assertSee('Leave')                    // registered by the Hrm migration, not set up
+            ->assertSee('Not set up')
+            ->assertSee('Reporting supervisor')     // the note's levels
+            ->assertSee('Mina Manager')
+            ->assertDontSee('Switched off type')
+            ->set('status', 'active')
+            ->call('applyFilters')
+            ->assertSee('Note')
+            ->assertDontSee('Leave');
     }
 
-    public function test_a_workflow_is_created_with_its_levels_in_order(): void
+    public function test_the_first_save_creates_the_types_workflow_with_its_levels_in_order(): void
     {
         $type = $this->type();
-        $finance = Role::create(['name' => 'Finance']);
+        $branch = EntityType::where('name', 'Branch')->firstOrFail();
+        $gulshan = Entity::factory()->ofType($branch)->create(['name' => 'Gulshan']);
+        $mina = $this->employeeOf($this->member('Mina'));
 
         Livewire::test(WorkflowForm::class)
-            ->dispatch('create-workflow')
+            ->dispatch('edit-workflow', id: $type->id)
+            ->assertSet('typeName', 'Note')
             ->assertCount('steps', 1)
-            ->set('approvalTypeId', (string) $type->id)
-            ->set('name', 'Notes')
-            ->set('minAmount', '5000')
-            ->set('steps.0.approver_role_id', (string) $finance->id)
+            ->assertSet('steps.0.approver_type', ApproverType::Supervisor->value)
             ->call('addStep')
-            ->set('steps.1.approver_role_id', (string) $this->managers->id)
-            ->set('steps.1.attachment_required', true)
-            ->call('moveUp', 1)   // managers first
+            ->set('steps.1.approver_type', ApproverType::EntityHead->value)
+            ->set('steps.1.approver_entity_type_id', (string) $branch->id)
+            ->call('addStep')
+            ->set('steps.2.approver_type', ApproverType::SpecificEntityHead->value)
+            ->set('steps.2.approver_entity_type_id', (string) $branch->id)
+            ->set('steps.2.approver_entity_id', (string) $gulshan->id)
+            ->call('addStep')
+            ->set('steps.3.approver_type', ApproverType::Employee->value)
+            ->set('steps.3.approver_employee_id', (string) $mina->id)
+            ->set('steps.3.attachment_required', true)
+            ->call('moveUp', 3)   // Mina before the Gulshan head
+            ->set('allowReject', false)
             ->call('save')
             ->assertHasNoErrors()
             ->assertDispatched('workflow-saved');
 
         $workflow = Workflow::with('steps')->sole();
-        $this->assertSame('5000.00', $workflow->min_amount);
-        $this->assertSame([$this->managers->id, $finance->id], $workflow->steps->pluck('approver_role_id')->all());
-        $this->assertSame([1, 2], $workflow->steps->pluck('level')->all());
-        $this->assertTrue($workflow->steps->first()?->attachment_required);
+        $this->assertSame($type->id, $workflow->approval_type_id);
+        $this->assertFalse($workflow->allow_reject);
+        $this->assertSame([1, 2, 3, 4], $workflow->steps->pluck('level')->all());
+        $this->assertSame(
+            [ApproverType::Supervisor, ApproverType::EntityHead, ApproverType::Employee, ApproverType::SpecificEntityHead],
+            $workflow->steps->pluck('approver_type')->all(),
+        );
+        $this->assertSame([null, $branch->id, null, $branch->id], $workflow->steps->pluck('approver_entity_type_id')->all());
+        $this->assertSame([null, null, null, $gulshan->id], $workflow->steps->pluck('approver_entity_id')->all());
+        $this->assertSame([null, null, $mina->id, null], $workflow->steps->pluck('approver_employee_id')->all());
+        $this->assertTrue($workflow->steps[2]->attachment_required);
+
+        // Opening it again edits the same workflow (one per type).
+        Livewire::test(WorkflowForm::class)
+            ->dispatch('edit-workflow', id: $type->id)
+            ->assertCount('steps', 4)
+            ->call('removeStep', 3)
+            ->call('save')
+            ->assertHasNoErrors();
+        $this->assertSame(1, Workflow::count());
+        $this->assertSame(3, $workflow->steps()->count());
     }
 
-    public function test_a_level_needs_a_role_and_employee_based_approvers_are_not_offered_yet(): void
+    public function test_each_type_asks_for_its_own_fields(): void
     {
+        $branch = EntityType::where('name', 'Branch')->firstOrFail();
+        $department = EntityType::where('name', 'Department')->firstOrFail();
+        $finance = Entity::factory()->ofType($department)->create();
+        $noLogin = Employee::factory()->create();
+
         Livewire::test(WorkflowForm::class)
-            ->dispatch('create-workflow')
-            ->set('approvalTypeId', (string) $this->type()->id)
-            ->set('name', 'Notes')
+            ->dispatch('edit-workflow', id: $this->type()->id)
+            ->set('steps.0.approver_type', ApproverType::EntityHead->value)
             ->call('save')
-            ->assertHasErrors(['steps.0.approver_role_id' => 'required'])
-            ->set('steps.0.approver_role_id', (string) $this->managers->id)
-            ->set('steps.0.approver_type', ApproverType::Supervisor->value)
+            ->assertHasErrors(['steps.0.approver_entity_type_id' => 'required'])
+            ->set('steps.0.approver_type', ApproverType::SpecificEntityHead->value)
+            ->set('steps.0.approver_entity_type_id', (string) $branch->id)
+            ->set('steps.0.approver_entity_id', (string) $finance->id)   // a Department, not a Branch
             ->call('save')
-            ->assertHasErrors(['steps.0.approver_type' => 'in']);
+            ->assertHasErrors(['steps.0.approver_entity_id' => 'exists'])
+            ->set('steps.0.approver_type', ApproverType::Employee->value)
+            ->call('save')
+            ->assertHasErrors(['steps.0.approver_employee_id' => 'required'])
+            ->set('steps.0.approver_employee_id', (string) $noLogin->id)
+            ->call('save')
+            ->assertHasErrors(['steps.0.approver_employee_id' => 'exists'])
+            ->set('steps.0.approver_type', 'role')
+            ->call('save')
+            ->assertHasErrors(['steps.0.approver_type']);
 
         $this->assertSame(0, Workflow::count());
     }
 
+    public function test_a_new_entity_type_empties_the_specific_entity(): void
+    {
+        $branch = EntityType::where('name', 'Branch')->firstOrFail();
+        $department = EntityType::where('name', 'Department')->firstOrFail();
+
+        Livewire::test(WorkflowForm::class)
+            ->dispatch('edit-workflow', id: $this->type()->id)
+            ->set('steps.0.approver_type', ApproverType::SpecificEntityHead->value)
+            ->set('steps.0.approver_entity_type_id', (string) $branch->id)
+            ->set('steps.0.approver_entity_id', (string) Entity::factory()->ofType($branch)->create()->id)
+            ->set('steps.0.approver_entity_type_id', (string) $department->id)
+            ->assertSet('steps.0.approver_entity_id', '');
+    }
+
+    public function test_only_fields_of_the_chosen_type_are_kept(): void
+    {
+        $branch = EntityType::where('name', 'Branch')->firstOrFail();
+
+        Livewire::test(WorkflowForm::class)
+            ->dispatch('edit-workflow', id: $this->type()->id)
+            ->set('steps.0.approver_type', ApproverType::EntityHead->value)
+            ->set('steps.0.approver_entity_type_id', (string) $branch->id)
+            ->set('steps.0.approver_type', ApproverType::Supervisor->value)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertNull(WorkflowStep::sole()->approver_entity_type_id);
+    }
+
     public function test_removing_a_level_with_approval_history_is_refused(): void
     {
-        $workflow = $this->workflow(levels: 2);
-        $this->member('Mina');
+        $mina = $this->member('Mina');
+        $workflow = $this->workflowFor($this->type(), [$mina, $mina]);
         $this->submittedNote();
-        $level1 = Approval::sole();
-        app(WorkflowEngine::class)->respond($level1, ApprovalStatus::Approved, $this->userById($level1->approver_user_id));
+        app(WorkflowEngine::class)->respond(Approval::sole(), ApprovalStatus::Approved, $mina);
         // Level 2 now has an approval row.
 
         Livewire::test(WorkflowForm::class)
-            ->dispatch('edit-workflow', id: $workflow->id)
+            ->dispatch('edit-workflow', id: $this->type()->id)
             ->assertCount('steps', 2)
             ->call('removeStep', 1)
             ->call('save')
@@ -150,25 +211,12 @@ class WorkflowPagesTest extends TestCase
         $this->assertSame(2, $workflow->steps()->count());
     }
 
-    public function test_removing_an_unused_level_works(): void
-    {
-        $workflow = $this->workflow(levels: 2);
-
-        Livewire::test(WorkflowForm::class)
-            ->dispatch('edit-workflow', id: $workflow->id)
-            ->call('removeStep', 1)
-            ->call('save')
-            ->assertHasNoErrors();
-
-        $this->assertSame([1], $workflow->steps()->pluck('level')->all());
-    }
-
     // ---------------------------------------------------------------- My Approvals
 
     public function test_the_inbox_shows_only_what_waits_for_me_and_needs_no_permission(): void
     {
-        $this->workflow();
         $mina = $this->member('Mina');
+        $this->workflowFor($this->type(), [$mina]);
         $note = $this->submittedNote('Mine to answer');
 
         $this->actingAs($mina);
@@ -177,8 +225,8 @@ class WorkflowPagesTest extends TestCase
 
         Livewire::test(MyApprovalsTable::class)->assertSee('Note: Mine to answer')->assertSee('Pending');
 
-        // Someone else of the same role sees it too (own row); a stranger does not.
-        $this->actingAs($this->member('Not a manager', manager: false));
+        // Someone else does not.
+        $this->actingAs($this->member('Not the approver'));
         Livewire::test(MyApprovalsTable::class)->assertDontSee('Note: Mine to answer');
 
         $this->assertSame(ApprovalStatus::Pending, $note->approvalStatus());
@@ -186,8 +234,8 @@ class WorkflowPagesTest extends TestCase
 
     public function test_answered_rows_move_to_the_answered_filter(): void
     {
-        $this->workflow();
         $mina = $this->member('Mina');
+        $this->workflowFor($this->type(), [$mina]);
         $this->submittedNote('Done one');
         $this->actingAs($mina);
 
@@ -204,8 +252,8 @@ class WorkflowPagesTest extends TestCase
 
     public function test_reject_without_a_reason_shows_the_error_in_the_modal(): void
     {
-        $this->workflow();
         $mina = $this->member('Mina');
+        $this->workflowFor($this->type(), [$mina]);
         $this->submittedNote();
         $this->actingAs($mina);
 
@@ -222,9 +270,9 @@ class WorkflowPagesTest extends TestCase
 
     public function test_an_attachment_is_saved_on_the_company_disk(): void
     {
-        $this->workflow();
-        WorkflowStep::query()->update(['attachment_required' => true]);
         $mina = $this->member('Mina');
+        $this->workflowFor($this->type(), [$mina]);
+        WorkflowStep::query()->update(['attachment_required' => true]);
         $this->submittedNote();
         $this->actingAs($mina);
         $id = Approval::where('approver_user_id', $mina->id)->value('id');
@@ -248,10 +296,9 @@ class WorkflowPagesTest extends TestCase
 
     public function test_nobody_can_open_someone_elses_approval(): void
     {
-        $this->workflow();
-        $this->member('Mina');
+        $this->workflowFor($this->type(), [$this->member('Mina')]);
         $this->submittedNote();
-        $this->actingAs($this->member('Nosy', manager: false));
+        $this->actingAs($this->member('Nosy'));
 
         // Livewire turns the ModelNotFoundException into a 404 answer.
         Livewire::test(RespondForm::class)->dispatch('open-approval', id: Approval::value('id'))->assertNotFound();
@@ -261,8 +308,8 @@ class WorkflowPagesTest extends TestCase
 
     public function test_the_timeline_lists_each_level_with_names_and_comments(): void
     {
-        $this->workflow();
         $mina = $this->member('Mina Manager');
+        $this->workflowFor($this->type(), [$mina]);
         $note = $this->submittedNote();
         app(WorkflowEngine::class)->respond(Approval::sole(), ApprovalStatus::Review, $mina, 'Please add the date');
 
@@ -275,8 +322,8 @@ class WorkflowPagesTest extends TestCase
 
     public function test_the_bell_counts_unread_and_opening_one_marks_it_read(): void
     {
-        $this->workflow();
         $mina = $this->member('Mina');
+        $this->workflowFor($this->type(), [$mina]);
         $this->submittedNote('Bell test');   // sync queue: the in-app notification is stored
         $this->actingAs($mina);
 
@@ -297,32 +344,10 @@ class WorkflowPagesTest extends TestCase
         return ApprovalType::firstOrCreate(['key' => 'note'], ['name' => 'Note']);
     }
 
-    /** A workflow of the "note" type whose levels are all role "Managers". */
-    private function workflow(int $levels = 1): Workflow
+    /** A login of this company. */
+    private function member(string $name): User
     {
-        $workflow = Workflow::create(['approval_type_id' => $this->type()->id, 'name' => 'Notes']);
-
-        for ($level = 1; $level <= $levels; $level++) {
-            WorkflowStep::create([
-                'workflow_id' => $workflow->id,
-                'level' => $level,
-                'approver_type' => ApproverType::Role,
-                'approver_role_id' => $this->managers->id,
-            ]);
-        }
-
-        return $workflow;
-    }
-
-    /** A login of this company; a manager (can approve the test workflows) unless $manager is false. */
-    private function member(string $name, bool $manager = true): User
-    {
-        $user = User::factory()->for($this->tenant)->create(['name' => $name]);
-        if ($manager) {
-            $this->managers->assignTo($user);
-        }
-
-        return $user;
+        return User::factory()->for($this->tenant)->create(['name' => $name]);
     }
 
     private function submittedNote(string $text = 'hello'): ApprovableNote
@@ -331,10 +356,5 @@ class WorkflowPagesTest extends TestCase
         $note->submitForApproval(User::factory()->for($this->tenant)->create(['name' => 'Rina Requester']));
 
         return $note;
-    }
-
-    private function userById(?int $id): User
-    {
-        return User::findOrFail($id);
     }
 }

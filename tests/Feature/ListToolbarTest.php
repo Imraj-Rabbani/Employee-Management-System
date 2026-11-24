@@ -19,14 +19,11 @@ use App\Modules\Payroll\Livewire\Attendance\RosterTable;
 use App\Modules\Payroll\Models\Roster;
 use App\Modules\Payroll\Models\RosterItem;
 use App\Modules\Workflow\Enums\ApprovalStatus;
-use App\Modules\Workflow\Enums\ApproverType;
-use App\Modules\Workflow\Models\ApprovalType;
-use App\Modules\Workflow\Models\Workflow;
-use App\Modules\Workflow\Models\WorkflowStep;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 use Tests\Concerns\ActsAsTenantUser;
+use Tests\Concerns\MakesWorkflows;
 use Tests\TestCase;
 
 /**
@@ -36,6 +33,7 @@ use Tests\TestCase;
 class ListToolbarTest extends TestCase
 {
     use ActsAsTenantUser;
+    use MakesWorkflows;
     use RefreshDatabase;
 
     private Tenant $tenant;
@@ -162,11 +160,9 @@ class ListToolbarTest extends TestCase
         $this->assertSame(ApprovalStatus::Pending, $planned->fresh()?->approvalStatus());
     }
 
-    /** A one-level workflow answered by a second Administrator (never the requester). */
+    /** A one-level workflow answered by another login (never the requester). */
     private function workflow(string $type): void
     {
-        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey($type)?->id, 'name' => 'Test']);
-        WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Role, 'approver_role_id' => Role::administrator()?->id]);
-        Role::administrator()?->assignTo(User::factory()->for($this->tenant)->create());
+        $this->workflowFor($type, [User::factory()->for($this->tenant)->create()]);
     }
 }

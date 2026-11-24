@@ -15,18 +15,15 @@ use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\ManpowerRequest;
 use App\Modules\Hrm\Models\Position;
 use App\Modules\Workflow\Enums\ApprovalStatus;
-use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Livewire\RespondForm;
 use App\Modules\Workflow\Models\Approval;
-use App\Modules\Workflow\Models\ApprovalType;
-use App\Modules\Workflow\Models\Workflow;
-use App\Modules\Workflow\Models\WorkflowStep;
 use App\Modules\Workflow\Services\WorkflowEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\Concerns\ActsAsTenantUser;
+use Tests\Concerns\MakesWorkflows;
 use Tests\TestCase;
 
 /**
@@ -35,6 +32,7 @@ use Tests\TestCase;
 class ManpowerRequestPagesTest extends TestCase
 {
     use ActsAsTenantUser;
+    use MakesWorkflows;
     use RefreshDatabase;
 
     private Tenant $tenant;
@@ -193,8 +191,7 @@ class ManpowerRequestPagesTest extends TestCase
         // approver, so a second administrator answers.
         $approver = User::factory()->for($this->tenant)->create();
         Role::administrator()?->assignTo($approver);
-        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('manpower_request')?->id, 'name' => 'Manpower']);
-        WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Role, 'approver_role_id' => Role::administrator()?->id]);
+        $this->workflowFor('manpower_request', [$approver]);
         $request->submitForApproval($this->admin);
 
         Livewire::test(ManpowerRequestForm::class)
@@ -220,14 +217,12 @@ class ManpowerRequestPagesTest extends TestCase
 
     // ---- 6.2c: the request's page and "Send for approval" ----------------------------------
 
-    /** A second administrator who answers a one-level "Administrator" workflow (never the requester). */
+    /** A second administrator who answers a one-level workflow (Specific People: them). */
     private function adminWorkflow(): User
     {
-        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('manpower_request')?->id, 'name' => 'Manpower']);
-        WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Role, 'approver_role_id' => Role::administrator()?->id]);
-
         $approver = User::factory()->for($this->tenant)->create();
         Role::administrator()?->assignTo($approver);
+        $this->workflowFor('manpower_request', [$approver]);
 
         return $approver;
     }

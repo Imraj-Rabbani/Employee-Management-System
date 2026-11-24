@@ -17,6 +17,7 @@ use App\Modules\Hrm\Models\LeaveProfile;
 use App\Modules\Hrm\Models\LeaveType;
 use App\Modules\Hrm\Services\AccrueEarnedLeave;
 use App\Modules\Hrm\Services\CarryForwardLeave;
+use App\Modules\Hrm\Services\CreditLeaveNow;
 use App\Modules\Hrm\Services\LeaveLedger;
 use App\Modules\Payroll\Enums\AttendanceStatus;
 use App\Modules\Payroll\Models\AttendanceDay;
@@ -46,6 +47,9 @@ class LeaveAccrualTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // These tests set balances themselves; crediting leave the moment a profile is given is tested in CreditLeaveNowTest.
+        $this->mock(CreditLeaveNow::class)->shouldIgnoreMissing();
 
         $this->tenant = $this->createMigratedTenant(['modules' => ['hrm', 'payroll', 'workflow']]);
         $this->actingAsTenantUser(tenant: $this->tenant);

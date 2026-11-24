@@ -2,12 +2,12 @@
 <div class="glass overflow-hidden rounded-2xl">
 
     {{-- Toolbar: actions on the left, Filter on the right.
-         The buttons work on the ticked rows: $wire.selected = their ids (Alpine reads it, no round trip). --}}
-    @php $activeFilters = count(array_filter([$search !== '', $approvalTypeId !== ''])); @endphp
+         The buttons work on the ticked rows: $wire.selected = their ids (Alpine reads it, no round trip).
+         No "Add new" / "Delete": the approval types come from the code; each row is configured with Edit. --}}
+    @php $activeFilters = count(array_filter([$search !== '', $status !== ''])); @endphp
     <div class="flex flex-wrap items-center gap-2 border-b border-white/50 p-4 dark:border-white/10">
-        <flux:button variant="primary" size="sm" icon="plus" x-on:click="$dispatch('create-workflow')">{{ __('Add new') }}</flux:button>
         {{-- Edit: exactly one row ticked. --}}
-        <flux:button size="sm" icon="pencil-square" x-bind:disabled="$wire.selected.length !== 1" x-on:click="$dispatch('edit-workflow', { id: Number($wire.selected[0]) })">{{ __('Edit') }}</flux:button>
+        <flux:button variant="primary" size="sm" icon="pencil-square" x-bind:disabled="$wire.selected.length !== 1" x-on:click="$dispatch('edit-workflow', { id: Number($wire.selected[0]) })">{{ __('Edit') }}</flux:button>
         <flux:button wire:click="export" size="sm" icon="arrow-down-tray">{{ __('Export') }}</flux:button>
         <span x-show="$wire.selected.length > 0" x-cloak class="text-xs text-zinc-500 dark:text-zinc-400" x-text="$wire.selected.length + ' ' + {{ Js::from(__('selected')) }}"></span>
 
@@ -26,12 +26,12 @@
         </flux:field>
 
         <flux:field>
-            <flux:label>{{ __('Type') }}</flux:label>
-            <flux:select wire:model="approvalTypeId">
+            <flux:label>{{ __('Status') }}</flux:label>
+            <flux:select wire:model="status">
                 <flux:select.option value="">{{ __('All') }}</flux:select.option>
-                @foreach ($approvalTypeIdOptions as $value => $label)
-                    <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
-                @endforeach
+                <flux:select.option value="active">{{ __('Active') }}</flux:select.option>
+                <flux:select.option value="off">{{ __('Off') }}</flux:select.option>
+                <flux:select.option value="none">{{ __('Not set up') }}</flux:select.option>
             </flux:select>
         </flux:field>
 
@@ -63,59 +63,47 @@
                         </button>
                     </th>
 
-                    <th class="px-4 py-3 font-medium">{{ __('Type') }}</th>
-                    <th class="px-4 py-3 font-medium">{{ __('Applies to') }}</th>
-                    <th class="px-4 py-3 font-medium whitespace-nowrap">
-                        <button type="button" wire:click="sort('steps_count')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
-                            {{ __('Levels') }}
-                            @if ($sortBy === 'steps_count')
-                                <flux:icon :name="$sortDir === 'asc' ? 'chevron-up' : 'chevron-down'" variant="micro" />
-                            @else
-                                <flux:icon.chevron-up-down variant="micro" class="opacity-40" />
-                            @endif
-                        </button>
-                    </th>
-
+                    <th class="px-4 py-3 font-medium">{{ __('Levels') }}</th>
                     <th class="px-4 py-3 font-medium">{{ __('Email') }}</th>
-                    <th class="px-4 py-3 font-medium whitespace-nowrap">
-                        <button type="button" wire:click="sort('is_active')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
-                            {{ __('Active') }}
-                            @if ($sortBy === 'is_active')
-                                <flux:icon :name="$sortDir === 'asc' ? 'chevron-up' : 'chevron-down'" variant="micro" />
-                            @else
-                                <flux:icon.chevron-up-down variant="micro" class="opacity-40" />
-                            @endif
-                        </button>
-                    </th>
-
+                    <th class="px-4 py-3 font-medium">{{ __('Status') }}</th>
                 </tr>
             </thead>
 
             <tbody>
-                @foreach ($rows as $workflow)
-                    <tr wire:key="workflow-{{ $workflow->getKey() }}" x-bind:class="$wire.selected.includes('{{ $workflow->getKey() }}') && '!bg-brand-50/70 dark:!bg-white/10'" class="border-b border-white/40 text-zinc-800 last:border-0 hover:bg-white/40 dark:border-white/5 dark:text-zinc-100 dark:hover:bg-white/5">
+                @foreach ($rows as $type)
+                    @php $workflow = $type->workflow; @endphp
+                    <tr wire:key="workflow-{{ $type->id }}" x-bind:class="$wire.selected.includes('{{ $type->id }}') && '!bg-brand-50/70 dark:!bg-white/10'" class="border-b border-white/40 text-zinc-800 last:border-0 hover:bg-white/40 dark:border-white/5 dark:text-zinc-100 dark:hover:bg-white/5">
                         <td class="px-4 py-3">
-                            <input type="checkbox" wire:model="selected" value="{{ $workflow->getKey() }}" class="size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 dark:border-white/20 dark:bg-white/10" aria-label="{{ __('Tick this row') }}">
+                            <input type="checkbox" wire:model="selected" value="{{ $type->id }}" class="size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 dark:border-white/20 dark:bg-white/10" aria-label="{{ __('Tick this row') }}">
                         </td>
                         <td class="px-4 py-3">
-                            <button type="button" x-on:click="$dispatch('edit-workflow', { id: {{ $workflow->id }} })" class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">
-                                {{ $workflow->name }}
+                            <button type="button" x-on:click="$dispatch('edit-workflow', { id: {{ $type->id }} })" class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">
+                                {{ $type->name }}
                             </button>
                         </td>
-                        <td class="px-4 py-3">{{ $workflow->approvalType->name }}</td>
-                        <td class="px-4 py-3">{{ collect([
-                    $workflow->scopeEntity?->name,
-                    $workflow->scopeEmploymentType?->name,
-                    $workflow->min_amount !== null ? __('from :amount', ['amount' => number_format((float) $workflow->min_amount, 2)]) : null,
-                ])->filter()->implode(' · ') ?: __('Everything') }}</td>
-                        <td class="px-4 py-3">{{ $workflow->steps_count }}</td>
-                        <td class="px-4 py-3">{{ $workflow->send_email ? __('Yes') : __('No') }}</td>
+                        {{-- One line per level: "1  Reporting supervisor", "2  Head of Branch" ... --}}
                         <td class="px-4 py-3">
-                            @if ($workflow->is_active)
-                                <x-ui.badge color="success">{{ __('Active') }}</x-ui.badge>
-                            @else
-                                <x-ui.badge>{{ __('Inactive') }}</x-ui.badge>
-                            @endif
+                            @forelse ($workflow?->steps ?? [] as $step)
+                                <div class="flex items-baseline gap-2">
+                                    <span class="w-4 shrink-0 text-xs font-medium text-zinc-500">{{ $step->level }}</span>
+                                    <span>{{ $step->describe() }}</span>
+                                </div>
+                            @empty
+                                <span class="text-zinc-400">—</span>
+                            @endforelse
+                        </td>
+                        <td class="px-4 py-3">{{ $workflow === null ? '—' : ($workflow->send_email ? __('Yes') : __('No')) }}</td>
+                        <td class="px-4 py-3">
+                            @switch ($type->workflowStatus())
+                                @case('active')
+                                    <x-ui.badge color="success">{{ __('Active') }}</x-ui.badge>
+                                    @break
+                                @case('off')
+                                    <x-ui.badge>{{ __('Off') }}</x-ui.badge>
+                                    @break
+                                @default
+                                    <x-ui.badge color="warning">{{ __('Not set up') }}</x-ui.badge>
+                            @endswitch
                         </td>
                     </tr>
                 @endforeach

@@ -88,7 +88,7 @@ class ProfileUpdateRequestTest extends TestCase
 
     private function workflow(ApproverType $type, array $step = []): void
     {
-        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('profile_update')?->id, 'name' => 'Profile changes']);
+        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('profile_update')?->id]);
         WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => $type, ...$step]);
     }
 

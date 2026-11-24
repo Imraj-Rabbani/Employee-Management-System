@@ -3,12 +3,15 @@
 namespace App\Modules\Workflow\Models;
 
 use App\Core\Models\TenantModel;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * A kind of document that needs approval, e.g. "leave" (legacy `approvables`).
+ * Registered by the CODE: the module that owns the document inserts its row in a migration
+ * (e.g. the leave_applications migration adds "leave"). Users never create or rename types;
+ * they only configure each type's workflow (Workflow → Workflow Setup).
  *
- *     ApprovalType::forKey('leave')
+ *     ApprovalType::forKey('leave')?->workflow
  *
  * @property int $id
  * @property string $key
@@ -16,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $model_class
  * @property bool $is_chained
  * @property bool $is_active
+ * @property-read Workflow|null $workflow
  */
 class ApprovalType extends TenantModel
 {
@@ -29,10 +33,38 @@ class ApprovalType extends TenantModel
         return ['is_chained' => 'boolean', 'is_active' => 'boolean'];
     }
 
-    /** @return HasMany<Workflow, $this> */
-    public function workflows(): HasMany
+    /**
+     * This type's workflow (levels + settings), null until someone configures it.
+     *
+     * @return HasOne<Workflow, $this>
+     */
+    public function workflow(): HasOne
     {
-        return $this->hasMany(Workflow::class);
+        return $this->hasOne(Workflow::class);
+    }
+
+    /**
+     * 'active' (on, with levels: documents can be sent), 'off' (switched off on the screen) or
+     * 'none' (not set up yet / no levels). Load `workflow.steps` first in lists.
+     */
+    public function workflowStatus(): string
+    {
+        $workflow = $this->workflow;
+
+        return match (true) {
+            $workflow === null || ($workflow->is_active && $workflow->steps->isEmpty()) => 'none',
+            $workflow->is_active => 'active',
+            default => 'off',
+        };
+    }
+
+    public function workflowStatusLabel(): string
+    {
+        return match ($this->workflowStatus()) {
+            'active' => __('Active'),
+            'off' => __('Off'),
+            default => __('Not set up'),
+        };
     }
 
     public static function forKey(string $key): ?self

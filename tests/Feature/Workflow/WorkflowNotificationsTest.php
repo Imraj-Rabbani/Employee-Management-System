@@ -6,31 +6,30 @@ use App\Core\Tenancy\TenantManager;
 use App\Core\Tenancy\TenantMigrationPaths;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Core\Models\Role;
 use App\Modules\Workflow\Enums\ApprovalStatus;
-use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Listeners\NotifyApprover;
 use App\Modules\Workflow\Models\Approval;
 use App\Modules\Workflow\Models\ApprovalType;
 use App\Modules\Workflow\Models\Workflow;
-use App\Modules\Workflow\Models\WorkflowStep;
 use App\Modules\Workflow\Notifications\ApprovalDecided;
 use App\Modules\Workflow\Notifications\ApprovalNeeded;
 use App\Modules\Workflow\Services\WorkflowEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\Concerns\CreatesTenantDatabases;
+use Tests\Concerns\MakesWorkflows;
 use Tests\Fixtures\ApprovableNote;
 use Tests\TestCase;
 
 /**
  * In-app + email notifications, and approving from the email with a signed link.
  *
- * Set-up: level 1 = role "Managers" (Mina), level 2 = role "Finance" (Farid).
+ * Set-up: level 1 = Specific People: Mina, level 2 = Specific People: Farid.
  */
 class WorkflowNotificationsTest extends TestCase
 {
     use CreatesTenantDatabases;
+    use MakesWorkflows;
     use RefreshDatabase;
 
     private Tenant $tenant;
@@ -52,22 +51,12 @@ class WorkflowNotificationsTest extends TestCase
         $this->tenant = $this->createMigratedTenant();
         app(TenantManager::class)->switchTo($this->tenant);
 
-        $managers = Role::create(['name' => 'Managers']);
-        $finance = Role::create(['name' => 'Finance']);
-        $this->requester = $this->user(null, 'Rina Requester');
-        $this->mina = $this->user($managers, 'Mina Manager');
-        $this->farid = $this->user($finance, 'Farid Finance');
+        $this->requester = $this->user('Rina Requester');
+        $this->mina = $this->user('Mina Manager');
+        $this->farid = $this->user('Farid Finance');
 
         $type = ApprovalType::create(['key' => 'note', 'name' => 'Note']);
-        $this->workflow = Workflow::create(['approval_type_id' => $type->id, 'name' => 'Two levels']);
-        foreach ([$managers, $finance] as $i => $role) {
-            WorkflowStep::create([
-                'workflow_id' => $this->workflow->id,
-                'level' => $i + 1,
-                'approver_type' => ApproverType::Role,
-                'approver_role_id' => $role->id,
-            ]);
-        }
+        $this->workflow = $this->workflowFor($type, [$this->mina, $this->farid]);
     }
 
     // ---------------------------------------------------------------- who is notified
@@ -254,11 +243,8 @@ class WorkflowNotificationsTest extends TestCase
         app(WorkflowEngine::class)->respond($row, $decision, $by, $comment);
     }
 
-    private function user(?Role $role, string $name): User
+    private function user(string $name): User
     {
-        $user = User::factory()->for($this->tenant)->create(['name' => $name]);
-        $role?->assignTo($user);
-
-        return $user;
+        return User::factory()->for($this->tenant)->create(['name' => $name]);
     }
 }

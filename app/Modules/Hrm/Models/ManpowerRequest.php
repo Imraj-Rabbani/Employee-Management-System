@@ -235,8 +235,7 @@ class ManpowerRequest extends TenantModel implements Approvable, ShowsApprovalDe
 
     /**
      * employee_id = the REQUESTER's employee record, so a "Supervisor" level means the requester's boss.
-     * amount = monthly cost at the top of the salary range (salary_max × headcount), so a workflow with
-     * a min_amount can add an extra level for expensive requests.
+     * amount = monthly cost at the top of the salary range (salary_max × headcount), for information.
      */
     public function approvalContext(): array
     {

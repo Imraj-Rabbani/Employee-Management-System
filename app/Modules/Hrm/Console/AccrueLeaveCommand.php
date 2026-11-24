@@ -43,6 +43,6 @@ class AccrueLeaveCommand extends Command
     {
         return $this->option('date')
             ? CarbonImmutable::parse((string) $this->option('date'))
-            : CarbonImmutable::now(settings('timezone', config('app.timezone')));
+            : AccrueEarnedLeave::today();
     }
 }

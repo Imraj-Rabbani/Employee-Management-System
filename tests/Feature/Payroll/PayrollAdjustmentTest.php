@@ -6,7 +6,6 @@ use App\Core\Support\Period;
 use App\Core\Support\PeriodCycle;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Core\Models\Role;
 use App\Modules\Hrm\Exports\TemplateSheet;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Payroll\Actions\CalculateEmployeePayroll;
@@ -28,11 +27,7 @@ use App\Modules\Payroll\Models\PayrollRun;
 use App\Modules\Payroll\Models\PayrollRunEmployee;
 use App\Modules\Payroll\Models\SalaryHead;
 use App\Modules\Workflow\Enums\ApprovalStatus;
-use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Models\Approval;
-use App\Modules\Workflow\Models\ApprovalType;
-use App\Modules\Workflow\Models\Workflow;
-use App\Modules\Workflow\Models\WorkflowStep;
 use App\Modules\Workflow\Services\WorkflowEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -40,6 +35,7 @@ use Livewire\Livewire;
 use Maatwebsite\Excel\Excel as ExcelFormat;
 use Maatwebsite\Excel\Facades\Excel;
 use Tests\Concerns\ActsAsTenantUser;
+use Tests\Concerns\MakesWorkflows;
 use Tests\TestCase;
 
 /**
@@ -49,6 +45,7 @@ use Tests\TestCase;
 class PayrollAdjustmentTest extends TestCase
 {
     use ActsAsTenantUser;
+    use MakesWorkflows;
     use RefreshDatabase;
 
     private Tenant $tenant;
@@ -79,11 +76,8 @@ class PayrollAdjustmentTest extends TestCase
         $this->karim = Employee::factory()->create(['code' => 'E-1001', 'join_date' => '2025-01-01']);
         EmployeeSalary::create(['employee_id' => $this->karim->id, 'salary_head_id' => $this->heads['basic']->id, 'amount' => '30000', 'effective_from' => '2025-01-01']);
 
-        $approvers = Role::create(['name' => 'Payroll approvers']);
         $this->approver = User::factory()->for($this->tenant)->create();
-        $approvers->assignTo($this->approver);
-        $workflow = Workflow::create(['approval_type_id' => ApprovalType::forKey('payroll_adjustment')?->id, 'name' => 'Adjustments']);
-        WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Role, 'approver_role_id' => $approvers->id]);
+        $this->workflowFor('payroll_adjustment', [$this->approver]);
     }
 
     private function approveAll(): void

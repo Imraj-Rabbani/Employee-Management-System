@@ -27,14 +27,14 @@ class WorkflowException extends RuntimeException
 
     public static function noWorkflow(Approvable $document): self
     {
-        return new self(__('No active approval workflow matches :subject. Ask an administrator to set one up.', [
+        return new self(__('No active approval workflow for :subject. Ask an administrator to set one up in Workflow Setup.', [
             'subject' => $document->approvalSubject(),
         ]));
     }
 
-    public static function noSteps(string $workflowName): self
+    public static function noSteps(string $typeName): self
     {
-        return new self(__('The workflow ":name" has no levels.', ['name' => $workflowName]));
+        return new self(__('The ":name" workflow has no levels.', ['name' => $typeName]));
     }
 
     public static function noApprovers(WorkflowStep $step): self

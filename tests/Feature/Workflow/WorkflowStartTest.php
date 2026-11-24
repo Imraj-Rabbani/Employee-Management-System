@@ -6,38 +6,35 @@ use App\Core\Tenancy\TenantManager;
 use App\Core\Tenancy\TenantMigrationPaths;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Core\Models\Role;
-use App\Modules\Hrm\Models\EmploymentType;
+use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\Entity;
+use App\Modules\Hrm\Models\EntityType;
 use App\Modules\Workflow\Enums\ApprovalStatus;
 use App\Modules\Workflow\Enums\ApproverType;
 use App\Modules\Workflow\Exceptions\WorkflowException;
 use App\Modules\Workflow\Models\Approval;
 use App\Modules\Workflow\Models\ApprovalType;
-use App\Modules\Workflow\Models\Workflow;
-use App\Modules\Workflow\Models\WorkflowStep;
 use App\Modules\Workflow\Services\WorkflowEngine;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesTenantDatabases;
+use Tests\Concerns\MakesWorkflows;
 use Tests\Fixtures\ApprovableNote;
 use Tests\TestCase;
 
 /**
- * WorkflowEngine::start() picks the workflow by scope and creates rows for the approvers.
- * Approvers here are logins ("role" type); employee-based types are tested elsewhere.
+ * WorkflowEngine::start(): uses the ONE workflow of the document's type and creates rows for the
+ * approvers of the first level (all levels when the type is not chained).
  */
 class WorkflowStartTest extends TestCase
 {
     use CreatesTenantDatabases;
+    use MakesWorkflows;
     use RefreshDatabase;
 
     private Tenant $tenant;
 
     private ApprovalType $type;
-
-    private Role $managers;
-
-    private Role $finance;
 
     private User $requester;
 
@@ -50,100 +47,68 @@ class WorkflowStartTest extends TestCase
         app(TenantManager::class)->switchTo($this->tenant);
 
         $this->type = ApprovalType::create(['key' => 'note', 'name' => 'Note']);
-        $this->managers = Role::create(['name' => 'Managers']);
-        $this->finance = Role::create(['name' => 'Finance']);
-        $this->requester = $this->userWithRole($this->managers);
+        $this->requester = $this->login();
+        ApprovableNote::$contexts = [];
     }
 
-    // ---------------------------------------------------------------- picking the workflow
+    // ---------------------------------------------------------------- the type's workflow
 
-    public function test_a_catch_all_workflow_is_used_when_nothing_more_specific_exists(): void
+    public function test_every_document_of_the_type_uses_its_one_workflow(): void
     {
-        $any = $this->workflow('Any');
-
-        $this->assertTrue($any->is(app(WorkflowEngine::class)->findWorkflow($this->note(['entity_ids' => [7]]))));
-    }
-
-    public function test_the_most_specific_matching_workflow_wins(): void
-    {
-        $unit = Entity::factory()->create();
-        $permanent = EmploymentType::factory()->create();
-        $contract = EmploymentType::factory()->create();
-
-        $this->workflow('Any');
-        $unitOnly = $this->workflow('Unit', ['scope_entity_id' => $unit->id]);
-        $unitPermanent = $this->workflow('Unit, permanent', ['scope_entity_id' => $unit->id, 'scope_employment_type_id' => $permanent->id]);
-
+        $workflow = $this->workflowFor($this->type, [$this->login()]);
         $engine = app(WorkflowEngine::class);
 
-        $this->assertTrue($unitOnly->is($engine->findWorkflow($this->note(['entity_ids' => [$unit->id], 'employment_type_id' => $contract->id]))));
-        $this->assertTrue($unitPermanent->is($engine->findWorkflow($this->note(['entity_ids' => [$unit->id], 'employment_type_id' => $permanent->id]))));
+        $this->assertTrue($workflow->is($engine->findWorkflow($this->note(['entity_ids' => [7], 'amount' => 99]))));
+        $this->assertTrue($workflow->is($engine->findWorkflow($this->note())));
     }
 
-    public function test_a_workflow_scoped_to_another_unit_is_ignored(): void
+    public function test_a_type_has_only_one_workflow(): void
     {
-        $any = $this->workflow('Any');
-        $this->workflow('Unit A', ['scope_entity_id' => Entity::factory()->create()->id]);
+        $this->workflowFor($this->type, []);
 
-        $this->assertTrue($any->is(app(WorkflowEngine::class)->findWorkflow($this->note(['entity_ids' => [Entity::factory()->create()->id]]))));
+        $this->expectException(QueryException::class);   // workflows.approval_type_id is unique
+        $this->workflowFor($this->type, []);
     }
 
-    public function test_min_amount_picks_the_big_amount_workflow_only_above_the_limit(): void
+    public function test_a_switched_off_workflow_or_type_is_not_used(): void
     {
-        $any = $this->workflow('Any');
-        $big = $this->workflow('Big amounts', ['min_amount' => 50000]);
-        $engine = app(WorkflowEngine::class);
-
-        $this->assertTrue($any->is($engine->findWorkflow($this->note(['amount' => 49999.99]))));
-        $this->assertTrue($big->is($engine->findWorkflow($this->note(['amount' => 50000]))));
-        $this->assertTrue($any->is($engine->findWorkflow($this->note())));   // no amount at all
-    }
-
-    public function test_inactive_workflows_and_inactive_types_are_ignored(): void
-    {
-        $this->workflow('Off', ['is_active' => false]);
+        $workflow = $this->workflowFor($this->type, [$this->login()], ['is_active' => false]);
         $this->assertNull(app(WorkflowEngine::class)->findWorkflow($this->note()));
 
-        $this->workflow('On');
+        $workflow->update(['is_active' => true]);
         $this->type->update(['is_active' => false]);
         $this->assertNull(app(WorkflowEngine::class)->findWorkflow($this->note()));
     }
 
     // ---------------------------------------------------------------- creating approval rows
 
-    public function test_chained_submit_asks_only_level_one_one_row_per_role_holder(): void
+    public function test_chained_submit_asks_only_level_one(): void
     {
-        $a = $this->userWithRole($this->managers);
-        $b = $this->userWithRole($this->managers);
-        $this->userWithRole($this->finance);
-        $this->workflow('Two levels', steps: [$this->managers, $this->finance]);
+        $first = $this->login();
+        $this->workflowFor($this->type, [$first, $this->login()]);
 
         $note = $this->note();
         $rows = $note->submitForApproval($this->requester);
 
-        // The requester is a manager too, but never approves their own document.
-        $this->assertEqualsCanonicalizing([$a->id, $b->id], $rows->pluck('approver_user_id')->all());
-        $this->assertSame([1], $rows->pluck('level')->unique()->values()->all());
-        $this->assertTrue($rows->every(fn (Approval $r) => $r->requester_user_id === $this->requester->id));
+        $this->assertSame([$first->id], $rows->pluck('approver_user_id')->all());
+        $this->assertSame(1, $rows->sole()->level);
+        $this->assertSame($this->requester->id, $rows->sole()->requester_user_id);
         $this->assertSame(ApprovalStatus::Pending, $note->approvalStatus());
     }
 
     public function test_not_chained_submit_asks_every_level_at_once(): void
     {
         $this->type->update(['is_chained' => false]);
-        $this->userWithRole($this->managers);
-        $this->userWithRole($this->finance);
-        $this->workflow('Two levels', steps: [$this->managers, $this->finance]);
+        $this->workflowFor($this->type, [$this->login(), $this->login()]);
 
         $rows = $this->note()->submitForApproval($this->requester);
 
-        $this->assertSame([1, 2], $rows->pluck('level')->unique()->sort()->values()->all());
+        $this->assertSame([1, 2], $rows->pluck('level')->sort()->values()->all());
     }
 
     public function test_the_logged_in_user_is_the_requester_by_default(): void
     {
-        $this->userWithRole($this->finance);
-        $this->workflow('One level', steps: [$this->finance]);
+        $this->workflowFor($this->type, [$this->login()]);
         $this->actingAs($this->requester);
 
         $rows = $this->note()->submitForApproval();
@@ -151,17 +116,106 @@ class WorkflowStartTest extends TestCase
         $this->assertSame($this->requester->id, $rows->sole()->requester_user_id);
     }
 
+    // ---------------------------------------------------------------- the four approver types
+
+    public function test_reporting_supervisor_is_the_employees_supervisor(): void
+    {
+        $boss = $this->login();
+        $employee = Employee::factory()->create(['supervisor_id' => $this->employeeOf($boss)->id]);
+        $this->workflowFor($this->type, [['approver_type' => ApproverType::Supervisor]]);
+
+        $rows = $this->note(['employee_id' => $employee->id])->submitForApproval($this->requester);
+
+        $this->assertSame($boss->id, $rows->sole()->approver_user_id);
+    }
+
+    public function test_employees_entity_head_is_the_head_of_their_entity_of_that_type(): void
+    {
+        $branch = EntityType::where('name', 'Branch')->firstOrFail();
+        $head = $this->login();
+        $gulshan = Entity::factory()->ofType($branch)->create(['head_employee_id' => $this->employeeOf($head)->id]);
+        $employee = Employee::factory()->inEntity($gulshan)->create();
+        $this->workflowFor($this->type, [['approver_type' => ApproverType::EntityHead, 'approver_entity_type_id' => $branch->id]]);
+
+        $rows = $this->note(['employee_id' => $employee->id])->submitForApproval($this->requester);
+
+        $this->assertSame($head->id, $rows->sole()->approver_user_id);
+    }
+
+    public function test_specific_entity_head_is_the_head_of_the_chosen_entity_whoever_asks(): void
+    {
+        $branch = EntityType::where('name', 'Branch')->firstOrFail();
+        $head = $this->login();
+        $gulshan = Entity::factory()->ofType($branch)->create(['head_employee_id' => $this->employeeOf($head)->id]);
+        $elsewhere = Employee::factory()->inEntity(Entity::factory()->ofType($branch)->create())->create();
+        $this->workflowFor($this->type, [[
+            'approver_type' => ApproverType::SpecificEntityHead, 'approver_entity_type_id' => $branch->id, 'approver_entity_id' => $gulshan->id,
+        ]]);
+
+        $rows = $this->note(['employee_id' => $elsewhere->id])->submitForApproval($this->requester);
+
+        $this->assertSame($head->id, $rows->sole()->approver_user_id);
+    }
+
+    public function test_specific_entity_without_a_head_asks_the_parents_head(): void
+    {
+        $division = EntityType::factory()->create();
+        $branch = EntityType::factory()->create();
+        $divisionHead = $this->login();
+        $dhaka = Entity::factory()->ofType($division)->create(['head_employee_id' => $this->employeeOf($divisionHead)->id]);
+        $gulshan = Entity::factory()->ofType($branch)->create(['parent_id' => $dhaka->id]);   // no head
+        $this->workflowFor($this->type, [[
+            'approver_type' => ApproverType::SpecificEntityHead, 'approver_entity_type_id' => $branch->id, 'approver_entity_id' => $gulshan->id,
+        ]]);
+
+        $rows = $this->note()->submitForApproval($this->requester);
+
+        $this->assertSame($divisionHead->id, $rows->sole()->approver_user_id);
+    }
+
+    public function test_the_example_three_levels_supervisor_then_branch_head_then_a_person(): void
+    {
+        $branch = EntityType::where('name', 'Branch')->firstOrFail();
+        [$userB, $userC, $userD] = [$this->login(), $this->login(), $this->login()];
+        $gulshan = Entity::factory()->ofType($branch)->create(['head_employee_id' => $this->employeeOf($userC)->id]);
+        $userA = Employee::factory()->inEntity($gulshan)->create(['supervisor_id' => $this->employeeOf($userB)->id]);
+        $this->workflowFor($this->type, [
+            ['approver_type' => ApproverType::Supervisor],
+            ['approver_type' => ApproverType::EntityHead, 'approver_entity_type_id' => $branch->id],
+            $userD,
+        ]);
+
+        $note = $this->note(['employee_id' => $userA->id]);
+        ApprovableNote::$contexts[$note->id] = $note->context;   // respond() loads the note again for levels 2 and 3
+        $engine = app(WorkflowEngine::class);
+        $note->submitForApproval($this->requester);
+
+        foreach ([$userB, $userC, $userD] as $level => $approver) {
+            $row = Approval::query()->where('status', ApprovalStatus::Pending)->sole();
+            $this->assertSame([$level + 1, $approver->id], [$row->level, $row->approver_user_id]);
+            $engine->respond($row, ApprovalStatus::Approved, $approver);
+        }
+
+        $this->assertSame(ApprovalStatus::Approved, $note->fresh()?->approvalStatus());
+    }
+
     // ---------------------------------------------------------------- refusals (nothing is saved)
 
-    public function test_without_a_matching_workflow_it_refuses(): void
+    public function test_without_a_workflow_it_refuses(): void
     {
         $this->assertRefused($this->note(), 'No active approval workflow');
     }
 
+    public function test_a_workflow_without_levels_refuses(): void
+    {
+        $this->workflowFor($this->type, []);
+
+        $this->assertRefused($this->note(), 'has no levels');
+    }
+
     public function test_a_document_already_waiting_cannot_be_submitted_again(): void
     {
-        $this->userWithRole($this->finance);
-        $this->workflow('One level', steps: [$this->finance]);
+        $this->workflowFor($this->type, [$this->login()]);
         $note = $this->note();
         $note->submitForApproval($this->requester);
 
@@ -170,30 +224,26 @@ class WorkflowStartTest extends TestCase
         $note->submitForApproval($this->requester);
     }
 
-    public function test_a_level_nobody_can_approve_refuses(): void
+    public function test_the_requester_never_approves_their_own_document(): void
     {
-        $this->workflow('One level', steps: [$this->finance]);   // nobody has the Finance role
+        $this->workflowFor($this->type, [$this->requester]);
 
         $this->assertRefused($this->note(), 'Nobody can approve level 1');
     }
 
-    public function test_a_supervisor_step_without_an_employee_finds_nobody(): void
+    public function test_a_chosen_employee_without_a_login_finds_nobody(): void
+    {
+        $this->workflowFor($this->type, [['approver_type' => ApproverType::Employee, 'approver_employee_id' => Employee::factory()->create()->id]]);
+
+        $this->assertRefused($this->note(), 'Nobody can approve level 1');
+    }
+
+    public function test_a_supervisor_level_without_an_employee_finds_nobody(): void
     {
         // A note has no employee, so there is no supervisor.
-        $workflow = $this->workflow('Supervisor');
-        WorkflowStep::create(['workflow_id' => $workflow->id, 'level' => 1, 'approver_type' => ApproverType::Supervisor]);
+        $this->workflowFor($this->type, [['approver_type' => ApproverType::Supervisor]]);
 
         $this->assertRefused($this->note(), 'Nobody can approve level 1');
-    }
-
-    public function test_logins_of_other_companies_are_never_approvers(): void
-    {
-        // createTenantWithDatabase() is tracked, so the other company is cleaned up after the test.
-        $outsider = User::factory()->for($this->createTenantWithDatabase())->create();
-        $this->finance->assignTo($outsider);   // bad data: a user_roles row for a stranger
-        $this->workflow('One level', steps: [$this->finance]);
-
-        $this->assertRefused($this->note(), 'Nobody can approve');
     }
 
     // ---------------------------------------------------------------- helpers
@@ -207,32 +257,9 @@ class WorkflowStartTest extends TestCase
         return $note;
     }
 
-    /**
-     * @param  array<string, mixed>  $attributes
-     * @param  list<Role>  $steps  one "role" step per role, level 1, 2 ...
-     */
-    private function workflow(string $name, array $attributes = [], array $steps = []): Workflow
+    private function login(): User
     {
-        $workflow = Workflow::create(['approval_type_id' => $this->type->id, 'name' => $name, ...$attributes]);
-
-        foreach ($steps as $i => $role) {
-            WorkflowStep::create([
-                'workflow_id' => $workflow->id,
-                'level' => $i + 1,
-                'approver_type' => ApproverType::Role,
-                'approver_role_id' => $role->id,
-            ]);
-        }
-
-        return $workflow;
-    }
-
-    private function userWithRole(Role $role): User
-    {
-        $user = User::factory()->for($this->tenant)->create();
-        $role->assignTo($user);
-
-        return $user;
+        return User::factory()->for($this->tenant)->create();
     }
 
     private function assertRefused(ApprovableNote $note, string $message): void

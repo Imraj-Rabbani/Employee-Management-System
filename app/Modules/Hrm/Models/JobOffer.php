@@ -221,9 +221,9 @@ class JobOffer extends TenantModel implements Approvable, ShowsApprovalDetails
     }
 
     /**
-     * entity / employment type: of the job (via the manpower request), so offers can have their own
-     * workflow per department. employee = the HR user who made the offer. amount = monthly gross, so a
-     * workflow with a min_amount can add a level for high salaries.
+     * entity / employment type: of the job (via the manpower request), so an "Employee's Entity Head"
+     * level asks the head of the job's department. employee = the HR user who made the offer.
+     * amount = monthly gross, for information.
      */
     public function approvalContext(): array
     {

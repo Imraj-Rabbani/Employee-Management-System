@@ -3,23 +3,32 @@
 namespace App\Modules\Workflow\Enums;
 
 /**
- * Who approves one workflow step (workflow_steps.approver_type).
- * The workflow engine turns this into real people.
+ * Who approves one level of a workflow (workflow_steps.approver_type).
+ * The workflow engine turns this into a real person (one resolver class per case).
+ *
+ * "The employee" = the employee the document is about (approvalContext()['employee_id']),
+ * e.g. the person asking for leave.
  */
 enum ApproverType: string
 {
-    case Employee = 'employee';       // one fixed employee (approver_employee_id)
-    case Supervisor = 'supervisor';   // the requester's supervisor
-    case EntityHead = 'entity_head';  // the head of the document's entity of one type (approver_entity_type_id)
-    case Role = 'role';               // anyone with a role (approver_role_id)
+    case Supervisor = 'supervisor';                       // the employee's reporting supervisor
+    case EntityHead = 'entity_head';                      // head of the employee's entity of one type (approver_entity_type_id)
+    case SpecificEntityHead = 'specific_entity_head';     // head of one chosen entity (approver_entity_id)
+    case Employee = 'employee';                           // one chosen employee (approver_employee_id)
 
     public function label(): string
     {
         return match ($this) {
-            self::Employee => __('Specific employee'),
-            self::Supervisor => __('Supervisor of requester'),
-            self::EntityHead => __('Head of entity'),
-            self::Role => __('Anyone with a role'),
+            self::Supervisor => __('Employee\'s Reporting Supervisor'),
+            self::EntityHead => __('Employee\'s Entity Head'),
+            self::SpecificEntityHead => __('Specific Entity Head'),
+            self::Employee => __('Specific People'),
         };
+    }
+
+    /** The level needs an entity type (Department, Branch ...). */
+    public function needsEntityType(): bool
+    {
+        return $this === self::EntityHead || $this === self::SpecificEntityHead;
     }
 }
