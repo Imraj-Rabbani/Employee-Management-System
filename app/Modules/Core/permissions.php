@@ -12,7 +12,6 @@ return [
     ],
     'Company' => [
         'core.settings.manage' => 'Change company settings',
-        'core.fiscal_years.manage' => 'Manage fiscal years',
     ],
     'Roles & Permissions' => [
         'core.roles.manage' => 'Manage roles and their permissions',

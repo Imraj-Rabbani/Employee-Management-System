@@ -61,6 +61,18 @@
                     </flux:navlist.group>
                 @endforeach
             </flux:navlist>
+
+            <flux:spacer />
+
+            {{-- Global Config: pinned to the bottom (sticky, above the scrolling menu, with a top border).
+                 Opens its tabs (config/sections.php): company settings, users, roles. Shown if ANY tab is allowed. --}}
+            @if (auth()->user()?->tenant_id && auth()->user()->canAny(array_column(config('sections.core.config.tabs'), 'can')))
+                <div class="sticky -bottom-4 z-20 -mx-4 -mb-4 border-t border-zinc-200/80 bg-white/85 px-4 py-3 backdrop-blur-md dark:border-white/10 dark:bg-brand-950/85">
+                    <flux:navlist variant="outline">
+                        <flux:navlist.item icon="cog-6-tooth" :href="route('core.config')" :current="request()->routeIs('core.*')" :data-nav-paths="$navPaths(['core.config', 'core.settings', 'core.users', 'core.roles'])" wire:current.ignore wire:navigate>{{ __('Global Config') }}</flux:navlist.item>
+                    </flux:navlist>
+                </div>
+            @endif
         </flux:sidebar>
         @endpersist
 
@@ -76,6 +88,18 @@
             <flux:heading size="lg" class="truncate">{{ $title ?? config('app.name') }}</flux:heading>
 
             <flux:spacer />
+
+            {{-- The company's fiscal year (Global Config → Company settings), as typed there. --}}
+            @if (tenant())
+                @php $fiscalYear = \App\Modules\Core\Livewire\CompanySettings::fiscalYear(); @endphp
+                @can('core.settings.manage')
+                    <a href="{{ route('core.settings') }}" wire:navigate class="mr-2 max-sm:hidden" title="{{ __('Change in Global Config') }}">
+                        <x-ui.badge color="brand">{{ __('FY :year', ['year' => $fiscalYear]) }}</x-ui.badge>
+                    </a>
+                @else
+                    <x-ui.badge color="brand" class="mr-2 max-sm:hidden">{{ __('FY :year', ['year' => $fiscalYear]) }}</x-ui.badge>
+                @endcan
+            @endif
 
             {{-- In-app notifications (approvals ...). Only inside a company: they link to company pages. --}}
             @if (tenant())

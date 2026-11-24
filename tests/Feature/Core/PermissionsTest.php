@@ -131,7 +131,6 @@ class PermissionsTest extends TestCase
         $this->get('/core/users')->assertOk();
         $this->get('/core/roles')->assertForbidden();
         $this->get('/core/settings')->assertForbidden();
-        $this->get('/core/fiscal-years')->assertForbidden();
     }
 
     public function test_the_sidebar_only_shows_allowed_items(): void

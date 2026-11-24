@@ -3,9 +3,8 @@
 namespace Tests\Feature\Modules;
 
 use App\Core\Tenancy\TenantMigrationPaths;
-use App\Modules\Hrm\Livewire\Ping;
+use App\Modules\Hrm\Livewire\OrgChart;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Livewire\Livewire;
 use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
@@ -27,16 +26,8 @@ class ModuleLoadingTest extends TestCase
 
     public function test_module_livewire_component_resolves_by_namespace(): void
     {
-        Livewire::test('hrm::ping')
-            ->assertSee('Clicked 0 times')
-            ->call('increment')
-            ->assertSee('Clicked 1 times');
-    }
-
-    public function test_ping_page_renders_the_livewire_component(): void
-    {
         $this->actingAsTenantUser();
 
-        $this->get('/hrm/ping')->assertSeeLivewire(Ping::class);
+        $this->get('/hrm/org/chart')->assertOk()->assertSeeLivewire(OrgChart::class);
     }
 }

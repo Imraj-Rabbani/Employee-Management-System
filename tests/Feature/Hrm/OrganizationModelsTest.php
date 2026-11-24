@@ -3,7 +3,6 @@
 namespace Tests\Feature\Hrm;
 
 use App\Core\Tenancy\TenantManager;
-use App\Modules\Core\Models\Currency;
 use App\Modules\Core\Models\Role;
 use App\Modules\Hrm\Models\Designation;
 use App\Modules\Hrm\Models\Employee;
@@ -40,19 +39,16 @@ class OrganizationModelsTest extends TestCase
     public function test_every_model_has_a_working_factory(): void
     {
         foreach ([EntityType::class, Designation::class, Grade::class,
-            EmploymentType::class, Entity::class, Position::class, Currency::class] as $model) {
+            EmploymentType::class, Entity::class, Position::class] as $model) {
             $row = $model::factory()->create();
             $this->assertTrue($row->exists, $model);
             $this->assertSame('tenant', $row->getConnectionName(), $model);
         }
     }
 
-    public function test_a_new_company_gets_default_entity_types_and_its_currency(): void
+    public function test_a_new_company_gets_default_entity_types(): void
     {
         $this->assertSame(['Department', 'Division', 'Branch', 'Location', 'Area'], EntityType::ordered()->pluck('name')->all());
-
-        $this->assertSame('BDT', Currency::default()?->code);
-        $this->assertSame('1.000000', Currency::default()?->exchange_rate);
     }
 
     // ---------------------------------------------------------------- entities

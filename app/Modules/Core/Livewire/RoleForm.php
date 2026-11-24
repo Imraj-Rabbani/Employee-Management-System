@@ -157,7 +157,7 @@ class RoleForm extends Component
 
         foreach (app(PermissionRegistry::class)->grouped() as $module => $groups) {
             if ($tenant?->hasModule($module)) {
-                $result[Tenant::OPTIONAL_MODULES[$module] ?? __('Setup')] = $groups;
+                $result[Tenant::OPTIONAL_MODULES[$module] ?? __('Global Config')] = $groups;
             }
         }
 

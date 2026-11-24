@@ -37,7 +37,7 @@ class DashboardTest extends TestCase
         $this->actingAsTenantUser();
 
         $this->get('/dashboard')
-            ->assertSeeInOrder(['Self Service', 'HRM', 'Payroll', 'Workflow', 'Setup'])
+            ->assertSeeInOrder(['Self Service', 'HRM', 'Payroll', 'Workflow', 'Global Config'])
             ->assertSee('My Payslips')
             ->assertSee('Recruitment')
             ->assertDontSee('livewire-starter-kit');
@@ -47,8 +47,8 @@ class DashboardTest extends TestCase
     {
         $this->actingAsTenantUser();
 
-        // On /hrm/ping only the HRM group is open.
-        $html = $this->get('/hrm/ping')->getContent();
+        // On an HRM page only the HRM group is open.
+        $html = $this->get('/hrm/employees')->getContent();
 
         $this->assertSame(1, preg_match_all('/<ui-disclosure[^>]*\sopen\s/', $html));
         $this->assertMatchesRegularExpression('/<ui-disclosure[^>]*\sopen\s[^>]*>.*?HRM/s', $html);
@@ -58,8 +58,8 @@ class DashboardTest extends TestCase
     {
         $this->actingAsTenantUser(['name' => 'Rahim Uddin']);
 
-        $this->get('/hrm/ping')
-            ->assertSee('<title>Hrm ping</title>', false)
+        $this->get('/hrm/employees')
+            ->assertSee('<title>Employees</title>', false)
             ->assertSee('Toggle dark mode')
             ->assertSee('Rahim Uddin');
     }

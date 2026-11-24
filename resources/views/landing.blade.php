@@ -136,7 +136,7 @@
                                     <svg class="size-6" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06-1.91 1.91-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V20h-2.7v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06-1.91-1.91.06-.06A1.65 1.65 0 0 0 7.9 15a1.65 1.65 0 0 0-1.51-1H6.3v-2.7h.09A1.65 1.65 0 0 0 7.9 10a1.65 1.65 0 0 0-.33-1.82l-.06-.06L9.42 6.2l.06.06A1.65 1.65 0 0 0 11.3 6a1.65 1.65 0 0 0 1-1.51V4.4h2.7v.09A1.65 1.65 0 0 0 16 6a1.65 1.65 0 0 0 1.82.33l.06-.06 1.91 1.91-.06.06A1.65 1.65 0 0 0 19.4 10a1.65 1.65 0 0 0 1.51 1h.09v2.7h-.09A1.65 1.65 0 0 0 19.4 15Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                 </div>
                                 <h3 class="mt-5 text-xl font-semibold">Company Administration</h3>
-                                <p class="mt-2 leading-7 text-brand-300">Control users, roles, permissions, fiscal years, currencies, and tenant settings from one administrative workspace.</p>
+                                <p class="mt-2 leading-7 text-brand-300">Control users, roles, permissions, fiscal year, currency, and company settings from one administrative workspace.</p>
                                 <ul class="mt-5 grid gap-2 text-sm text-brand-200 sm:grid-cols-2">
                                     <li>• Users & roles</li><li>• Permissions</li><li>• Fiscal years</li><li>• Company settings</li>
                                 </ul>

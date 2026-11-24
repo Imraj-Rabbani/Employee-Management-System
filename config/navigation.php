@@ -20,6 +20,9 @@
 | 'module' => 'hrm' hides the whole group when the company does not have
 | that module switched on (Tenant::hasModule). Groups without it always show.
 |
+| Global Config (company settings, users, roles) is not here: it is pinned to the
+| bottom of the sidebar (layouts/app/sidebar.blade.php), its tabs in config/sections.php.
+|
 */
 
 return [
@@ -84,19 +87,6 @@ return [
         'items' => [
             ['label' => 'My Approvals', 'route' => 'workflow.inbox'],
             ['label' => 'Workflow Setup', 'route' => 'workflow.setup', 'can' => 'workflow.setup.manage'],
-        ],
-    ],
-
-    [
-        'heading' => 'Setup',
-        'module' => 'core',
-        'active' => 'core.*',
-        'items' => [
-            ['label' => 'Company Settings', 'route' => 'core.settings', 'can' => 'core.settings.manage'],
-            ['label' => 'Fiscal Years', 'route' => 'core.fiscal-years', 'can' => 'core.fiscal_years.manage'],
-            ['label' => 'Currencies', 'route' => 'core.currencies', 'can' => 'core.settings.manage'],
-            ['label' => 'Users', 'route' => 'core.users', 'can' => 'core.users.view'],
-            ['label' => 'Roles & Permissions', 'route' => 'core.roles', 'can' => 'core.roles.manage'],
         ],
     ],
 

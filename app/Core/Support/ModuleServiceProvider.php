@@ -31,7 +31,7 @@ abstract class ModuleServiceProvider extends ServiceProvider
                 ->group($path.'/routes/web.php');
         }
 
-        // Lets us write view('{name}::ping') for resources/views/ping.blade.php.
+        // Lets us write view('{name}::employees') for resources/views/employees.blade.php.
         $this->loadViewsFrom($path.'/resources/views', $this->name);
 
         // Module tables belong to each company, so Database/Migrations holds TENANT migrations.
@@ -43,7 +43,7 @@ abstract class ModuleServiceProvider extends ServiceProvider
             $this->app->make(PermissionRegistry::class)->addModule($this->name, require $path.'/permissions.php');
         }
 
-        // Lets us write <livewire:{name}::ping /> for Livewire/Ping.php.
+        // Lets us write <livewire:{name}::org-chart /> for Livewire/OrgChart.php.
         Livewire::addNamespace(
             $this->name,
             classNamespace: (new \ReflectionClass($this))->getNamespaceName().'\\Livewire',

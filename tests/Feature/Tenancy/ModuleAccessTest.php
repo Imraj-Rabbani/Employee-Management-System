@@ -32,20 +32,20 @@ class ModuleAccessTest extends TestCase
     {
         $this->userOfCompanyWith(['hrm']);
 
-        $this->get('/hrm/ping')->assertOk();
-        $this->get('/core/ping')->assertOk();
-        $this->get('/payroll/ping')->assertForbidden();
-        $this->get('/workflow/ping')->assertForbidden();
+        $this->get('/hrm/employees')->assertOk();
+        $this->get('/core/settings')->assertOk();
+        $this->get('/payroll/runs')->assertForbidden();
+        $this->get('/workflow/inbox')->assertForbidden();
     }
 
     public function test_switching_a_module_on_opens_its_pages(): void
     {
         $user = $this->userOfCompanyWith([]);
-        $this->get('/payroll/ping')->assertForbidden();
+        $this->get('/payroll/runs')->assertForbidden();
 
         $user->tenant?->update(['modules' => ['payroll']]);
 
-        $this->actingAs($user->fresh() ?? $user)->get('/payroll/ping')->assertOk();
+        $this->actingAs($user->fresh() ?? $user)->get('/payroll/runs')->assertOk();
     }
 
     public function test_the_sidebar_hides_switched_off_modules(): void

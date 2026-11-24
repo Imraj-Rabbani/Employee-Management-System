@@ -6,8 +6,8 @@ use App\Core\Tenancy\TenantManager;
 use App\Modules\Core\Livewire\History;
 use App\Modules\Core\Livewire\RoleForm;
 use App\Modules\Core\Models\Activity;
-use App\Modules\Core\Models\FiscalYear;
 use App\Modules\Core\Models\Role;
+use App\Modules\Hrm\Models\Designation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
@@ -94,7 +94,7 @@ class ActivityLogTest extends TestCase
         $this->year();
         $first = tenant();
 
-        $yearEntries = fn () => Activity::where('subject_type', (new FiscalYear)->getMorphClass())->count();
+        $yearEntries = fn () => Activity::where('subject_type', (new Designation)->getMorphClass())->count();
 
         $other = $this->createMigratedTenant();
         app(TenantManager::class)->switchTo($other);
@@ -110,10 +110,10 @@ class ActivityLogTest extends TestCase
     {
         $this->actingAsTenantUser(['name' => 'Rahim Uddin']);
         $year = $this->year();
-        $year->update(['name' => 'Fiscal 2025-26']);
+        $year->update(['name' => 'Senior Officer']);
 
-        Livewire::test(History::class, ['subject' => $year, 'can' => 'core.fiscal_years.manage'])
-            ->assertSeeInOrder(['Rahim Uddin', 'changed this', 'FY 2025-26', 'Fiscal 2025-26', 'Rahim Uddin', 'created this']);
+        Livewire::test(History::class, ['subject' => $year, 'can' => 'hrm.organization.manage'])
+            ->assertSeeInOrder(['Rahim Uddin', 'changed this', 'Officer', 'Senior Officer', 'Rahim Uddin', 'created this']);
     }
 
     public function test_history_says_when_there_is_nothing_yet(): void
@@ -146,7 +146,7 @@ class ActivityLogTest extends TestCase
         $this->actingAsTenantUser(permissions: []);
         $year = $this->year();
 
-        Livewire::test(History::class, ['subject' => $year, 'can' => 'core.fiscal_years.manage'])->assertForbidden();
+        Livewire::test(History::class, ['subject' => $year, 'can' => 'hrm.organization.manage'])->assertForbidden();
     }
 
     public function test_the_edit_form_has_a_history_tab(): void
@@ -164,8 +164,9 @@ class ActivityLogTest extends TestCase
             ->assertDontSeeLivewire(History::class);
     }
 
-    private function year(): FiscalYear
+    /** Any company record keeps history; a designation is a simple one. */
+    private function year(): Designation
     {
-        return FiscalYear::create(['name' => 'FY 2025-26', 'start_date' => '2025-07-01', 'end_date' => '2026-06-30']);
+        return Designation::create(['code' => 'OFF', 'name' => 'Officer']);
     }
 }

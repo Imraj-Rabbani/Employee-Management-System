@@ -24,6 +24,20 @@
 
 return [
 
+    'core' => [
+
+        // Pinned to the bottom of the sidebar (layouts/app/sidebar.blade.php), not in config/navigation.php.
+        'config' => [
+            'label' => 'Global Config',
+            'tabs' => [
+                ['label' => 'Company settings', 'route' => 'core.settings', 'can' => 'core.settings.manage'],
+                ['label' => 'Users', 'route' => 'core.users', 'can' => 'core.users.view'],
+                ['label' => 'Roles & permissions', 'route' => 'core.roles', 'can' => 'core.roles.manage'],
+            ],
+        ],
+
+    ],
+
     'hrm' => [
 
         'organization' => [

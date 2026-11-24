@@ -22,7 +22,7 @@ class IdentifyTenantTest extends TestCase
         $this->actingAsTenantUser(tenant: $tenant);
         app(TenantManager::class)->forget();   // start the request with no tenant, like a real one
 
-        $this->get('/hrm/ping')->assertOk();
+        $this->get('/hrm/employees')->assertOk();
 
         $this->assertTrue($tenant->is(tenant()));
         $this->assertSame($tenant->database, config('database.connections.tenant.database'));
@@ -32,7 +32,7 @@ class IdentifyTenantTest extends TestCase
     {
         $this->actingAs(User::factory()->create());
 
-        $this->get('/hrm/ping')->assertForbidden();
+        $this->get('/hrm/employees')->assertForbidden();
         $this->assertFalse(app(TenantManager::class)->check());
     }
 
@@ -40,26 +40,26 @@ class IdentifyTenantTest extends TestCase
     {
         $this->actingAs(User::factory()->for(Tenant::factory()->inactive())->create());
 
-        $this->get('/hrm/ping')->assertForbidden();
+        $this->get('/hrm/employees')->assertForbidden();
     }
 
     public function test_expired_company_is_refused(): void
     {
         $this->actingAs(User::factory()->for(Tenant::factory()->state(['expires_at' => now()->subDay()]))->create());
 
-        $this->get('/hrm/ping')->assertForbidden();
+        $this->get('/hrm/employees')->assertForbidden();
     }
 
     public function test_company_expiring_in_the_future_is_allowed(): void
     {
         $this->actingAsTenantUser(tenant: $this->createMigratedTenant(['expires_at' => now()->addMonth()]));
 
-        $this->get('/hrm/ping')->assertOk();
+        $this->get('/hrm/employees')->assertOk();
     }
 
     public function test_guests_still_go_to_login_first(): void
     {
-        $this->get('/hrm/ping')->assertRedirect('/login');
+        $this->get('/hrm/employees')->assertRedirect('/login');
     }
 
     public function test_livewire_actions_also_run_the_middleware(): void

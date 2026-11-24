@@ -3,8 +3,6 @@
 namespace Tests\Feature\Hrm;
 
 use App\Models\Tenant;
-use App\Modules\Core\Livewire\CurrencyForm;
-use App\Modules\Core\Models\Currency;
 use App\Modules\Hrm\Livewire\Organization\EntityForm;
 use App\Modules\Hrm\Livewire\Organization\EntityTable;
 use App\Modules\Hrm\Livewire\Organization\EntityTypeForm;
@@ -44,16 +42,14 @@ class OrganizationPagesTest extends TestCase
 
     public function test_every_section_opens_from_the_menu_and_needs_the_permission(): void
     {
-        $this->get('/dashboard')->assertSee(route('hrm.organization'))->assertSee(route('core.currencies'));
+        $this->get('/dashboard')->assertSee(route('hrm.organization'));
 
         foreach (['entity-types', 'entities', 'positions', 'designations', 'grades', 'employment-types'] as $section) {
             $this->get("/hrm/org/{$section}")->assertOk()->assertSee(route('hrm.org.grades'));
         }
-        $this->get('/core/currencies')->assertOk()->assertSee('BDT');
 
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: []);
         $this->get('/hrm/org/entities')->assertForbidden();
-        $this->get('/core/currencies')->assertForbidden();
     }
 
     // ---------------------------------------------------------------- the shared LookupForm (via entity types)
@@ -232,27 +228,6 @@ class OrganizationPagesTest extends TestCase
             ->set('form.parent_id', (string) $officer->id)
             ->call('save')
             ->assertHasErrors('form.parent_id');
-    }
-
-    // ---------------------------------------------------------------- currencies
-
-    public function test_currency_codes_are_capitalised_and_the_default_keeps_rate_one(): void
-    {
-        Livewire::test(CurrencyForm::class)
-            ->dispatch('create-currency')
-            ->set('form.code', 'usd')
-            ->set('form.name', 'US Dollar')
-            ->set('form.exchange_rate', '121.5')
-            ->call('save')
-            ->assertHasNoErrors();
-
-        $this->assertSame('121.500000', Currency::where('code', 'USD')->sole()->exchange_rate);
-
-        Livewire::test(CurrencyForm::class)
-            ->dispatch('edit-currency', id: Currency::default()?->id)
-            ->set('form.exchange_rate', '2')
-            ->call('save')
-            ->assertHasErrors('form.exchange_rate');
     }
 
     // ---------------------------------------------------------------- helpers

@@ -17,7 +17,6 @@ use Maatwebsite\Excel\Facades\Excel;
 
 // Prefix "/hrm" and name "hrm." are added by ModuleServiceProvider.
 // can:... = the permission needed (permissions.php). Livewire re-checks it on every click (persistent middleware).
-Route::view('ping', 'hrm::ping')->name('ping');
 
 // HRM → Employees. "viewAny" is answered by EmployeePolicy (needs hrm.employee.view).
 Route::view('employees', 'hrm::employees.index')

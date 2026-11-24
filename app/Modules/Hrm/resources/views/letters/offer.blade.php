@@ -48,7 +48,7 @@
         @if ($offer->employmentType)
             <tr><td class="label">{{ __('Employment type') }}</td><td>{{ $offer->employmentType->name }}</td></tr>
         @endif
-        <tr><td class="label">{{ __('Gross salary (monthly)') }}</td><td><strong>{{ \App\Modules\Core\Models\Currency::defaultCode() }} {{ number_format((float) $offer->gross_salary, 2) }}</strong></td></tr>
+        <tr><td class="label">{{ __('Gross salary (monthly)') }}</td><td><strong>{{ settings('currency', 'BDT') }} {{ number_format((float) $offer->gross_salary, 2) }}</strong></td></tr>
         <tr><td class="label">{{ __('Joining date') }}</td><td>{{ format_date($offer->joining_date) }}</td></tr>
     </table>
 

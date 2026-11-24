@@ -14,7 +14,7 @@ use Tests\Concerns\ActsAsTenantUser;
 use Tests\TestCase;
 
 /**
- * Setup → Roles & Permissions, and giving users a role.
+ * Global Config → Roles & permissions, and giving users a role.
  */
 class RolesPageTest extends TestCase
 {

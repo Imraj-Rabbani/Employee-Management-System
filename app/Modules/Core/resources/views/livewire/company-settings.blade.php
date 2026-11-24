@@ -69,16 +69,21 @@
                     <flux:error name="dateFormat" />
                 </flux:field>
 
-                <flux:field>
-                    <flux:label>{{ __('Default currency') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                    <flux:description>{{ __('Used for salaries and amounts unless another currency is chosen.') }}</flux:description>
-                    <flux:select aria-required="true" wire:model="currency">
-                        @foreach ($currencies as $optionValue => $optionLabel)
-                            <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                    <flux:error name="currency" />
-                </flux:field>
+                <div class="grid gap-4 sm:grid-cols-2 items-start">
+                    <flux:field>
+                        <flux:label>{{ __('Fiscal year') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                        <flux:input aria-required="true" wire:model="fiscalYear" :placeholder="__('e.g. 2025-2026')" />
+                        <flux:description>{{ __('Shown in the top bar exactly as typed.') }}</flux:description>
+                        <flux:error name="fiscalYear" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Currency') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                        <flux:input aria-required="true" wire:model="currency" :placeholder="__('e.g. BDT')" />
+                        <flux:description>{{ __('Shown next to amounts exactly as typed.') }}</flux:description>
+                        <flux:error name="currency" />
+                    </flux:field>
+                </div>
             </form>
         </div>
 

@@ -4,9 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Core\Livewire\CurrencyForm;
 use App\Modules\Core\Livewire\RoleForm;
-use App\Modules\Core\Models\Currency;
 use App\Modules\Core\Models\Role;
 use App\Modules\Hrm\Livewire\Organization\DesignationForm;
 use App\Modules\Hrm\Livewire\Organization\DesignationTable;
@@ -106,15 +104,11 @@ class ListToolbarTest extends TestCase
 
     public function test_per_form_delete_rules_also_hold_for_many_rows(): void
     {
-        // The Administrator role and the default currency never go.
+        // The Administrator role never goes.
         $spare = Role::create(['name' => 'Spare']);
         Livewire::test(RoleForm::class)->dispatch('delete-role', ids: [Role::administrator()?->id, $spare->id]);
         $this->assertNotNull(Role::administrator());
         $this->assertNull(Role::find($spare->id));
-
-        Livewire::test(CurrencyForm::class)->dispatch('delete-currency', ids: [Currency::default()?->id])
-            ->assertDispatched('toast', fn ($name, $params) => $params['variant'] === 'error');
-        $this->assertNotNull(Currency::default());
     }
 
     // ---------------------------------------------------------------- Request approval

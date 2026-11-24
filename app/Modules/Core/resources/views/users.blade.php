@@ -1,7 +1,11 @@
-<x-layouts.app :title="__('Users')">
-    <livewire:core::users-table />
+<x-layouts.app :title="__('Global Config')">
+    <div class="space-y-4">
+        <x-ui.section-tabs section="core.config" />
 
-    @can('core.users.manage')
-        <livewire:core::user-role-form />
-    @endcan
+        <livewire:core::users-table />
+
+        @can('core.users.manage')
+            <livewire:core::user-role-form />
+        @endcan
+    </div>
 </x-layouts.app>

@@ -1,5 +1,7 @@
-<x-layouts.app :title="__('Roles & Permissions')">
+<x-layouts.app :title="__('Global Config')">
     <div class="space-y-4">
+        <x-ui.section-tabs section="core.config" />
+
         <div class="flex items-center justify-between gap-4">
             <flux:subheading>{{ __('A role is a set of permissions. Each user has one role.') }}</flux:subheading>
 

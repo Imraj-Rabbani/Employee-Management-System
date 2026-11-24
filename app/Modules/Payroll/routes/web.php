@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
 
 // Prefix "/payroll" and name "payroll." are added by ModuleServiceProvider.
-Route::view('ping', 'payroll::ping')->name('ping');
 
 // Payroll → Attendance (sidebar): opens the first tab (config/sections.php) this user may see. 403 when none.
 Route::get('attendance', function () {
