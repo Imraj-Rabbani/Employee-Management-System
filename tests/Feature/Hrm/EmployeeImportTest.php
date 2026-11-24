@@ -20,6 +20,9 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Livewire\Livewire;
 use Maatwebsite\Excel\Excel;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -246,7 +249,7 @@ class EmployeeImportTest extends TestCase
     {
         $this->get(route('hrm.employees.import.template'))->assertOk()->assertDownload('employee-import-template.xlsx');
 
-        // Round trip: the template's example row (first entity of each type, by code) imports cleanly.
+        // Round trip: the template's example row (first dropdown choice of each list, by name) imports cleanly.
         $raw = \Maatwebsite\Excel\Facades\Excel::raw(
             new EmployeeImportTemplate(app(EmployeeVisibility::class)->entityChoicesFor(null)),
             Excel::XLSX,
@@ -258,6 +261,34 @@ class EmployeeImportTest extends TestCase
         $this->assertSame(ImportStatus::Done, $import->status, json_encode($import->errors) ?: '');
         $this->assertTrue(Employee::where('code', 'E-0101')->exists());
         $this->assertSame([$this->finance->id], Employee::where('code', 'E-0101')->sole()->entityIds());   // FIN: first Department
+    }
+
+    public function test_the_template_has_dropdowns_with_this_companys_values(): void
+    {
+        $raw = \Maatwebsite\Excel\Facades\Excel::raw(
+            new EmployeeImportTemplate(app(EmployeeVisibility::class)->entityChoicesFor(null)),
+            Excel::XLSX,
+        );
+        File::ensureDirectoryExists($dir = storage_path('framework/testing/imports'));
+        file_put_contents($path = $dir.'/template-dropdowns.xlsx', $raw);
+        $book = IOFactory::load($path);
+        $employees = $book->getSheetByNameOrThrow('Employees');
+        $lists = $book->getSheetByNameOrThrow('Lists');
+
+        // Every dropdown column: find it by heading, read its list range, and compare with the Lists sheet.
+        $headings = $employees->rangeToArray('A1:'.$employees->getHighestColumn().'1')[0];
+        $dropdown = function (string $heading) use ($employees, $lists, $headings): array {
+            $letter = Coordinate::stringFromColumnIndex(array_search($heading, $headings, true) + 1);
+            $validation = $employees->getCell($letter.'2')->getDataValidation();
+            $this->assertSame(DataValidation::TYPE_LIST, $validation->getType(), $heading);
+            $this->assertTrue($employees->getCell($letter.'500')->hasDataValidation(), "{$heading}: further rows too");
+
+            return array_merge(...$lists->rangeToArray(str_replace(["'Lists'!", '$'], '', $validation->getFormula1())));
+        };
+
+        $this->assertSame(['Male', 'Female'], $dropdown('Gender'));
+        $this->assertContains('Finance', $dropdown('Entity: Department'));
+        $this->assertNotContains('Finance', $dropdown('Designation'));
     }
 
     public function test_import_needs_the_create_permission(): void
