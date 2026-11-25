@@ -86,6 +86,7 @@ class ApplicationPipeline extends Component
 
     /** The interview form (another component) saved: draw again, the stage may have moved to Interview. */
     #[On('interview-saved')]
+    #[On('applicants-imported')]
     public function refreshPipeline(): void {}
 
     private function posting(): JobPosting

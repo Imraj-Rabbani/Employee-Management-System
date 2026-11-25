@@ -18,7 +18,11 @@
                         @endif
                         @if ($applicant->cv_path)
                             <a href="{{ route('hrm.recruitment.applicants.cv', $applicant) }}" class="inline-flex items-center gap-1 text-brand-800 hover:underline dark:text-brand-200"><flux:icon.paper-clip variant="micro" /> {{ __('CV') }}</a>
-                        @else
+                        @endif
+                        @if ($applicant->cv_url)
+                            <a href="{{ $applicant->cv_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-brand-800 hover:underline dark:text-brand-200"><flux:icon.link variant="micro" /> {{ __('CV link') }}</a>
+                        @endif
+                        @if (! $applicant->cv_path && ! $applicant->cv_url)
                             <span class="text-zinc-400">{{ __('No CV') }}</span>
                         @endif
                     </div>

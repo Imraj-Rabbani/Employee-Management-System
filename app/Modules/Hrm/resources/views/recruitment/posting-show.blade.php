@@ -16,6 +16,7 @@
         <livewire:hrm::recruitment.posting-interviews :posting-id="$posting->id" />
         <livewire:hrm::recruitment.job-posting-form />
         <livewire:hrm::recruitment.applicant-form />
+        <livewire:hrm::recruitment.applicant-import :posting-id="$posting->id" />
         <livewire:hrm::recruitment.application-history />
         <livewire:hrm::recruitment.interview-form />
         <livewire:hrm::recruitment.interview-score-sheet />

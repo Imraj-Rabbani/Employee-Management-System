@@ -224,11 +224,13 @@ class WorkflowStartTest extends TestCase
         $note->submitForApproval($this->requester);
     }
 
-    public function test_the_requester_never_approves_their_own_document(): void
+    public function test_the_requester_can_approve_their_own_document(): void
     {
         $this->workflowFor($this->type, [$this->requester]);
 
-        $this->assertRefused($this->note(), 'Nobody can approve level 1');
+        $rows = $this->note()->submitForApproval($this->requester);
+
+        $this->assertSame($this->requester->id, $rows->sole()->approver_user_id);
     }
 
     public function test_a_chosen_employee_without_a_login_finds_nobody(): void

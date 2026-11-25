@@ -53,7 +53,7 @@ class ApplicantForm extends Component
         $this->form = [
             'first_name' => '', 'last_name' => '', 'email' => '', 'phone' => '', 'gender' => '', 'birth_date' => '',
             'national_id' => '', 'address' => '', 'current_employer' => '', 'current_designation' => '',
-            'expected_salary' => '', 'notes' => '',
+            'expected_salary' => '', 'cv_url' => '', 'notes' => '',
         ];
         $this->postingId = $postingId !== null && array_key_exists($postingId, $this->postingOptions()) ? $postingId : '';
         $this->reset('cv');
@@ -80,6 +80,7 @@ class ApplicantForm extends Component
             'current_employer' => $applicant->current_employer ?? '',
             'current_designation' => $applicant->current_designation ?? '',
             'expected_salary' => $applicant->expected_salary ?? '',
+            'cv_url' => $applicant->cv_url ?? '',
             'notes' => $applicant->notes ?? '',
         ];
         $this->postingId = '';
@@ -103,6 +104,7 @@ class ApplicantForm extends Component
             'form.current_employer' => ['nullable', 'string', 'max:200'],
             'form.current_designation' => ['nullable', 'string', 'max:100'],
             'form.expected_salary' => ['nullable', 'numeric', 'min:0', 'max:999999999'],
+            'form.cv_url' => ['nullable', 'url:http,https', 'max:500'],
             'form.notes' => ['nullable', 'string', 'max:5000'],
             'postingId' => $this->recordId ? [] : ['nullable', Rule::in(array_keys($this->postingOptions()))],
             'cv' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120', new FitsInStorage],
@@ -111,7 +113,7 @@ class ApplicantForm extends Component
             'form.phone.required_without' => __('Give a phone number or an email (or both).'),
         ], [
             'form.first_name' => __('first name'), 'form.birth_date' => __('date of birth'),
-            'form.expected_salary' => __('expected salary'), 'postingId' => __('job posting'), 'cv' => __('CV'),
+            'form.expected_salary' => __('expected salary'), 'form.cv_url' => __('CV link'), 'postingId' => __('job posting'), 'cv' => __('CV'),
         ]);
         $values = array_map(fn ($v) => $v === '' ? null : $v, $values['form']);
 

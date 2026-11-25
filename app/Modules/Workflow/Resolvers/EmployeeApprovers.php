@@ -10,7 +10,7 @@ use App\Modules\Workflow\Models\WorkflowStep;
 
 /**
  * ApproverType::Employee: the login of the one employee chosen on the step (approver_employee_id).
- * Nobody when that employee has no login or is the requester.
+ * Nobody when that employee has no login. The requester may be the approver (approving their own document).
  *
  * withoutGlobalScope: the REQUESTER's visibility must not decide who approves (an employee in self
  * service can only "see" themselves).
@@ -21,6 +21,6 @@ class EmployeeApprovers implements ResolvesApprovers
     {
         $userId = Employee::withoutGlobalScope(VisibleToCurrentUser::class)->whereKey($step->approver_employee_id)->value('user_id');
 
-        return $userId !== null && (int) $userId !== $requesterUserId ? [(int) $userId] : [];
+        return $userId !== null ? [(int) $userId] : [];
     }
 }

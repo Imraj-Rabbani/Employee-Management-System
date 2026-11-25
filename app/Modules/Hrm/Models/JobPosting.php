@@ -25,6 +25,8 @@ use Illuminate\Support\Carbon;
  * @property string $title
  * @property string|null $description
  * @property string|null $requirements
+ * @property string|null $form_url the online form people apply through (e.g. a Google Form)
+ * @property string|null $responses_url the spreadsheet with that form's answers (downloaded and imported by HR)
  * @property int $openings
  * @property Carbon $open_date
  * @property Carbon|null $close_date
@@ -39,7 +41,7 @@ class JobPosting extends TenantModel
     use HasFactory;
 
     protected $fillable = [
-        'manpower_request_id', 'title', 'description', 'requirements', 'openings', 'open_date', 'close_date',
+        'manpower_request_id', 'title', 'description', 'requirements', 'form_url', 'responses_url', 'openings', 'open_date', 'close_date',
         'status', 'created_by_user_id',
     ];
 

@@ -62,6 +62,17 @@
                     @endforeach
                 </dl>
 
+                @if ($posting->form_url || $posting->responses_url)
+                    <div class="my-6 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                        @if ($posting->form_url)
+                            <a href="{{ $posting->form_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-brand-800 hover:underline dark:text-brand-200"><flux:icon.clipboard-document-list variant="micro" /> {{ __('Application form') }}</a>
+                        @endif
+                        @if ($posting->responses_url)
+                            <a href="{{ $posting->responses_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-brand-800 hover:underline dark:text-brand-200"><flux:icon.table-cells variant="micro" /> {{ __('Responses sheet') }}</a>
+                        @endif
+                    </div>
+                @endif
+
                 <div>
                     <flux:heading class="mb-1">{{ __('Description') }}</flux:heading>
                     <flux:text class="whitespace-pre-line">{{ $posting->description ?: '—' }}</flux:text>

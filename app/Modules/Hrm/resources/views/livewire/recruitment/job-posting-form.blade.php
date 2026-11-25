@@ -78,6 +78,23 @@
                 </flux:field>
             </fieldset>
 
+            <fieldset @disabled(! $editable) class="space-y-4">
+                <legend class="mb-2 text-sm font-medium text-zinc-800 dark:text-white">{{ __('Online application form') }}</legend>
+                <flux:text class="text-xs">{{ __('Optional. If people apply through a Google Form, keep its links here; the answers are brought in with Import (the guide there lists the questions the form should ask).') }}</flux:text>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:field>
+                        <flux:label>{{ __('Form link') }}</flux:label>
+                        <flux:input type="url" wire:model="form.form_url" :placeholder="__('e.g. https://forms.gle/…')" />
+                        <flux:error name="form.form_url" />
+                    </flux:field>
+                    <flux:field>
+                        <flux:label>{{ __('Responses sheet link') }}</flux:label>
+                        <flux:input type="url" wire:model="form.responses_url" :placeholder="__('e.g. https://docs.google.com/spreadsheets/…')" />
+                        <flux:error name="form.responses_url" />
+                    </flux:field>
+                </div>
+            </fieldset>
+
             @if ($posting?->status === \App\Modules\Hrm\Enums\JobPostingStatus::Draft)
                 <flux:separator />
                 <flux:button size="sm" variant="ghost" icon="trash" class="!text-red-600" x-on:click="$dispatch('confirm', {

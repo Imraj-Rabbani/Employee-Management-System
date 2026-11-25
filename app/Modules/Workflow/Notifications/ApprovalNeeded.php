@@ -34,6 +34,17 @@ class ApprovalNeeded extends Notification implements ShouldQueue
         return $this->sendEmail ? ['database', 'mail'] : ['database'];
     }
 
+    /**
+     * The bell entry is written at once (sync), so it shows without a queue worker running;
+     * only the email waits for the queue. Safe: the engine fires its events after the commit.
+     *
+     * @return array<string, string>
+     */
+    public function viaConnections(): array
+    {
+        return ['database' => 'sync'];
+    }
+
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)

@@ -132,6 +132,11 @@
                     <flux:text wire:loading wire:target="cv" class="mt-2 text-sm">{{ __('Uploading…') }}</flux:text>
                     <flux:error name="cv" />
                 </flux:field>
+                <flux:field>
+                    <flux:label>{{ __('CV link') }}</flux:label>
+                    <flux:input type="url" wire:model="form.cv_url" :placeholder="__('e.g. https://drive.google.com/…')" />
+                    <flux:error name="form.cv_url" />
+                </flux:field>
             </div>
 
             <flux:field>

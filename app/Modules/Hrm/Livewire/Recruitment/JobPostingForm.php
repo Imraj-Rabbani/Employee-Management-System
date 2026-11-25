@@ -50,7 +50,7 @@ class JobPostingForm extends Component
     {
         $this->recordId = null;
         $this->form = [
-            'manpower_request_id' => '', 'title' => '', 'description' => '', 'requirements' => '', 'openings' => 1,
+            'manpower_request_id' => '', 'title' => '', 'description' => '', 'requirements' => '', 'form_url' => '', 'responses_url' => '', 'openings' => 1,
             'open_date' => today()->toDateString(), 'close_date' => '',
         ];
         $this->resetValidation();
@@ -74,6 +74,8 @@ class JobPostingForm extends Component
             'title' => $posting->title,
             'description' => $posting->description ?? '',
             'requirements' => $posting->requirements ?? '',
+            'form_url' => $posting->form_url ?? '',
+            'responses_url' => $posting->responses_url ?? '',
             'openings' => $posting->openings,
             'open_date' => $posting->open_date->toDateString(),
             'close_date' => $posting->close_date?->toDateString() ?? '',
@@ -113,6 +115,8 @@ class JobPostingForm extends Component
             'form.title' => ['required', 'string', 'max:150'],
             'form.description' => ['nullable', 'string', 'max:10000'],
             'form.requirements' => ['nullable', 'string', 'max:10000'],
+            'form.form_url' => ['nullable', 'url:http,https', 'max:500'],
+            'form.responses_url' => ['nullable', 'url:http,https', 'max:500'],
             'form.openings' => ['required', 'integer', 'min:1', 'max:'.max(1, $maxOpenings)],
             'form.open_date' => ['required', 'date'],
             'form.close_date' => ['nullable', 'date', 'after_or_equal:form.open_date'],
@@ -120,6 +124,7 @@ class JobPostingForm extends Component
             'form.openings.max' => __('The request has only :max opening(s) left to advertise.', ['max' => $maxOpenings]),
         ], [
             'form.manpower_request_id' => __('manpower request'), 'form.open_date' => __('open date'), 'form.close_date' => __('close date'),
+            'form.form_url' => __('application form link'), 'form.responses_url' => __('responses sheet link'),
         ])['form'];
 
         if ($maxOpenings === 0) {

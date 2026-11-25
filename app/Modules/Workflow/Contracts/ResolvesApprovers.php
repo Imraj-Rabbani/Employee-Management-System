@@ -11,7 +11,7 @@ use App\Modules\Workflow\Models\WorkflowStep;
 interface ResolvesApprovers
 {
     /**
-     * @param  int|null  $requesterUserId  the login who submitted; never asked to approve their own document
+     * @param  int|null  $requesterUserId  the login who submitted; MAY be asked to approve their own document (rule removed 2026-11-25)
      * @return list<int> central users.id of everyone who must answer this step
      */
     public function approvers(WorkflowStep $step, Approvable $document, ?int $requesterUserId): array;

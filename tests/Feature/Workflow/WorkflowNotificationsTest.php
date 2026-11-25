@@ -73,6 +73,17 @@ class WorkflowNotificationsTest extends TestCase
         Notification::assertNotSentTo($this->farid, ApprovalNeeded::class);   // level 2 waits
     }
 
+    public function test_the_bell_entry_is_there_at_once_without_a_queue_worker_only_the_email_waits(): void
+    {
+        config(['queue.default' => 'database']);   // like the real app: nothing runs until a worker does
+
+        $this->submitted();
+
+        $bell = $this->mina->notifications()->sole();
+        $this->assertSame('approval_needed', $bell->data['kind']);
+        $this->assertSame(1, \Illuminate\Support\Facades\DB::connection(config('queue.connections.database.connection'))->table('jobs')->count());   // the email
+    }
+
     public function test_with_send_email_off_only_the_in_app_notification_is_sent(): void
     {
         Notification::fake();

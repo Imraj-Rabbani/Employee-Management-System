@@ -9,6 +9,7 @@
             @if ($posting->isAcceptingApplications())
                 <div class="flex shrink-0 items-center gap-2">
                     <flux:button size="sm" icon="plus" x-on:click="$dispatch('create-applicant', { postingId: {{ $posting->id }} })">{{ __('Add applicant') }}</flux:button>
+                    <flux:button size="sm" icon="arrow-up-tray" x-on:click="$dispatch('import-applicants')">{{ __('Import') }}</flux:button>
                 </div>
             @endif
         </div>

@@ -9,7 +9,7 @@ use App\Modules\Workflow\Models\WorkflowStep;
  * (workflow_steps.approver_entity_id), e.g. the head of Branch "Gulshan", whoever asks.
  *
  * Same rules as EntityHeadApprovers once the entity is known: no head with a login, or the head
- * is the employee / the requester themself → the parent entity's head, and so on up.
+ * is the document's employee themself → the parent entity's head, and so on up.
  */
 class SpecificEntityHeadApprovers extends EntityHeadApprovers
 {

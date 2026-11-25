@@ -37,6 +37,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $expected_salary
  * @property string|null $cv_path
  * @property string|null $cv_name
+ * @property string|null $cv_url a link to the CV elsewhere (e.g. Google Drive, from a form import)
  * @property string|null $notes
  * @property int|null $created_by_user_id
  * @property Carbon $created_at
@@ -49,7 +50,7 @@ class Applicant extends TenantModel
 
     protected $fillable = [
         'first_name', 'last_name', 'email', 'phone', 'gender', 'birth_date', 'national_id', 'address',
-        'current_employer', 'current_designation', 'expected_salary', 'notes', 'created_by_user_id',
+        'current_employer', 'current_designation', 'expected_salary', 'cv_url', 'notes', 'created_by_user_id',
     ];
 
     /** @return array<string, string> */

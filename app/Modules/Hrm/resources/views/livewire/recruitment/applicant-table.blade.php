@@ -6,6 +6,7 @@
     @php $activeFilters = count(array_filter([$search !== ''])); @endphp
     <div class="flex flex-wrap items-center gap-2 border-b border-white/50 p-4 dark:border-white/10">
         <flux:button variant="primary" size="sm" icon="plus" x-on:click="$dispatch('create-applicant')">{{ __('Add new') }}</flux:button>
+        <flux:button size="sm" icon="arrow-up-tray" x-on:click="$dispatch('import-applicants')">{{ __('Import') }}</flux:button>
         {{-- Edit: exactly one row ticked. --}}
         <flux:button size="sm" icon="pencil-square" x-bind:disabled="$wire.selected.length !== 1" x-on:click="$dispatch('edit-applicant', { id: Number($wire.selected[0]) })">{{ __('Edit') }}</flux:button>
         {{-- Delete: one or more rows. The form (delete-applicant) deletes those that may go and says which stayed. --}}
@@ -102,7 +103,7 @@
                         <td class="px-4 py-3">{{ $applicant->phone }}</td>
                         <td class="px-4 py-3">{{ $applicant->current_employer }}</td>
                         <td class="px-4 py-3 text-right">{{ $applicant->applications_count }}</td>
-                        <td class="px-4 py-3">{{ $applicant->cv_path ? __('Yes') : '' }}</td>
+                        <td class="px-4 py-3">{{ $applicant->cv_path || $applicant->cv_url ? __('Yes') : '' }}</td>
                         <td class="px-4 py-3">{{ format_date($applicant->created_at) }}</td>
                     </tr>
                 @endforeach

@@ -20,7 +20,7 @@ use App\Modules\Workflow\Models\WorkflowStep;
  *   2. else the document employee's current entity of that type
  *      (a roster for Branch "Gulshan" asks the Head of Department → the requester's Department)
  *
- * When that entity has no head with a login, or the head is the employee or the requester themself,
+ * When that entity has no head with a login, or the head is the document's employee themself,
  * it goes UP to the parent entity's head (the optional parent, e.g. Gulshan → Division Dhaka), and so on.
  */
 class EntityHeadApprovers implements ResolvesApprovers
@@ -43,7 +43,7 @@ class EntityHeadApprovers implements ResolvesApprovers
 
             if ($entity->head_employee_id !== null && $entity->head_employee_id !== $employeeId) {
                 $userId = (clone $employees)->whereKey($entity->head_employee_id)->value('user_id');
-                if ($userId !== null && (int) $userId !== $requesterUserId) {
+                if ($userId !== null) {
                     return [(int) $userId];
                 }
             }

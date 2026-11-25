@@ -25,6 +25,6 @@ class SupervisorApprovers implements ResolvesApprovers
         $supervisorId = (clone $employees)->whereKey($employeeId)->value('supervisor_id');
         $userId = $supervisorId ? (clone $employees)->whereKey($supervisorId)->value('user_id') : null;
 
-        return $userId !== null && (int) $userId !== $requesterUserId ? [(int) $userId] : [];
+        return $userId !== null ? [(int) $userId] : [];
     }
 }

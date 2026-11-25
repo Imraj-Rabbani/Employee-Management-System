@@ -39,7 +39,7 @@ class ApplicantTable extends Component
     private const SORTABLE = ['first_name', 'applications_count', 'created_at'];
 
     /** @var array<string, string> the form saved or deleted applicants: refresh and forget the ticked rows */
-    protected $listeners = ['applicant-saved' => 'clearSelection'];
+    protected $listeners = ['applicant-saved' => 'clearSelection', 'applicants-imported' => 'clearSelection'];
 
     /** @var list<string> ids of the ticked rows (the checkboxes). Edit needs one; Delete / Request approval any number. */
     public array $selected = [];

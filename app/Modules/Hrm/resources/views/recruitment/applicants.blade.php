@@ -11,5 +11,6 @@
 
         <livewire:hrm::recruitment.applicant-table />
         <livewire:hrm::recruitment.applicant-form />
+        <livewire:hrm::recruitment.applicant-import />
     </div>
 </x-layouts.app>
