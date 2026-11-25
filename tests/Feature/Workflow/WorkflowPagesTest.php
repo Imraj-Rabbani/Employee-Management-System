@@ -6,6 +6,7 @@ use App\Core\Tenancy\TenantMigrationPaths;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Core\Livewire\NotificationBell;
+use App\Modules\Core\Livewire\NotificationsTable;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\EntityType;
@@ -329,11 +330,16 @@ class WorkflowPagesTest extends TestCase
 
         $this->get('/dashboard')->assertSeeLivewire(NotificationBell::class);
 
-        $bell = Livewire::test(NotificationBell::class)
+        // The bell shows the count and opens the Notifications page.
+        Livewire::test(NotificationBell::class)
             ->assertViewHas('unread', 1)
-            ->assertSee('Note: Bell test');
+            ->assertSee(route('core.notifications'));
 
-        $bell->call('open', $mina->notifications()->value('id'))->assertRedirect(route('workflow.inbox'));
+        // The page lists it; opening one marks it read and goes to what it is about.
+        $this->get(route('core.notifications'))->assertOk()->assertSee('Note: Bell test');
+        Livewire::test(NotificationsTable::class)
+            ->call('open', $mina->notifications()->value('id'))
+            ->assertRedirect(route('workflow.inbox'));
         $this->assertSame(0, $mina->unreadNotifications()->count());
     }
 

@@ -95,7 +95,7 @@ class LocalisationTest extends TestCase
     {
         $this->actingAsTenantUser();
 
-        $this->get('/dashboard')->assertSee('Fiscal Years')->assertDontSee('অর্থবছর');
+        $this->get('/dashboard')->assertSee('Global Config')->assertDontSee('গ্লোবাল কনফিগ');
     }
 
     public function test_a_user_who_chose_bangla_sees_the_app_in_bangla(): void
@@ -104,8 +104,8 @@ class LocalisationTest extends TestCase
 
         $this->get('/dashboard')
             ->assertSee('ড্যাশবোর্ড')
-            ->assertSee('অর্থবছর')
-            ->assertDontSee('Fiscal Years');
+            ->assertSee('গ্লোবাল কনফিগ')
+            ->assertDontSee('Global Config');
     }
 
     public function test_the_language_is_chosen_in_the_profile(): void

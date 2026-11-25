@@ -40,7 +40,6 @@
     "Workflow Setup": "ওয়ার্কফ্লো সেটআপ",
     "Setup": "সেটআপ",
     "Company Settings": "কোম্পানির সেটিংস",
-    "Fiscal Years": "অর্থবছর",
     "Currencies": "মুদ্রা",
     "Users": "ব্যবহারকারী",
     "Roles & Permissions": "ভূমিকা ও অনুমতি",
@@ -83,8 +82,6 @@
     "Date format": "তারিখের ধরন",
     "Default currency": "প্রধান মুদ্রা",
     "Company settings saved.": "কোম্পানির সেটিংস সংরক্ষণ করা হয়েছে।",
-    "New fiscal year": "নতুন অর্থবছর",
-    "Edit fiscal year": "অর্থবছর সম্পাদনা",
     "Starts": "শুরু",
     "Ends": "শেষ",
     "Make active": "সক্রিয় করুন",
@@ -193,5 +190,11 @@
     "Set the salary afterwards, on the employee's Salary tab.": "বেতন পরে কর্মীর \"বেতন\" ট্যাবে নির্ধারণ করুন।",
     "Today or earlier. Moves with a future date are not supported yet.": "আজ বা তার আগের তারিখ। ভবিষ্যৎ তারিখের বদলি এখনো সমর্থিত নয়।",
     "Shift planned day by day on a roster (Attendance → Rosters).": "রোস্টারে দিনভিত্তিক শিফট পরিকল্পনা (হাজিরা → রোস্টার)।",
-    ":name is no longer employed, so leave cannot be encashed.": ":name আর কর্মরত নেই, তাই ছুটি নগদায়ন করা যাবে না।"
+    ":name is no longer employed, so leave cannot be encashed.": ":name আর কর্মরত নেই, তাই ছুটি নগদায়ন করা যাবে না।",
+    "Global Config": "গ্লোবাল কনফিগ",
+    "Fiscal year": "অর্থবছর",
+    "Currency": "মুদ্রা",
+    "Notifications": "নোটিফিকেশন",
+    "Change in Global Config": "গ্লোবাল কনফিগে পরিবর্তন করুন",
+    "FY :year": "অর্থবছর :year"
 }

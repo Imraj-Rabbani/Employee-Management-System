@@ -54,7 +54,7 @@ class InterviewScheduled extends Notification implements ShouldQueue
     }
 
     /**
-     * The in-app bell (NotificationBell turns 'kind' into a sentence and a link).
+     * The in-app bell (NotificationPresenter turns 'kind' into a sentence and a link).
      *
      * @return array<string, mixed>
      */

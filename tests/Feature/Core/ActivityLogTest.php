@@ -39,7 +39,7 @@ class ActivityLogTest extends TestCase
         $entry = Activity::where('subject_type', $year->getMorphClass())->where('subject_id', $year->id)->sole();
         $this->assertSame('created', $entry->event);
         $this->assertTrue($me->is($entry->causer));
-        $this->assertSame('FY 2025-26', $entry->attribute_changes?->get('attributes')['name']);
+        $this->assertSame('Officer', $entry->attribute_changes?->get('attributes')['name']);
     }
 
     public function test_an_update_logs_only_the_changed_fields_old_and_new(): void
@@ -47,11 +47,11 @@ class ActivityLogTest extends TestCase
         $this->actingAsTenantUser();
         $year = $this->year();
 
-        $year->update(['name' => 'Fiscal 2025-26', 'start_date' => '2025-07-01']);   // start_date did not change
+        $year->update(['name' => 'Senior Officer', 'code' => 'OFF']);   // code did not change
 
         $entry = Activity::where('event', 'updated')->sole();
-        $this->assertSame(['name' => 'FY 2025-26'], $entry->attribute_changes?->get('old'));
-        $this->assertSame(['name' => 'Fiscal 2025-26'], $entry->attribute_changes?->get('attributes'));
+        $this->assertSame(['name' => 'Officer'], $entry->attribute_changes?->get('old'));
+        $this->assertSame(['name' => 'Senior Officer'], $entry->attribute_changes?->get('attributes'));
     }
 
     public function test_a_save_that_changes_nothing_writes_no_entry(): void
@@ -59,7 +59,7 @@ class ActivityLogTest extends TestCase
         $this->actingAsTenantUser();
         $year = $this->year();
 
-        $year->update(['name' => 'FY 2025-26']);
+        $year->update(['name' => 'Officer']);
 
         $this->assertSame(0, Activity::where('event', 'updated')->count());
     }

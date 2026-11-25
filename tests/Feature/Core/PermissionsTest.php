@@ -137,9 +137,14 @@ class PermissionsTest extends TestCase
     {
         $this->actingAsTenantUser(permissions: ['core.users.view']);
 
-        $this->get('/dashboard')
+        // Global Config shows when any of its tabs is allowed; inside, only the allowed tabs.
+        $this->get('/dashboard')->assertSee(route('core.config'));
+        $this->get('/core/users')
             ->assertSee(route('core.users'))
             ->assertDontSee(route('core.roles'))
             ->assertDontSee(route('core.settings'));
+
+        $this->actingAsTenantUser(tenant: tenant(), permissions: []);
+        $this->get('/dashboard')->assertDontSee(route('core.config'));
     }
 }

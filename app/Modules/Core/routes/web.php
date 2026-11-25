@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 
 // Prefix "/core" and name "core." are added by ModuleServiceProvider.
 // can:... = the permission needed (permissions.php). Livewire re-checks it on every click (persistent middleware).
+// Everyone: their own notification history (the bell in the top bar opens it).
+Route::view('notifications', 'core::notifications')->name('notifications');
 Route::view('users', 'core::users')->middleware('can:core.users.view')->name('users');
 Route::view('settings', 'core::company-settings')->middleware('can:core.settings.manage')->name('settings');
 Route::view('roles', 'core::roles')->middleware('can:core.roles.manage')->name('roles');
