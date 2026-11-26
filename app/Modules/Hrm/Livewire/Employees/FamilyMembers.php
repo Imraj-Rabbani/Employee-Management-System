@@ -27,7 +27,7 @@ class FamilyMembers extends EmployeeRecords
             'relation' => ['required', Rule::enum(EmployeeRelation::class)],
             'name' => ['required', 'string', 'max:200'],
             'name_local' => ['nullable', 'string', 'max:200'],
-            'birth_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'birth_date' => ['nullable', 'date'],
             'gender' => ['nullable', Rule::enum(Gender::class)],
             'occupation' => ['nullable', 'string', 'max:100'],
             'phone' => ['nullable', 'string', 'max:30'],

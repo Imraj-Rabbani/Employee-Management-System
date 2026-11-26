@@ -93,7 +93,7 @@
                                     <input type="checkbox" wire:model="selected" value="{{ $application->id }}" class="size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 dark:border-white/20 dark:bg-white/10" aria-label="{{ __('Tick :name', ['name' => $application->applicant->name]) }}">
                                 </td>
                                 <td class="px-6 py-3">
-                                    <a href="{{ route('hrm.recruitment.applicants.show', $application->applicant_id) }}" wire:navigate class="font-medium text-brand-800 hover:underline dark:text-brand-200">{{ $application->applicant->name }}</a>
+                                    <a href="{{ route('hrm.recruitment.applicants.show', $application->applicant_id) }}" wire:navigate class="font-medium text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400">{{ $application->applicant->name }}</a>
                                     <div class="text-xs text-zinc-500">{{ $application->applicant->phone ?? $application->applicant->email }}</div>
                                 </td>
                                 <td class="px-6 py-3">{{ collect([$application->applicant->current_designation, $application->applicant->current_employer])->filter()->join(' · ') ?: '—' }}</td>
@@ -106,7 +106,7 @@
                                         $offer = $application->offers->first(fn ($o) => ! $o->status()->isDead());
                                     @endphp
                                     @if ($offer)
-                                        <a href="{{ route('hrm.recruitment.offers.show', $offer->id) }}" wire:navigate class="ml-1 text-xs text-brand-800 hover:underline dark:text-brand-200">{{ $offer->number() }} · {{ $offer->status()->label() }}</a>
+                                        <a href="{{ route('hrm.recruitment.offers.show', $offer->id) }}" wire:navigate class="ml-1 text-xs text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400">{{ $offer->number() }} · {{ $offer->status()->label() }}</a>
                                     @endif
                                     <div class="mt-1 text-xs text-zinc-500">
                                         @if ($planned)

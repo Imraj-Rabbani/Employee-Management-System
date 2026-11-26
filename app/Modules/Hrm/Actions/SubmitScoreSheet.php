@@ -3,7 +3,6 @@
 namespace App\Modules\Hrm\Actions;
 
 use App\Modules\Hrm\Enums\InterviewStatus;
-use App\Modules\Hrm\Models\InterviewFactor;
 use App\Modules\Hrm\Models\InterviewPanelist;
 use LogicException;
 
@@ -16,7 +15,7 @@ use LogicException;
  *     if ($problem = $submit->problem($panelist)) { ...show $problem... }
  *     $submit->handle($panelist);
  *
- * Ready = not sent yet, the interview is still planned, every REQUIRED active factor has a score,
+ * Ready = not sent yet, the interview is still planned, every question of the stage's question set has a score,
  * and a recommendation is chosen.
  */
 class SubmitScoreSheet
@@ -31,15 +30,15 @@ class SubmitScoreSheet
             return __('The interview is :status.', ['status' => mb_strtolower($panelist->interview->status->label())]);
         }
 
-        $scored = $panelist->scores()->pluck('interview_factor_id')->all();
+        $scored = $panelist->scores()->pluck('interview_question_id')->all();
         if ($scored === []) {
             return __('Not scored yet.');
         }
 
-        $missing = InterviewFactor::query()->ordered()->where('is_active', true)->where('is_required', true)
-            ->whereNotIn('id', $scored)->pluck('name');
+        $items = $panelist->interview->stage?->questionSet?->items()->with('question')->get() ?? collect();
+        $missing = $items->whereNotIn('interview_question_id', $scored)->map(fn ($item) => $item->question->name);
         if ($missing->isNotEmpty()) {
-            return __('Not scored: :factors.', ['factors' => $missing->join(', ')]);
+            return __('Not scored: :questions.', ['questions' => $missing->join(', ')]);
         }
 
         return $panelist->recommendation === null ? __('No recommendation chosen.') : null;

@@ -20,7 +20,7 @@ class ApplicantWorkHistories extends ApplicantRecords
         return [
             'organization' => ['required', 'string', 'max:300'],
             'designation' => ['nullable', 'string', 'max:100'],
-            'from_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'from_date' => ['nullable', 'date'],
             'to_date' => ['nullable', 'date', 'after_or_equal:form.from_date'],
             'leaving_reason' => ['nullable', 'string', 'max:255'],
         ];

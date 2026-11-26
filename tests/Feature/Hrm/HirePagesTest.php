@@ -74,7 +74,7 @@ class HirePagesTest extends TestCase
 
         Livewire::test(HireForm::class)
             ->dispatch('hire', offerId: $this->offer->id)
-            ->assertSee('Hire Rahim')
+            ->assertSee('Onboard Rahim')
             ->assertSet('form.entity_id', $this->sales->id)
             ->assertSet('form.position_id', $this->seat->id)
             ->assertSee('Sales Officer 1')

@@ -73,7 +73,7 @@ class MyInterviews extends Component
 
         $seats = $employee === null ? collect() : InterviewPanelist::query()
             ->where('employee_id', $employee->id)
-            ->with(['scores', 'interview.application.applicant', 'interview.application.jobPosting'])
+            ->with(['scores', 'interview.stage', 'interview.application.applicant', 'interview.application.jobPosting'])
             ->get()
             ->sortByDesc(fn (InterviewPanelist $p) => $p->interview->scheduled_at)
             ->values();

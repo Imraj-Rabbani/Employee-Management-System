@@ -2,30 +2,24 @@
 
 namespace App\Modules\Hrm\Database\Factories;
 
-use App\Modules\Hrm\Models\InterviewFactor;
+use App\Modules\Hrm\Models\InterviewQuestion;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * Fake InterviewFactor rows for tests and demo data: InterviewFactor::factory()->create().
+ * Fake interview questions for tests and demo data: InterviewQuestion::factory()->create().
  *
- * @extends Factory<InterviewFactor>
+ * @extends Factory<InterviewQuestion>
  */
-class InterviewFactorFactory extends Factory
+class InterviewQuestionFactory extends Factory
 {
-    protected $model = InterviewFactor::class;
+    protected $model = InterviewQuestion::class;
 
     public function definition(): array
     {
         return [
             'name' => fake()->randomElement(['Communication', 'Technical skill', 'Attitude', 'Experience', 'Leadership'])
                 .' '.fake()->unique()->numberBetween(1, 9999),
-            'weight' => fake()->randomElement([10, 20, 25]),
             'sequence' => fake()->numberBetween(1, 50),
         ];
-    }
-
-    public function required(): static
-    {
-        return $this->state(['is_required' => true]);
     }
 }

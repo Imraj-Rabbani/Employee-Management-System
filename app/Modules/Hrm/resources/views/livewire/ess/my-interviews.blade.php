@@ -72,10 +72,10 @@
                                     <td class="px-6 py-3">
                                         {{ $interview->application->applicant->name }}
                                         @if ($interview->application->applicant->cv_url)
-                                            <a href="{{ $interview->application->applicant->cv_url }}" target="_blank" rel="noopener noreferrer" class="ml-1 inline-flex items-center gap-0.5 text-xs text-brand-800 hover:underline dark:text-brand-200"><flux:icon.link variant="micro" />{{ __('CV link') }}</a>
+                                            <a href="{{ $interview->application->applicant->cv_url }}" target="_blank" rel="noopener noreferrer" class="ml-1 inline-flex items-center gap-0.5 text-xs text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400"><flux:icon.link variant="micro" />{{ __('CV link') }}</a>
                                         @endif
                                         @if ($interview->application->applicant->cv_path)
-                                            <a href="{{ route('ess.interviews.cv', $seat) }}" class="ml-1 inline-flex items-center gap-0.5 text-xs text-brand-800 hover:underline dark:text-brand-200"><flux:icon.paper-clip variant="micro" />{{ __('CV') }}</a>
+                                            <a href="{{ route('ess.interviews.cv', $seat) }}" class="ml-1 inline-flex items-center gap-0.5 text-xs text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400"><flux:icon.paper-clip variant="micro" />{{ __('CV') }}</a>
                                         @endif
                                     </td>
                                     <td class="px-6 py-3">{{ $interview->application->jobPosting->title }}</td>

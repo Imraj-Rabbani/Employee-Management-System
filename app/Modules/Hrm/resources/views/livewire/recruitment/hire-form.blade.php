@@ -1,5 +1,5 @@
 <div>
-    <x-ui.modal name="hire-form" size="lg" :heading="$offer ? __('Hire :name', ['name' => $offer->application->applicant->name]) : __('Hire')"
+    <x-ui.modal name="hire-form" size="lg" :heading="$offer ? __('Onboard :name', ['name' => $offer->application->applicant->name]) : __('Onboard')"
         :subheading="__('Makes the employee from the offer: personal details, education, work history and CV are copied. You complete the rest on the profile.')">
         @if ($offer)
             <dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
@@ -69,7 +69,7 @@
         </form>
 
         <x-slot:footer>
-            <flux:button type="submit" form="hire-form" variant="primary" icon="user-plus">{{ __('Hire') }}</flux:button>
+            <flux:button type="submit" form="hire-form" variant="primary" icon="user-plus">{{ __('Onboard') }}</flux:button>
         </x-slot:footer>
     </x-ui.modal>
 </div>

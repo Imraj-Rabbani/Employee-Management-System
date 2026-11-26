@@ -118,7 +118,7 @@
                             <input type="checkbox" wire:model="selected" value="{{ $roster->getKey() }}" class="size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 dark:border-white/20 dark:bg-white/10" aria-label="{{ __('Tick this row') }}">
                         </td>
                         <td class="px-4 py-3">
-                            <a href="{{ route('payroll.attendance.rosters.show', $roster->id) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $roster->number() }}</a>
+                            <a href="{{ route('payroll.attendance.rosters.show', $roster->id) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 dark:text-brand-200 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">{{ $roster->number() }}</a>
                         </td>
                         <td class="px-4 py-3">{{ $roster->title }}</td>
                         <td class="px-4 py-3">{{ $roster->entity->name ?? '-' }}</td>

@@ -131,7 +131,7 @@
                 @foreach ($rows as $manpowerRequest)
                     <tr wire:key="manpower-request-{{ $manpowerRequest->getKey() }}" class="border-b border-white/40 text-zinc-800 last:border-0 hover:bg-white/40 dark:border-white/5 dark:text-zinc-100 dark:hover:bg-white/5">
                         <td class="px-4 py-3">
-                            <a href="{{ route('hrm.recruitment.requests.show', $manpowerRequest->id) }}" wire:navigate class="font-medium text-brand-800 hover:underline dark:text-brand-200">{{ $manpowerRequest->number() }}</a>
+                            <a href="{{ route('hrm.recruitment.requests.show', $manpowerRequest->id) }}" wire:navigate class="font-medium text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400">{{ $manpowerRequest->number() }}</a>
                         </td>
                         <td class="px-4 py-3">{{ $manpowerRequest->designation->name ?? '-' }}</td>
                         <td class="px-4 py-3">{{ $manpowerRequest->entity->name ?? '-' }}</td>

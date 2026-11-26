@@ -19,7 +19,7 @@ return [
     'Recruitment' => [
         'hrm.recruitment.request' => 'Create manpower requests (for the entities they can see)',
         'hrm.recruitment.manage' => 'Manage job postings and applicants (HR)',
-        'hrm.recruitment.setup' => 'Manage recruitment setup (interview factors, rejection reasons)',
+        'hrm.recruitment.setup' => 'Manage recruitment config (interview questions, question sets, rejection reasons)',
     ],
     'Leave' => [
         'hrm.leave.manage' => 'Apply for and withdraw leave for the employees they can see (HR)',

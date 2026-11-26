@@ -112,7 +112,7 @@
                         </td>
                         <td class="sticky left-0 z-10 bg-white/80 px-3 py-2 backdrop-blur dark:bg-brand-950/80">
                             <button type="button" x-on:click="$dispatch('show-payroll-employee', { id: {{ $row->id }} })" class="text-left">
-                                <span class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $row->employee->code ?? '?' }}</span>
+                                <span class="font-medium text-brand-800 underline-offset-4 dark:text-brand-200 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">{{ $row->employee->code ?? '?' }}</span>
                                 <span class="block text-xs text-zinc-500 dark:text-zinc-400">{{ $row->employee->name ?? '' }}</span>
                             </button>
                             @if ($failed)

@@ -140,7 +140,7 @@
                         @foreach ($employees as $employee)
                             <tr wire:key="row-{{ $employee->id }}">
                                 <th class="sticky left-0 z-10 border-b border-zinc-100 bg-white px-3 py-1 text-left font-normal dark:border-white/5 dark:bg-zinc-900">
-                                    <button type="button" class="text-left hover:underline disabled:no-underline" x-on:click="fillRow({{ $employee->id }})" x-bind:disabled="! editable"
+                                    <button type="button" class="text-left disabled:no-underline underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400" x-on:click="fillRow({{ $employee->id }})" x-bind:disabled="! editable"
                                         title="{{ $editable ? __('Fill this row with the brush') : '' }}">
                                         <span class="font-medium">{{ $employee->code }}</span> · {{ $employee->name }}
                                     </button>

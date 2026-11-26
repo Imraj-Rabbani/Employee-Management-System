@@ -4,9 +4,11 @@ namespace App\Modules\Hrm\Livewire\Recruitment;
 
 use App\Core\Exports\ArrayExport;
 use App\Modules\Hrm\Models\Applicant;
+use App\Modules\Hrm\Models\JobPosting;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -14,7 +16,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * HRM → Applicants: the talent pool. Search by name, email or phone.
+ * HRM → Applicants: the talent pool. Search by name, email or phone; filter by the job posting they applied to.
  * Phones are stored as digits only (01711000000), so search a phone without spaces or dashes.
  *
  * View: app/Modules/Hrm/resources/views/livewire/recruitment/applicant-table.blade.php
@@ -25,6 +27,10 @@ class ApplicantTable extends Component
 
     #[Url(as: 'q', except: '')]
     public string $search = '';
+
+    /** Only people who applied to this posting ('' = everyone). In the URL: ?posting=3 */
+    #[Url(as: 'posting', except: '')]
+    public string $posting = '';
 
     #[Url(as: 'sort', except: '')]
     public string $sortBy = '';
@@ -70,7 +76,7 @@ class ApplicantTable extends Component
 
     public function clearFilters(): void
     {
-        $this->reset('search');
+        $this->reset('search', 'posting');
         $this->resetPage();
         $this->selected = [];
         Flux::modal('applicant-filters')->close();
@@ -97,7 +103,7 @@ class ApplicantTable extends Component
     /** Typing a search or picking a filter or page size starts again at page 1. */
     public function updated(string $property): void
     {
-        if (in_array($property, ['search', 'perPage'], true)) {
+        if (in_array($property, ['search', 'posting', 'perPage'], true)) {
             $this->resetPage();
         }
     }
@@ -120,6 +126,11 @@ class ApplicantTable extends Component
             $query->where(fn (Builder $q) => $q->where('first_name', 'like', $like)->orWhere('last_name', 'like', $like)->orWhere('email', 'like', $like)->orWhere('phone', 'like', $like));
         }
 
+        // Only a posting the user can see (one from the list); anything else typed into the URL is ignored.
+        if ($this->posting !== '' && array_key_exists((int) $this->posting, $this->postingOptions())) {
+            $query->whereHas('applications', fn (Builder $q) => $q->where('job_posting_id', (int) $this->posting));
+        }
+
         if (in_array($this->sortBy, self::SORTABLE, true)) {
             $query->orderBy($this->sortBy, $this->sortDir === 'desc' ? 'desc' : 'asc');
         } else {
@@ -129,6 +140,18 @@ class ApplicantTable extends Component
         return $query;
     }
 
+    /**
+     * Postings the user can see, newest first, any status. "JOB-0003 · Sales Officer (Closed)"
+     *
+     * @return array<int, string>
+     */
+    private function postingOptions(): array
+    {
+        return once(fn () => JobPosting::query()->visibleTo(Auth::user())->orderByDesc('id')->get()
+            ->mapWithKeys(fn (JobPosting $p) => [$p->id => $p->number().' · '.$p->title.' ('.$p->status->label().')'])
+            ->all());
+    }
+
     public function render(): View
     {
         // A page size typed into the URL that is not offered falls back to 10.
@@ -136,6 +159,7 @@ class ApplicantTable extends Component
 
         return view('hrm::livewire.recruitment.applicant-table', [
             'rows' => $this->filteredQuery()->paginate($perPage),
+            'postings' => $this->postingOptions(),
         ]);
     }
 }

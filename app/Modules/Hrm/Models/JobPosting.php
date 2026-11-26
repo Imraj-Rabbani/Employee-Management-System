@@ -64,6 +64,12 @@ class JobPosting extends TenantModel
         return $this->belongsTo(ManpowerRequest::class);
     }
 
+    /** @return HasMany<InterviewStage, $this> the posting's interview stages, oldest first */
+    public function interviewStages(): HasMany
+    {
+        return $this->hasMany(InterviewStage::class)->orderBy('id');
+    }
+
     /** @return HasMany<Application, $this> */
     public function applications(): HasMany
     {

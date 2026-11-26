@@ -79,7 +79,7 @@
                         @foreach ($rows as $row)
                             <tr class="border-b border-white/50 last:border-0 dark:border-white/10" wire:key="funnel-{{ $row['posting']->id }}">
                                 <td class="px-6 py-3">
-                                    <a href="{{ route('hrm.recruitment.postings.show', $row['posting']->id) }}" wire:navigate class="font-medium text-brand-800 hover:underline dark:text-brand-200">{{ $row['posting']->title }}</a>
+                                    <a href="{{ route('hrm.recruitment.postings.show', $row['posting']->id) }}" wire:navigate class="font-medium text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400">{{ $row['posting']->title }}</a>
                                     <div class="text-xs text-zinc-500">{{ $row['posting']->number() }} · {{ $row['posting']->manpowerRequest->entity?->name }} · {{ $row['posting']->status->label() }}</div>
                                 </td>
                                 @foreach ($row['reached'] as $step => $count)

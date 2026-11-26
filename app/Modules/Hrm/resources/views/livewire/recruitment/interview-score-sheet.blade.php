@@ -20,12 +20,12 @@
                         <div class="flex size-12 items-center justify-center rounded-2xl bg-brand-800/10 text-brand-800 dark:bg-white/10 dark:text-brand-200">
                             <flux:icon name="clipboard-document-list" />
                         </div>
-                        <flux:heading size="lg" class="mt-4">{{ __('No interview factors') }}</flux:heading>
-                        <flux:text class="mt-1 max-w-sm">{{ __('Add them in Recruitment → Setup → Interview factors.') }}</flux:text>
+                        <flux:heading size="lg" class="mt-4">{{ __('No questions') }}</flux:heading>
+                        <flux:text class="mt-1 max-w-sm">{{ __('This stage\'s question set has no questions. Add them in Recruitment → Config → Question sets.') }}</flux:text>
                     </div>
                 @endif
 
-                {{-- One row per factor: 1 … max as buttons (a radio group), and an optional note. --}}
+                {{-- One row per question: 1 … max as buttons (a radio group), and an optional note. --}}
                 @foreach ($factors as $factor)
                     <div class="space-y-2 rounded-xl p-3 ring-1 ring-zinc-500/15" wire:key="factor-{{ $factor->id }}">
                         <div class="flex flex-wrap items-baseline justify-between gap-2">

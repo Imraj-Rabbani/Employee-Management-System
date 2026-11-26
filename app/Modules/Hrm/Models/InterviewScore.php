@@ -6,19 +6,19 @@ use App\Core\Models\TenantModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * One panelist's score for one interview factor.
- * `weight` is the factor's weight when the score was given, so later setup changes do not rewrite results.
+ * One panelist's score for one interview question.
+ * `weight` is the question's weight (in the stage's question set) when the score was given.
  *
  * @property int $id
  * @property int $interview_panelist_id
- * @property int $interview_factor_id
+ * @property int $interview_question_id
  * @property int $score 1 … InterviewScoring::MAX
  * @property string $weight decimal as a string, e.g. "25.00"
  * @property string|null $note
  */
 class InterviewScore extends TenantModel
 {
-    protected $fillable = ['interview_panelist_id', 'interview_factor_id', 'score', 'weight', 'note'];
+    protected $fillable = ['interview_panelist_id', 'interview_question_id', 'score', 'weight', 'note'];
 
     /** @return array<string, string> */
     protected function casts(): array
@@ -32,9 +32,9 @@ class InterviewScore extends TenantModel
         return $this->belongsTo(InterviewPanelist::class, 'interview_panelist_id');
     }
 
-    /** @return BelongsTo<InterviewFactor, $this> */
-    public function factor(): BelongsTo
+    /** @return BelongsTo<InterviewQuestion, $this> */
+    public function question(): BelongsTo
     {
-        return $this->belongsTo(InterviewFactor::class, 'interview_factor_id');
+        return $this->belongsTo(InterviewQuestion::class, 'interview_question_id');
     }
 }

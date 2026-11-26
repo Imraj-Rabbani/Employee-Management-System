@@ -10,6 +10,15 @@
         @endcan
         {{-- Edit: exactly one row ticked. --}}
         <flux:button size="sm" icon="pencil-square" x-bind:disabled="$wire.selected.length !== 1" x-on:click="Livewire.navigate({{ Js::from(route('hrm.employees.show', ['employee' => '__ID__'])) }}.replace('__ID__', $wire.selected[0]))">{{ __('Edit') }}</flux:button>
+        {{-- Delete: one or more rows. Only people without history go (attendance, payroll, leave, a login ...); the message says who stayed and why. --}}
+        @can('hrm.employee.delete')
+            <flux:button size="sm" icon="trash" x-bind:disabled="$wire.selected.length === 0" x-on:click="$dispatch('confirm', {
+                title: {{ Js::from(__('Delete the ticked employees?')) }},
+                message: {{ Js::from(__('This removes their record for good, with their documents, education, family and bank details. Employees with attendance, payroll, leave or a login stay: for people who left, set the status to Resigned or Terminated instead.')) }},
+                confirmText: {{ Js::from(__('Delete')) }},
+                onConfirm: () => $wire.deleteSelected(),
+            })">{{ __('Delete') }}</flux:button>
+        @endcan
         <flux:button wire:click="export" size="sm" icon="arrow-down-tray">{{ __('Export') }}</flux:button>
         <span x-show="$wire.selected.length > 0" x-cloak class="text-xs text-zinc-500 dark:text-zinc-400" x-text="$wire.selected.length + ' ' + {{ Js::from(__('selected')) }}"></span>
 
@@ -145,7 +154,7 @@
                         </td>
                         <td class="px-4 py-3">{{ $employee->code }}</td>
                         <td class="px-4 py-3">
-                            <a href="{{ route('hrm.employees.show', $employee) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $employee->name }}</a>
+                            <a href="{{ route('hrm.employees.show', $employee) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 dark:text-brand-200 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">{{ $employee->name }}</a>
                         </td>
                         <td class="px-4 py-3">{{ $employee->designation->name ?? '-' }}</td>
                         <td class="px-4 py-3">{{ $employee->entitiesLabel(withType: false) ?: '-' }}</td>

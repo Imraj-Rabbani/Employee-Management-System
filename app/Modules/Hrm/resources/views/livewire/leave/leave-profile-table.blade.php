@@ -96,7 +96,7 @@
                         </td>
                         {{-- Opens the edit form (it listens for "edit-leave-profile"). --}}
                         <td class="px-4 py-3">
-                            <button type="button" x-on:click="$dispatch('edit-leave-profile', { id: {{ $leaveProfile->getKey() }} })" class="text-left font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">
+                            <button type="button" x-on:click="$dispatch('edit-leave-profile', { id: {{ $leaveProfile->getKey() }} })" class="text-left font-medium text-brand-800 underline-offset-4 dark:text-brand-200 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">
                                 {{ $leaveProfile->name }}
                             </button>
                         </td>

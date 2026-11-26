@@ -1,8 +1,49 @@
 <div>
     <x-ui.modal name="interview-form" size="lg"
-        :heading="$interview ? __('Change :round', ['round' => $interview->title()]) : ($schedule->count() > 1 ? __('Schedule :count interviews', ['count' => $schedule->count()]) : __('Schedule interview'))"
-        :subheading="$interview ? $interview->application->applicant->name : ($schedule->count() === 1 ? $schedule->first()['name'] : __('Each applicant gets their own round with the same panel.'))">
+        :heading="$interview ? __('Change :stage', ['stage' => $interview->title()]) : ($schedule->count() > 1 ? __('Schedule :count interviews', ['count' => $schedule->count()]) : __('Schedule interview'))"
+        :subheading="$interview ? $interview->application->applicant->name : ($schedule->count() === 1 ? $schedule->first()['name'] : __('Each applicant gets their own interview with the same panel.'))">
         <form wire:submit="save" id="interview-form" class="space-y-6">
+            @unless ($interview)
+                {{-- The stage: a new one (name + question set) or one this posting already has (its set comes with it). --}}
+                <div class="space-y-4 rounded-xl bg-zinc-500/5 p-4">
+                    <flux:field>
+                        <flux:label>{{ __('Stage') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                        <flux:select wire:model.live="stageId" aria-required="true">
+                            <flux:select.option value="new">{{ __('+ New stage') }}</flux:select.option>
+                            @foreach ($stages as $stage)
+                                <flux:select.option :value="$stage->id">{{ $stage->name }} · {{ $stage->questionSet->name }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="stageId" />
+                    </flux:field>
+
+                    @if ($stageId === 'new')
+                        <div class="grid items-start gap-4 sm:grid-cols-2">
+                            <flux:field>
+                                <flux:label>{{ __('Stage name') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                                <flux:input wire:model="stageName" aria-required="true" :placeholder="__('e.g. Stage 1, Technical round')" />
+                                <flux:error name="stageName" />
+                            </flux:field>
+                            <flux:field>
+                                <flux:label>{{ __('Question set') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
+                                <flux:select wire:model="questionSetId" aria-required="true">
+                                    <flux:select.option value="">{{ $questionSets ? __('Choose…') : __('Make a question set in Recruitment → Config first') }}</flux:select.option>
+                                    @foreach ($questionSets as $optionValue => $optionLabel)
+                                        <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                                    @endforeach
+                                </flux:select>
+                                <flux:error name="questionSetId" />
+                            </flux:field>
+                        </div>
+                        <flux:text class="text-xs">{{ __('The question set is fixed for the stage: everyone in it is scored on the same questions.') }}</flux:text>
+                    @elseif ($chosenStage)
+                        <flux:text class="text-sm">{{ __('Questions: :set', ['set' => $chosenStage->questionSet->name]) }}</flux:text>
+                    @endif
+                </div>
+            @else
+                <flux:text class="text-sm">{{ __('Stage: :stage · Questions: :set', ['stage' => $interview->title(), 'set' => $interview->stage?->questionSet?->name ?? '—']) }}</flux:text>
+            @endunless
+
             <div class="grid gap-4 sm:grid-cols-[2fr_1fr]">
                 <flux:field>
                     <flux:label>{{ __('Date and time') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
@@ -16,17 +57,23 @@
                     <flux:error name="form.duration_minutes" />
                 </flux:field>
             </div>
-            @if ($schedule->count() > 1)
+            @if ($schedule->count() > 1 || $schedule->contains('already', true))
                 {{-- Several applicants: back-to-back slots or one group session; the times below follow the choice. --}}
-                <flux:radio.group wire:model.live="timing" :label="__('Timing')" variant="segmented">
-                    <flux:radio value="one_after_another" :label="__('One after another')" />
-                    <flux:radio value="same_time" :label="__('All at the same time')" />
-                </flux:radio.group>
+                @if ($schedule->count() > 1)
+                    <flux:radio.group wire:model.live="timing" :label="__('Timing')" variant="segmented">
+                        <flux:radio value="one_after_another" :label="__('One after another')" />
+                        <flux:radio value="same_time" :label="__('All at the same time')" />
+                    </flux:radio.group>
+                @endif
                 <ol class="divide-y divide-zinc-500/10 rounded-lg ring-1 ring-zinc-500/15">
                     @foreach ($schedule as $scheduled)
                         <li class="flex items-center justify-between gap-2 px-3 py-2 text-sm" wire:key="slot-{{ $loop->index }}">
                             <span class="font-medium">{{ $scheduled['name'] }}</span>
-                            <span class="tabular-nums text-zinc-500">{{ $scheduled['at'] }}</span>
+                            @if ($scheduled['already'])
+                                <span class="text-xs font-medium text-red-600 dark:text-red-400">{{ __('Already in this stage: will be skipped') }}</span>
+                            @else
+                                <span class="tabular-nums text-zinc-500">{{ $scheduled['at'] }}</span>
+                            @endif
                         </li>
                     @endforeach
                 </ol>

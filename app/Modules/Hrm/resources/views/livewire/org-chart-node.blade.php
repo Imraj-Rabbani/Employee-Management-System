@@ -16,13 +16,13 @@
         @endif
 
         @if ($node['url'] && $view === 'people')
-            <a href="{{ $node['url'] }}" wire:navigate class="w-full truncate text-sm font-medium text-brand-900 hover:underline dark:text-white">{{ $node['title'] }}</a>
+            <a href="{{ $node['url'] }}" wire:navigate class="w-full truncate text-sm font-medium text-brand-900 dark:text-white underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400">{{ $node['title'] }}</a>
         @else
             <span class="w-full truncate text-sm font-medium">{{ $node['title'] }}</span>
         @endif
 
         @if ($node['url'] && $view === 'positions')
-            <a href="{{ $node['url'] }}" wire:navigate class="w-full truncate text-xs text-brand-800 hover:underline dark:text-brand-200">{{ $node['subtitle'] }}</a>
+            <a href="{{ $node['url'] }}" wire:navigate class="w-full truncate text-xs text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400">{{ $node['subtitle'] }}</a>
         @else
             <span @class(['w-full truncate text-xs', 'text-zinc-500' => ! $node['vacant'], 'font-medium text-amber-600' => $node['vacant']])>{{ $node['subtitle'] }}</span>
         @endif

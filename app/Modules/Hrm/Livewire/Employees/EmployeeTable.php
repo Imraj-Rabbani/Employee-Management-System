@@ -3,6 +3,7 @@
 namespace App\Modules\Hrm\Livewire\Employees;
 
 use App\Core\Exports\ArrayExport;
+use App\Modules\Hrm\Actions\DeleteEmployee;
 use App\Modules\Hrm\Enums\EmployeeStatus;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\EmploymentType;
@@ -80,6 +81,32 @@ class EmployeeTable extends Component
     public function clearSelection(): void
     {
         $this->selected = [];
+    }
+
+    /**
+     * Toolbar "Delete": each ticked employee the user may delete (policy) and that has no history
+     * (Hrm\Actions\DeleteEmployee) goes; the others stay and the message says why.
+     */
+    public function deleteSelected(DeleteEmployee $delete): void
+    {
+        $deleted = 0;
+        $problems = [];
+        foreach (Employee::query()->whereKey(array_map('intval', $this->selected))->get() as $employee) {   // visible ones only
+            $problem = Auth::user()->can('delete', $employee) ? $delete->problem($employee) : __('You may not delete this employee.');
+            if ($problem !== null) {
+                $problems[] = $employee->name.': '.$problem;
+
+                continue;
+            }
+            $delete->handle($employee);
+            $deleted++;
+        }
+
+        $this->selected = [];
+        $this->dispatch('toast',
+            message: implode(' ', array_filter([$deleted > 0 ? trans_choice(':count employee deleted.|:count employees deleted.', $deleted) : null, ...$problems])),
+            variant: $problems === [] ? 'success' : ($deleted > 0 ? 'warning' : 'error'),
+        );
     }
 
     /** Filter form → Apply: the new filter values came with this click; start again at page 1. */

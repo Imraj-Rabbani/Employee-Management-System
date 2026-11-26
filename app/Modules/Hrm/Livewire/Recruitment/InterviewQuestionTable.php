@@ -3,7 +3,7 @@
 namespace App\Modules\Hrm\Livewire\Recruitment;
 
 use App\Core\Exports\ArrayExport;
-use App\Modules\Hrm\Models\InterviewFactor;
+use App\Modules\Hrm\Models\InterviewQuestion;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,8 +13,8 @@ use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-/** List of interview factors. Click a row's name to edit it. */
-class InterviewFactorTable extends Component
+/** Recruitment → Config → Interview questions. Click a row's question to edit it. */
+class InterviewQuestionTable extends Component
 {
     use WithPagination;
 
@@ -31,10 +31,10 @@ class InterviewFactorTable extends Component
     public int $perPage = 10;
 
     /** Columns the user may sort by. Anything else sent from the browser is ignored. */
-    private const SORTABLE = ['sequence', 'name', 'weight', 'is_required', 'is_active'];
+    private const SORTABLE = ['sequence', 'name', 'is_active'];
 
     /** @var array<string, string> refresh the list when its form saved something */
-    protected $listeners = ['interview-factor-saved' => 'clearSelection'];
+    protected $listeners = ['interview-question-saved' => 'clearSelection'];
 
     /** @var list<string> ids of the ticked rows (the checkboxes). Edit needs one; Delete / Request approval any number. */
     public array $selected = [];
@@ -49,7 +49,7 @@ class InterviewFactorTable extends Component
     {
         $this->resetPage();
         $this->selected = [];
-        Flux::modal('interview-factor-filters')->close();
+        Flux::modal('interview-question-filters')->close();
     }
 
     public function sort(string $field): void
@@ -68,23 +68,21 @@ class InterviewFactorTable extends Component
         $this->reset('search');
         $this->resetPage();
         $this->selected = [];
-        Flux::modal('interview-factor-filters')->close();
+        Flux::modal('interview-question-filters')->close();
     }
 
     public function export(): BinaryFileResponse
     {
-        $rows = $this->filteredQuery()->get()->map(fn (InterviewFactor $interviewFactor) => [
-            $interviewFactor->sequence,
-            $interviewFactor->name,
-            rtrim(rtrim((string) $interviewFactor->getAttribute('weight'), '0'), '.').'%',
-            $interviewFactor->getAttribute('is_required') ? __('Yes') : '',
-            $interviewFactor->description,
-            $interviewFactor->is_active ? __('Active') : __('Inactive'),
+        $rows = $this->filteredQuery()->get()->map(fn (InterviewQuestion $interviewQuestion) => [
+            $interviewQuestion->sequence,
+            $interviewQuestion->name,
+            $interviewQuestion->description,
+            $interviewQuestion->is_active ? __('Active') : __('Inactive'),
         ])->all();
 
         return Excel::download(
-            new ArrayExport([__('Order'), __('Name'), __('Weight'), __('Required'), __('Description'), __('Active')], $rows),
-            'interview-factor-table-'.now()->format('Y-m-d').'.xlsx',
+            new ArrayExport([__('Order'), __('Question'), __('Description'), __('Active')], $rows),
+            'interview-question-table-'.now()->format('Y-m-d').'.xlsx',
         );
     }
 
@@ -96,13 +94,13 @@ class InterviewFactorTable extends Component
         }
     }
 
-    /** @return Builder<InterviewFactor> */
+    /** @return Builder<InterviewQuestion> */
     private function query(): Builder
     {
-        return InterviewFactor::query();
+        return InterviewQuestion::query();
     }
 
-    /** @return Builder<InterviewFactor> */
+    /** @return Builder<InterviewQuestion> */
     private function filteredQuery(): Builder
     {
         $query = $this->query();
@@ -128,7 +126,7 @@ class InterviewFactorTable extends Component
         // A page size typed into the URL that is not offered falls back to 10.
         $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 10;
 
-        return view('hrm::livewire.recruitment.interview-factor-table', [
+        return view('hrm::livewire.recruitment.interview-question-table', [
             'rows' => $this->filteredQuery()->paginate($perPage),
         ]);
     }

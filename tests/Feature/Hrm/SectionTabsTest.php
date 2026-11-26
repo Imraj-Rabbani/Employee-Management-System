@@ -34,7 +34,7 @@ class SectionTabsTest extends TestCase
         $this->get('/hrm/recruitment')->assertRedirect(route('hrm.recruitment.postings'));
 
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.recruitment.setup']);
-        $this->get('/hrm/recruitment')->assertRedirect(route('hrm.recruitment.setup.factors'));
+        $this->get('/hrm/recruitment')->assertRedirect(route('hrm.recruitment.config.questions'));
 
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: []);
         $this->get('/hrm/recruitment')->assertForbidden();
@@ -59,7 +59,7 @@ class SectionTabsTest extends TestCase
         $this->get('/hrm/recruitment/postings')->assertOk()
             ->assertSee(route('hrm.recruitment.applicants'))
             ->assertSee(route('hrm.recruitment.reports.open-positions'))
-            ->assertDontSee(route('hrm.recruitment.setup.factors'))
+            ->assertDontSee(route('hrm.recruitment.config.questions'))
             ->assertDontSee(route('hrm.recruitment.requests'));
     }
 

@@ -65,7 +65,7 @@
                         </td>
                         {{-- Opens what it is about (and marks it read). Unread ones are bold with a dot. --}}
                         <td class="px-4 py-3">
-                            <button type="button" wire:click="open('{{ $notification->id }}')" class="flex items-start gap-2 text-left hover:underline underline-offset-4">
+                            <button type="button" wire:click="open('{{ $notification->id }}')" class="flex items-start gap-2 text-left underline-offset-4 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">
                                 <span @class(['mt-1.5 size-2 shrink-0 rounded-full', 'bg-brand-600 dark:bg-brand-300' => $isUnread, 'bg-transparent' => ! $isUnread])>
                                     @if ($isUnread)<span class="sr-only">{{ __('Unread') }}</span>@endif
                                 </span>

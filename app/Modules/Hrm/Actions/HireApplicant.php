@@ -67,10 +67,10 @@ class HireApplicant
         $request = $application->jobPosting->manpowerRequest;
 
         $message = match (true) {
-            $offer->status() !== OfferStatus::Accepted => __('Only an accepted offer can be hired (this one: :status).', ['status' => $offer->status()->label()]),
-            $application->hired_employee_id !== null => __('This applicant has already been hired.'),
+            $offer->status() !== OfferStatus::Accepted => __('Only an accepted offer can be onboarded (this one: :status).', ['status' => $offer->status()->label()]),
+            $application->hired_employee_id !== null => __('This applicant has already been onboarded.'),
             $application->stage !== ApplicationStage::Offered => __('The application is not at "Offered" (it is :stage).', ['stage' => $application->stage->label()]),
-            $request->openings() < 1 => __(':no is already filled (:hired of :headcount hired).', ['no' => $request->number(), 'hired' => $request->hired_count, 'headcount' => $request->headcount]),
+            $request->openings() < 1 => __(':no is already filled (:hired of :headcount onboarded).', ['no' => $request->number(), 'hired' => $request->hired_count, 'headcount' => $request->headcount]),
             default => null,
         };
         if ($message !== null) {

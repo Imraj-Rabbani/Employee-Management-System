@@ -137,12 +137,12 @@
                             <input type="checkbox" wire:model="selected" value="{{ $jobPosting->getKey() }}" class="size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 dark:border-white/20 dark:bg-white/10" aria-label="{{ __('Tick this row') }}">
                         </td>
                         <td class="px-4 py-3">
-                            <a href="{{ route('hrm.recruitment.postings.show', $jobPosting->id) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $jobPosting->number() }}</a>
+                            <a href="{{ route('hrm.recruitment.postings.show', $jobPosting->id) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 dark:text-brand-200 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">{{ $jobPosting->number() }}</a>
                         </td>
                         <td class="px-4 py-3">{{ $jobPosting->title }}</td>
                         <td class="px-4 py-3">{{ $jobPosting->manpowerRequest->entity->name ?? '-' }}</td>
                         <td class="px-4 py-3">
-                            <a href="{{ route('hrm.recruitment.requests.show', $jobPosting->manpowerRequest->id) }}" wire:navigate class="text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $jobPosting->manpowerRequest->number() }}</a>
+                            <a href="{{ route('hrm.recruitment.requests.show', $jobPosting->manpowerRequest->id) }}" wire:navigate class="text-brand-800 underline-offset-4 dark:text-brand-200 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">{{ $jobPosting->manpowerRequest->number() }}</a>
                         </td>
                         <td class="px-4 py-3 text-right">{{ $jobPosting->openings }}</td>
                         <td class="px-4 py-3">{{ format_date($jobPosting->open_date) }}</td>

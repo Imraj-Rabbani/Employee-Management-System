@@ -20,7 +20,7 @@
             <ul class="divide-y divide-white/50 dark:divide-white/10">
                 @foreach ($rows as $row)
                     <li class="px-6 py-3 text-sm" wire:key="edu-{{ $row->id }}">
-                        <button type="button" wire:click="edit({{ $row->id }})" class="text-left font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $row->degree }}</button>
+                        <button type="button" wire:click="edit({{ $row->id }})" class="text-left font-medium text-brand-800 underline-offset-4 dark:text-brand-200 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">{{ $row->degree }}</button>
                         <span class="text-zinc-500">{{ $row->subject ? '· '.$row->subject : '' }}</span>
                         <div class="text-xs text-zinc-500">
                             {{ collect([$row->institution, $row->result(), $row->passing_year])->filter()->join(' · ') ?: '—' }}

@@ -16,6 +16,7 @@ use App\Modules\Hrm\Models\Applicant;
 use App\Modules\Hrm\Models\Application;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\JobPosting;
+use App\Modules\Hrm\Models\QuestionSet;
 use App\Modules\Hrm\Models\RejectionReason;
 use App\Modules\Hrm\Notifications\InterviewScheduled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,6 +25,7 @@ use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 use LogicException;
 use Tests\Concerns\ActsAsTenantUser;
+use Tests\Concerns\MakesInterviewStages;
 use Tests\TestCase;
 
 /**
@@ -32,6 +34,7 @@ use Tests\TestCase;
 class ScheduleInterviewTest extends TestCase
 {
     use ActsAsTenantUser;
+    use MakesInterviewStages;
     use RefreshDatabase;
 
     private Tenant $tenant;
@@ -62,10 +65,10 @@ class ScheduleInterviewTest extends TestCase
         $this->withoutLogin = Employee::factory()->create(['first_name' => 'Karim', 'office_email' => 'karim@company.test']);
     }
 
-    /** @return array{scheduled_at: string, location: string} */
-    private function details(): array
+    /** @return array{interview_stage_id: int, scheduled_at: string, location: string} */
+    private function details(string $stage = 'Stage 1'): array
     {
-        return ['scheduled_at' => now()->addDays(2)->setTime(10, 0)->toDateTimeString(), 'location' => 'Room 2'];
+        return ['interview_stage_id' => $this->stageFor($this->application, $stage)->id, 'scheduled_at' => now()->addDays(2)->setTime(10, 0)->toDateTimeString(), 'location' => 'Room 2'];
     }
 
     public function test_round_one_with_its_panel_moves_the_application_to_interview(): void
@@ -76,7 +79,7 @@ class ScheduleInterviewTest extends TestCase
         $this->assertSame(InterviewStatus::Scheduled, $interview->status);
         $this->assertSame([$this->withLogin->id, $this->withoutLogin->id], $interview->panelists()->pluck('employee_id')->all());
         $this->assertSame(ApplicationStage::Interview, $this->application->fresh()->stage);
-        $this->assertSame('Round 1 scheduled', $this->application->stageChanges()->get()->last()->note);
+        $this->assertSame('Stage 1 scheduled', $this->application->stageChanges()->get()->last()->note);
     }
 
     public function test_the_panel_is_told_in_the_bell_and_by_email(): void
@@ -101,7 +104,7 @@ class ScheduleInterviewTest extends TestCase
         $this->assertStringContainsString('already planned', (string) $this->schedule->problem($this->application, [$this->withLogin->id]));
 
         $first->cancel();
-        $second = $this->schedule->handle($this->application->fresh(), $this->details(), [$this->withLogin->id]);
+        $second = $this->schedule->handle($this->application->fresh(), $this->details(), [$this->withLogin->id]);   // same stage: the first was cancelled
         $this->assertSame(2, $second->round);   // the cancelled round keeps number 1
         $this->assertSame(ApplicationStage::Interview, $this->application->fresh()->stage);
         $this->assertSame(2, $this->application->stageChanges()->count());   // moved to Interview only once
@@ -151,6 +154,9 @@ class ScheduleInterviewTest extends TestCase
         Livewire::test(InterviewForm::class)
             ->dispatch('schedule-interview', applicationId: $this->application->id)
             ->assertSee('Rahim')
+            ->assertSet('stageId', 'new')
+            ->assertSet('stageName', 'Stage 1')
+            ->set('questionSetId', QuestionSet::factory()->withQuestions()->create(['name' => 'HR set'])->id)
             ->call('save')
             ->assertHasErrors(['panel'])
             ->set('search', 'Salm')
@@ -162,7 +168,52 @@ class ScheduleInterviewTest extends TestCase
             ->assertHasNoErrors()
             ->assertDispatched('interview-saved');
 
-        $this->assertSame('Room 2', $this->application->interviews()->sole()->location);
+        $interview = $this->application->interviews()->sole();
+        $this->assertSame('Room 2', $interview->location);
+        $this->assertSame('Stage 1', $interview->title());
+        $this->assertSame('HR set', $interview->stage->questionSet->name);
+    }
+
+    public function test_a_new_stage_needs_a_unique_name_and_a_question_set(): void
+    {
+        $this->stageFor($this->application, 'Technical');
+
+        Livewire::test(InterviewForm::class)
+            ->dispatch('schedule-interview', applicationId: $this->application->id)
+            ->assertSet('stageName', 'Stage 2')   // the posting has one stage already
+            ->set('stageName', 'Technical')
+            ->call('addPanelist', $this->withLogin->id)
+            ->call('save')
+            ->assertHasErrors(['stageName', 'questionSetId']);
+
+        $this->assertSame(0, $this->application->interviews()->count());
+        $this->assertSame(1, $this->application->jobPosting->interviewStages()->count());   // nothing made
+    }
+
+    public function test_an_existing_stage_takes_only_applicants_not_in_it_yet(): void
+    {
+        $karim = app(ApplyToPosting::class)->handle(Applicant::factory()->create(['first_name' => 'Karim', 'last_name' => 'Ali']), $this->application->jobPosting);
+        $stage = $this->stageFor($this->application, 'Stage 1');
+        $done = $this->schedule->handle($this->application, $this->details(), [$this->withLogin->id]);
+        $done->panelists()->sole()->forceFill(['submitted_at' => now()])->save();
+        $done->complete();   // Rahim had Stage 1
+
+        Livewire::test(InterviewForm::class)
+            ->dispatch('schedule-interview', applicationIds: [$this->application->id, $karim->id])
+            ->set('stageId', (string) $stage->id)
+            ->assertSee('Already in this stage: will be skipped')
+            ->call('addPanelist', $this->withLogin->id)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('toast', variant: 'warning', message: '1 interview scheduled. The panel has been told. Rahim '.$this->application->applicant->last_name.': Already interviewed in Stage 1.');
+
+        $this->assertSame($stage->id, $karim->interviews()->sole()->interview_stage_id);
+        $this->assertSame(1, $this->application->interviews()->count());
+        $this->assertSame('Already interviewed in Stage 1.', $this->schedule->problem($this->application->fresh(), [$this->withLogin->id], $stage));
+
+        // A stage of another posting cannot be used.
+        $other = $this->stageFor(JobPosting::factory()->open()->create(), 'Stage 1');
+        $this->assertSame('This stage belongs to another job posting.', $this->schedule->problem($this->application->fresh(), [$this->withLogin->id], $other));
     }
 
     public function test_several_ticked_applicants_get_their_own_rounds(): void
@@ -181,6 +232,7 @@ class ScheduleInterviewTest extends TestCase
         $form = Livewire::test(InterviewForm::class)
             ->dispatch('schedule-interview', applicationIds: [$this->application->id, $karim->id, $nadia->id])
             ->assertSee('Schedule 3 interviews')
+            ->set('questionSetId', QuestionSet::factory()->withQuestions()->create()->id)
             ->set('form.scheduled_at', '2030-01-10T10:00')
             ->set('form.duration_minutes', 45)
             ->assertSee('One after another')
@@ -191,7 +243,7 @@ class ScheduleInterviewTest extends TestCase
         $form->call('addPanelist', $this->withoutLogin->id)
             ->call('save')
             ->assertHasNoErrors()
-            ->assertDispatched('toast', variant: 'warning', message: '2 interviews scheduled. The panel has been told. Nadia Islam: A round is already planned. Complete or cancel it first.');
+            ->assertDispatched('toast', variant: 'warning', message: '2 interviews scheduled. The panel has been told. Nadia Islam: An interview is already planned. Complete or cancel it first.');
 
         // Back-to-back: 10:00, then 10:45.
         $this->assertSame('2030-01-10 10:00:00', $this->application->interviews()->sole()->scheduled_at->toDateTimeString());
@@ -205,6 +257,7 @@ class ScheduleInterviewTest extends TestCase
 
         Livewire::test(InterviewForm::class)
             ->dispatch('schedule-interview', applicationIds: [$this->application->id, $karim->id])
+            ->set('questionSetId', QuestionSet::factory()->withQuestions()->create()->id)
             ->set('form.scheduled_at', '2030-01-10T10:00')
             ->set('timing', 'same_time')
             ->call('addPanelist', $this->withLogin->id)

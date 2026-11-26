@@ -84,7 +84,7 @@ class HireForm extends Component
 
         $employee = $hire->handle($offer, $values, Auth::id());
 
-        session()->flash('toast', ['message' => __(':name hired as :code. Complete the profile here.', ['name' => $employee->name, 'code' => $employee->code]), 'variant' => 'success']);
+        session()->flash('toast', ['message' => __(':name onboarded as :code. Complete the profile here.', ['name' => $employee->name, 'code' => $employee->code]), 'variant' => 'success']);
         $this->redirectRoute('hrm.employees.show', ['employee' => $employee->id], navigate: true);
     }
 

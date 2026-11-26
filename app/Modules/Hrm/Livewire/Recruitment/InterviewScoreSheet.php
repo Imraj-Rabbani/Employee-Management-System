@@ -7,8 +7,9 @@ use App\Modules\Hrm\Actions\SubmitScoreSheet;
 use App\Modules\Hrm\Enums\InterviewRecommendation;
 use App\Modules\Hrm\Enums\InterviewStatus;
 use App\Modules\Hrm\Models\Application;
-use App\Modules\Hrm\Models\InterviewFactor;
 use App\Modules\Hrm\Models\InterviewPanelist;
+use App\Modules\Hrm\Models\InterviewScore;
+use App\Modules\Hrm\Models\QuestionSetItem;
 use App\Modules\Hrm\Services\InterviewScoring;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
@@ -21,8 +22,8 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * One panelist's score sheet (modal "interview-score-sheet"): a score 1–5 per interview factor with an
- * optional note, an overall recommendation and a comment.
+ * One panelist's score sheet (modal "interview-score-sheet"): a score 1–5 per question of the stage's
+ * question set with an optional note, an overall recommendation and a comment.
  *
  *     $dispatch('open-score-sheet', { panelistId: 7 })
  *
@@ -31,22 +32,22 @@ use Livewire\Component;
  * their behalf, e.g. from a paper sheet. Anyone else: 403.
  *
  *   Save draft  keeps the scores, still editable
- *   Send        checks every REQUIRED factor is scored + a recommendation is chosen, then locks it
+ *   Send        checks every question of the set is scored + a recommendation is chosen, then locks it
  *               (submitted_at, Hrm\Actions\SubmitScoreSheet). Only sent sheets count in the results.
  *               The button is shown to HR entering a sheet on someone's behalf; interviewers save here and
  *               send from My Interviews, where they tick several sheets and send them at once.
  * Editable only while the interview is planned (not completed / cancelled) and the sheet is not sent.
- * Each score stores the factor's weight of that moment (InterviewScoring keeps old results stable).
+ * Each score stores the question's weight in the set at that moment (InterviewScoring keeps old results stable).
  */
 class InterviewScoreSheet extends Component
 {
     #[Locked]
     public ?int $panelistId = null;
 
-    /** @var array<int|string, int|string> factor id => score ('' = not scored) */
+    /** @var array<int|string, int|string> question id => score ('' = not scored) */
     public array $scores = [];
 
-    /** @var array<int|string, string> factor id => note */
+    /** @var array<int|string, string> question id => note */
     public array $notes = [];
 
     public string $recommendation = '';
@@ -73,8 +74,8 @@ class InterviewScoreSheet extends Component
         $this->scores = [];
         $this->notes = [];
         foreach ($panelist->scores as $score) {
-            $this->scores[$score->interview_factor_id] = $score->score;
-            $this->notes[$score->interview_factor_id] = $score->note ?? '';
+            $this->scores[$score->interview_question_id] = $score->score;
+            $this->notes[$score->interview_question_id] = $score->note ?? '';
         }
         $this->recommendation = $panelist->recommendation ?? '';
         $this->comment = $panelist->comment ?? '';
@@ -117,12 +118,12 @@ class InterviewScoreSheet extends Component
             $rules["notes.{$factor->id}"] = ['nullable', 'string', 'max:500'];
         }
         $this->validate($rules, [
-            'scores.*.required' => __('This factor must be scored.'),
+            'scores.*.required' => __('Score this question.'),
         ], ['recommendation' => __('recommendation')]);
 
-        $given = $factors->filter(fn (InterviewFactor $f) => ($this->scores[$f->id] ?? '') !== '');
+        $given = $factors->filter(fn (object $f) => ($this->scores[$f->id] ?? '') !== '');
         if ($send && $given->isEmpty()) {
-            $this->addError('scores', __('Score at least one factor before sending.'));
+            $this->addError('scores', __('Score the questions before sending.'));
 
             return;
         }
@@ -130,13 +131,13 @@ class InterviewScoreSheet extends Component
         DB::connection('tenant')->transaction(function () use ($panelist, $factors, $given, $send) {
             foreach ($factors as $factor) {
                 if ($given->contains('id', $factor->id)) {
-                    $panelist->scores()->updateOrCreate(['interview_factor_id' => $factor->id], [
+                    $panelist->scores()->updateOrCreate(['interview_question_id' => $factor->id], [
                         'score' => (int) $this->scores[$factor->id],
-                        'weight' => $factor->weight,   // the weight of this moment
+                        'weight' => $factor->weight,   // the question's weight in the set, at this moment
                         'note' => trim($this->notes[$factor->id] ?? '') ?: null,
                     ]);
                 } else {
-                    $panelist->scores()->where('interview_factor_id', $factor->id)->delete();
+                    $panelist->scores()->where('interview_question_id', $factor->id)->delete();
                 }
             }
 
@@ -162,23 +163,33 @@ class InterviewScoreSheet extends Component
     }
 
     /**
-     * The active factors in order, plus any (now inactive) factor this sheet already has a score for.
+     * The questions of the interview's stage (its question set), in order, each with its weight in that set.
+     * Every question must be scored before sending. A question scored earlier that is not in the set any more
+     * (old data) is still shown, with the weight it was scored with.
      *
-     * @return Collection<int, InterviewFactor>
+     * @return Collection<int, object{id: int, name: string, description: ?string, weight: string, is_required: bool}>
      */
     private function factors(InterviewPanelist $panelist): Collection
     {
-        $scored = $panelist->scores->pluck('interview_factor_id')->all();
+        $items = $panelist->interview->stage?->questionSet?->items()->with('question')->get() ?? collect();
+        $questions = $items->map(fn (QuestionSetItem $item) => (object) [
+            'id' => $item->interview_question_id, 'name' => $item->question->name, 'description' => $item->question->description,
+            'weight' => (string) $item->weight, 'is_required' => true,
+        ]);
 
-        return InterviewFactor::query()->ordered()
-            ->where(fn ($q) => $q->where('is_active', true)->orWhereIn('id', $scored))
-            ->get();
+        $extra = $panelist->scores->whereNotIn('interview_question_id', $questions->pluck('id'))->load('question')
+            ->map(fn (InterviewScore $score) => (object) [
+                'id' => $score->interview_question_id, 'name' => $score->question->name, 'description' => $score->question->description,
+                'weight' => (string) $score->weight, 'is_required' => false,
+            ]);
+
+        return $questions->concat($extra)->values();
     }
 
     /** 404 when it does not exist, 403 when this login may not open it. */
     private function panelist(int $id): InterviewPanelist
     {
-        $panelist = InterviewPanelist::with(['employee', 'scores', 'interview.application.applicant', 'interview.application.jobPosting'])->findOrFail($id);
+        $panelist = InterviewPanelist::with(['employee', 'scores', 'interview.stage', 'interview.application.applicant', 'interview.application.jobPosting'])->findOrFail($id);
         abort_unless(self::allows(Auth::user(), $panelist), 403);
 
         return $panelist;

@@ -35,7 +35,7 @@
                         <tr class="border-b border-white/50 last:border-0 dark:border-white/10" wire:key="bank-{{ $row->id }}">
                             <td class="px-6 py-3">
                                 @if ($canUpdate)
-                                    <button type="button" wire:click="edit({{ $row->id }})" class="text-left font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $row->bank_name }}</button>
+                                    <button type="button" wire:click="edit({{ $row->id }})" class="text-left font-medium text-brand-800 underline-offset-4 dark:text-brand-200 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">{{ $row->bank_name }}</button>
                                 @else
                                     <span class="font-medium">{{ $row->bank_name }}</span>
                                 @endif

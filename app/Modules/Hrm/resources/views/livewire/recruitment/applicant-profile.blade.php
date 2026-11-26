@@ -11,16 +11,16 @@
                     </flux:text>
                     <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
                         @if ($applicant->email)
-                            <a href="mailto:{{ $applicant->email }}" class="inline-flex items-center gap-1 text-brand-800 hover:underline dark:text-brand-200"><flux:icon.envelope variant="micro" /> {{ $applicant->email }}</a>
+                            <a href="mailto:{{ $applicant->email }}" class="inline-flex items-center gap-1 text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400"><flux:icon.envelope variant="micro" /> {{ $applicant->email }}</a>
                         @endif
                         @if ($applicant->phone)
-                            <a href="tel:{{ $applicant->phone }}" class="inline-flex items-center gap-1 text-brand-800 hover:underline dark:text-brand-200"><flux:icon.phone variant="micro" /> {{ $applicant->phone }}</a>
+                            <a href="tel:{{ $applicant->phone }}" class="inline-flex items-center gap-1 text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400"><flux:icon.phone variant="micro" /> {{ $applicant->phone }}</a>
                         @endif
                         @if ($applicant->cv_path)
-                            <a href="{{ route('hrm.recruitment.applicants.cv', $applicant) }}" class="inline-flex items-center gap-1 text-brand-800 hover:underline dark:text-brand-200"><flux:icon.paper-clip variant="micro" /> {{ __('CV') }}</a>
+                            <a href="{{ route('hrm.recruitment.applicants.cv', $applicant) }}" class="inline-flex items-center gap-1 text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400"><flux:icon.paper-clip variant="micro" /> {{ __('CV') }}</a>
                         @endif
                         @if ($applicant->cv_url)
-                            <a href="{{ $applicant->cv_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-brand-800 hover:underline dark:text-brand-200"><flux:icon.link variant="micro" /> {{ __('CV link') }}</a>
+                            <a href="{{ $applicant->cv_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400"><flux:icon.link variant="micro" /> {{ __('CV link') }}</a>
                         @endif
                         @if (! $applicant->cv_path && ! $applicant->cv_url)
                             <span class="text-zinc-400">{{ __('No CV') }}</span>
@@ -92,13 +92,13 @@
                     @foreach ($applications as $application)
                         <li class="flex items-center justify-between gap-2 px-6 py-3 text-sm" wire:key="app-{{ $application->id }}">
                             <div class="min-w-0">
-                                <a href="{{ route('hrm.recruitment.postings.show', $application->job_posting_id) }}" wire:navigate class="font-medium text-brand-800 hover:underline dark:text-brand-200">{{ $application->jobPosting->title }}</a>
+                                <a href="{{ route('hrm.recruitment.postings.show', $application->job_posting_id) }}" wire:navigate class="font-medium text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400">{{ $application->jobPosting->title }}</a>
                                 <div class="text-xs text-zinc-500">
                                     {{ $application->jobPosting->number() }} · {{ format_date($application->applied_on) }}
                                     @if ($application->hiredEmployee)
-                                        · <a href="{{ route('hrm.employees.show', $application->hired_employee_id) }}" wire:navigate class="text-brand-800 hover:underline dark:text-brand-200">{{ __('Employee :code', ['code' => $application->hiredEmployee->code]) }}</a>
+                                        · <a href="{{ route('hrm.employees.show', $application->hired_employee_id) }}" wire:navigate class="text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400">{{ __('Employee :code', ['code' => $application->hiredEmployee->code]) }}</a>
                                     @elseif ($offer = $application->offers->first())
-                                        · <a href="{{ route('hrm.recruitment.offers.show', $offer->id) }}" wire:navigate class="text-brand-800 hover:underline dark:text-brand-200">{{ $offer->number() }} {{ mb_strtolower($offer->status()->label()) }}</a>
+                                        · <a href="{{ route('hrm.recruitment.offers.show', $offer->id) }}" wire:navigate class="text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400">{{ $offer->number() }} {{ mb_strtolower($offer->status()->label()) }}</a>
                                     @endif
                                 </div>
                             </div>

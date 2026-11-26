@@ -158,3 +158,20 @@ body:has(> [x-persist='sidebar']) {
         'sidebar main    aside'
         'sidebar footer  aside';
 }
+
+/*
+ * Links look like links: underlined all the time (not only on hover), so it is clear that clicking does something.
+ * <flux:link> gets the same half-strength line as the text links in the pages ("underline decoration-current/50"),
+ * full strength on hover, and the text turns blue on hover (like the page links: hover:text-blue-600).
+ */
+[data-flux-link] {
+    text-decoration-line: underline;
+    text-decoration-color: color-mix(in oklab, currentColor 50%, transparent);
+}
+[data-flux-link]:hover {
+    color: var(--color-blue-600);
+    text-decoration-color: currentColor;
+}
+.dark [data-flux-link]:hover {
+    color: var(--color-blue-400);
+}

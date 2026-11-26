@@ -127,7 +127,7 @@
                             <tr class="border-b border-white/50 last:border-0 dark:border-white/10" wire:key="hire-{{ $application->id }}">
                                 <td class="px-6 py-3">
                                     @if ($application->hiredEmployee)
-                                        <a href="{{ route('hrm.employees.show', $application->hired_employee_id) }}" wire:navigate class="font-medium text-brand-800 hover:underline dark:text-brand-200">{{ $application->applicant->name }}</a>
+                                        <a href="{{ route('hrm.employees.show', $application->hired_employee_id) }}" wire:navigate class="font-medium text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400">{{ $application->applicant->name }}</a>
                                         <div class="text-xs text-zinc-500">{{ $application->hiredEmployee->code }}</div>
                                     @else
                                         <span class="font-medium">{{ $application->applicant->name }}</span>

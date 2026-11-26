@@ -37,7 +37,7 @@
                         <div>
                             <dt class="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Change of') }}</dt>
                             <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
-                                <a href="{{ route('payroll.attendance.rosters.show', $roster->replaces->id) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">
+                                <a href="{{ route('payroll.attendance.rosters.show', $roster->replaces->id) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 dark:text-brand-200 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">
                                     {{ $roster->replaces->number() }} · {{ $roster->replaces->title }}
                                 </a>
                             </dd>

@@ -3,7 +3,7 @@
 
     {{-- Toolbar: actions on the left, Filter on the right.
          The buttons work on the ticked rows: $wire.selected = their ids (Alpine reads it, no round trip). --}}
-    @php $activeFilters = count(array_filter([$search !== ''])); @endphp
+    @php $activeFilters = count(array_filter([$search !== '', $posting !== ''])); @endphp
     <div class="flex flex-wrap items-center gap-2 border-b border-white/50 p-4 dark:border-white/10">
         <flux:button variant="primary" size="sm" icon="plus" x-on:click="$dispatch('create-applicant')">{{ __('Add new') }}</flux:button>
         <flux:button size="sm" icon="arrow-up-tray" x-on:click="$dispatch('import-applicants')">{{ __('Import') }}</flux:button>
@@ -31,6 +31,17 @@
         <flux:field>
             <flux:label>{{ __('Search') }}</flux:label>
             <flux:input wire:model="search" icon="magnifying-glass" :placeholder="__('Search…')" />
+        </flux:field>
+
+        <flux:field>
+            <flux:label>{{ __('Job posting') }}</flux:label>
+            <flux:select wire:model="posting">
+                <flux:select.option value="">{{ __('All applicants') }}</flux:select.option>
+                @foreach ($postings as $optionValue => $optionLabel)
+                    <flux:select.option :value="$optionValue">{{ $optionLabel }}</flux:select.option>
+                @endforeach
+            </flux:select>
+            <flux:description>{{ __('Only people who applied to this posting') }}</flux:description>
         </flux:field>
 
         <x-slot:footer>
@@ -97,7 +108,7 @@
                             <input type="checkbox" wire:model="selected" value="{{ $applicant->getKey() }}" class="size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 dark:border-white/20 dark:bg-white/10" aria-label="{{ __('Tick this row') }}">
                         </td>
                         <td class="px-4 py-3">
-                            <a href="{{ route('hrm.recruitment.applicants.show', $applicant) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $applicant->name }}</a>
+                            <a href="{{ route('hrm.recruitment.applicants.show', $applicant) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 dark:text-brand-200 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">{{ $applicant->name }}</a>
                         </td>
                         <td class="px-4 py-3">{{ $applicant->email }}</td>
                         <td class="px-4 py-3">{{ $applicant->phone }}</td>

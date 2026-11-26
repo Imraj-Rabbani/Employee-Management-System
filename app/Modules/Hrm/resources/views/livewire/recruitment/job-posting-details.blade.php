@@ -70,10 +70,10 @@
                 @if ($posting->form_url || $posting->responses_url)
                     <div class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
                         @if ($posting->form_url)
-                            <a href="{{ $posting->form_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-brand-800 hover:underline dark:text-brand-200"><flux:icon.clipboard-document-list variant="micro" /> {{ __('Application form') }}</a>
+                            <a href="{{ $posting->form_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400"><flux:icon.clipboard-document-list variant="micro" /> {{ __('Application form') }}</a>
                         @endif
                         @if ($posting->responses_url)
-                            <a href="{{ $posting->responses_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-brand-800 hover:underline dark:text-brand-200"><flux:icon.table-cells variant="micro" /> {{ __('Responses sheet') }}</a>
+                            <a href="{{ $posting->responses_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400"><flux:icon.table-cells variant="micro" /> {{ __('Responses sheet') }}</a>
                         @endif
                     </div>
                 @endif

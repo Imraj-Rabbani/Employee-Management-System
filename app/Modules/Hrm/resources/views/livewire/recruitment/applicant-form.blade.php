@@ -117,7 +117,7 @@
                 @if ($applicant?->cv_path)
                     <div class="flex items-center gap-2 text-sm">
                         <flux:icon.paper-clip variant="micro" class="text-zinc-500" />
-                        <a href="{{ route('hrm.recruitment.applicants.cv', $applicant) }}" class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $applicant->cv_name ?? __('CV') }}</a>
+                        <a href="{{ route('hrm.recruitment.applicants.cv', $applicant) }}" class="font-medium text-brand-800 underline-offset-4 dark:text-brand-200 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">{{ $applicant->cv_name ?? __('CV') }}</a>
                         <flux:button size="xs" variant="ghost" class="!text-red-600" x-on:click="$dispatch('confirm', {
                             title: {{ Js::from(__('Remove the CV?')) }},
                             confirmText: {{ Js::from(__('Remove')) }},

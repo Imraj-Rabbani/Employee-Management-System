@@ -7,6 +7,7 @@ use App\Modules\Hrm\Enums\InterviewStatus;
 use App\Modules\Hrm\Models\Application;
 use App\Modules\Hrm\Models\Interview;
 use App\Modules\Hrm\Models\InterviewPanelist;
+use App\Modules\Hrm\Models\InterviewStage;
 use App\Modules\Hrm\Models\JobPosting;
 use Illuminate\Support\Collection;
 
@@ -17,9 +18,10 @@ use Illuminate\Support\Collection;
  *                e.g. Communication 4/5 weight 40, Technical 3/5 weight 60 → (0.8×40 + 0.6×60) / 100 = 68 %
  *                All weights 0 → a plain average (every factor counts the same).
  *   interview    the average of the panelists who SUBMITTED; a cancelled round has no result
- *   application  the average of its COMPLETED rounds that have a result
- *   ranking      a posting's applications by that result, best first; the same result = the same rank
- *                (1, 1, 3). Withdrawn / rejected ones and those without a result are left out.
+ *   stages       per stage of the posting: the result of the application's COMPLETED interview in it
+ *   total        the SUM of those stage results (e.g. Stage 1 80 % + Stage 2 65 % = 145)
+ *   ranking      a posting's applications by that total, best first; the same total = the same rank
+ *                (1, 1, 3). Withdrawn / rejected ones and those without any result are left out.
  *
  * Works on loaded relations, so eager load first, e.g. ranking() does it for a whole posting in one go.
  */
@@ -52,19 +54,30 @@ class InterviewScoring
         return $this->average($interview->panelists->map(fn (InterviewPanelist $p) => $this->panelist($p)));
     }
 
-    public function application(Application $application): ?float
+    /**
+     * The result of each stage this application has a COMPLETED interview in: stage id => %.
+     *
+     * @return array<int, float>
+     */
+    public function stageResults(Application $application): array
     {
-        return $this->average(
-            $application->interviews
-                ->filter(fn (Interview $i) => $i->status === InterviewStatus::Completed)
-                ->map(fn (Interview $i) => $this->interview($i)),
-        );
+        $results = [];
+        foreach ($application->interviews->where('status', InterviewStatus::Completed)->sortBy('id') as $interview) {
+            $result = $this->interview($interview);
+            if ($result !== null) {
+                $results[$interview->interview_stage_id] = $result;   // one per stage; a later one wins
+            }
+        }
+
+        return $results;
     }
 
     /**
-     * @return Collection<int, array{application: Application, score: float, rank: int}> best first
+     * The posting's ranking table: its stages (the columns) and one row per application with a result.
+     *
+     * @return array{stages: Collection<int, InterviewStage>, rows: Collection<int, array{application: Application, scores: array<int, float>, total: float, rank: int}>}
      */
-    public function ranking(JobPosting $posting): Collection
+    public function ranking(JobPosting $posting): array
     {
         $applications = $posting->applications()
             ->whereNotIn('stage', [ApplicationStage::Rejected, ApplicationStage::Withdrawn])
@@ -72,19 +85,23 @@ class InterviewScoring
             ->get();
 
         $scored = $applications
-            ->map(fn (Application $a) => ['application' => $a, 'score' => $this->application($a)])
-            ->filter(fn (array $row) => $row['score'] !== null)
-            ->sortByDesc('score')
+            ->map(function (Application $a) {
+                $scores = $this->stageResults($a);
+
+                return ['application' => $a, 'scores' => $scores, 'total' => round(array_sum($scores), 1)];
+            })
+            ->filter(fn (array $row) => $row['scores'] !== [])
+            ->sortByDesc('total')
             ->values();
 
-        // "Competition" ranking: 90, 90, 85 → 1, 1, 3.
+        // "Competition" ranking: 150, 150, 140 → 1, 1, 3.
         $ranked = [];
         foreach ($scored as $i => $row) {
             $previous = $ranked[$i - 1] ?? null;
-            $ranked[] = [...$row, 'rank' => $previous !== null && $previous['score'] === $row['score'] ? $previous['rank'] : $i + 1];
+            $ranked[] = [...$row, 'rank' => $previous !== null && $previous['total'] === $row['total'] ? $previous['rank'] : $i + 1];
         }
 
-        return collect($ranked);
+        return ['stages' => $posting->interviewStages()->get(), 'rows' => collect($ranked)];
     }
 
     /** @param  Collection<int, float|null>  $values */

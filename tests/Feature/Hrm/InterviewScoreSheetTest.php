@@ -13,17 +13,21 @@ use App\Modules\Hrm\Livewire\Ess\MyInterviews;
 use App\Modules\Hrm\Livewire\Recruitment\InterviewScoreSheet;
 use App\Modules\Hrm\Livewire\Recruitment\PostingInterviews;
 use App\Modules\Hrm\Models\Applicant;
+use App\Modules\Hrm\Models\Application;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\Interview;
-use App\Modules\Hrm\Models\InterviewFactor;
 use App\Modules\Hrm\Models\InterviewPanelist;
+use App\Modules\Hrm\Models\InterviewQuestion;
+use App\Modules\Hrm\Models\InterviewStage;
 use App\Modules\Hrm\Models\JobPosting;
+use App\Modules\Hrm\Models\QuestionSet;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 use Tests\Concerns\ActsAsTenantUser;
+use Tests\Concerns\MakesInterviewStages;
 use Tests\TestCase;
 
 /**
@@ -32,6 +36,7 @@ use Tests\TestCase;
 class InterviewScoreSheetTest extends TestCase
 {
     use ActsAsTenantUser;
+    use MakesInterviewStages;
     use RefreshDatabase;
 
     private Tenant $tenant;
@@ -44,9 +49,9 @@ class InterviewScoreSheetTest extends TestCase
 
     private InterviewPanelist $salma;
 
-    private InterviewFactor $communication;   // 40, required
+    private InterviewQuestion $communication;   // 40 in the stage's set
 
-    private InterviewFactor $technical;       // 60
+    private InterviewQuestion $technical;       // 60
 
     protected function setUp(): void
     {
@@ -56,8 +61,9 @@ class InterviewScoreSheetTest extends TestCase
         $this->hr = $this->actingAsTenantUser();   // Administrator
         $this->tenant = $this->hr->tenant;
 
-        $this->communication = InterviewFactor::factory()->required()->create(['name' => 'Communication', 'weight' => 40, 'sequence' => 1]);
-        $this->technical = InterviewFactor::factory()->create(['name' => 'Technical', 'weight' => 60, 'sequence' => 2]);
+        $this->communication = InterviewQuestion::factory()->create(['name' => 'Communication', 'sequence' => 1]);
+        $this->technical = InterviewQuestion::factory()->create(['name' => 'Technical', 'sequence' => 2]);
+        $set = QuestionSet::factory()->withQuestions([$this->communication->id => 40, $this->technical->id => 60])->create();
 
         $employee = Employee::factory()->create(['first_name' => 'Salma']);
         $this->salmaLogin = User::factory()->for($this->tenant)->create();
@@ -67,7 +73,8 @@ class InterviewScoreSheetTest extends TestCase
             Applicant::factory()->create(['first_name' => 'Rahim']),
             JobPosting::factory()->open()->create(['title' => 'Sales Officer']),
         );
-        $this->interview = app(ScheduleInterview::class)->handle($application, ['scheduled_at' => now()->addDay()->toDateTimeString()], [$employee->id]);
+        $stage = $this->stageFor($application, 'Stage 1', $set);
+        $this->interview = app(ScheduleInterview::class)->handle($application, ['interview_stage_id' => $stage->id, 'scheduled_at' => now()->addDay()->toDateTimeString()], [$employee->id]);
         $this->salma = $this->interview->panelists()->sole();
     }
 
@@ -93,8 +100,8 @@ class InterviewScoreSheetTest extends TestCase
         $this->salma->refresh();
         $this->assertNotNull($this->salma->submitted_at);
         $this->assertSame('consider', $this->salma->recommendation);
-        $this->assertSame('40.00', $this->salma->scores()->where('interview_factor_id', $this->communication->id)->value('weight'));
-        $this->assertSame('Weak on Excel', $this->salma->scores()->where('interview_factor_id', $this->technical->id)->value('note'));
+        $this->assertSame('40.00', $this->salma->scores()->where('interview_question_id', $this->communication->id)->value('weight'));
+        $this->assertSame('Weak on Excel', $this->salma->scores()->where('interview_question_id', $this->technical->id)->value('note'));
         Livewire::test(MyInterviews::class)->assertSee('Sent');
     }
 
@@ -103,19 +110,20 @@ class InterviewScoreSheetTest extends TestCase
         $salmaEmployee = $this->salma->employee;
         $second = app(ScheduleInterview::class)->handle(
             app(ApplyToPosting::class)->handle(Applicant::factory()->create(['first_name' => 'Karim', 'last_name' => 'Ali']), $this->interview->application->jobPosting),
-            ['scheduled_at' => now()->addDays(2)->toDateTimeString()], [$salmaEmployee->id],
+            ['interview_stage_id' => $this->interview->interview_stage_id, 'scheduled_at' => now()->addDays(2)->toDateTimeString()], [$salmaEmployee->id],
         )->panelists()->sole();
         $notMine = app(ScheduleInterview::class)->handle(
             app(ApplyToPosting::class)->handle(Applicant::factory()->create(['first_name' => 'Nadia']), $this->interview->application->jobPosting),
-            ['scheduled_at' => now()->addDays(3)->toDateTimeString()], [Employee::factory()->create()->id],
+            ['interview_stage_id' => $this->interview->interview_stage_id, 'scheduled_at' => now()->addDays(3)->toDateTimeString()], [Employee::factory()->create()->id],
         )->panelists()->sole();
         $this->actingAs($this->salmaLogin);
 
-        // Rahim: complete. Karim: Communication (required) not scored.
+        // Rahim: complete. Karim: Communication not scored (every question of the set must be).
         Livewire::test(InterviewScoreSheet::class)
             ->dispatch('open-score-sheet', panelistId: $this->salma->id)
             ->assertDontSee('Send scores')->assertSee('Save and close')   // the interviewer sends from the list
             ->set("scores.{$this->communication->id}", '4')
+            ->set("scores.{$this->technical->id}", '5')
             ->set('recommendation', 'recommend')
             ->call('saveDraft', true)
             ->assertHasNoErrors();
@@ -142,13 +150,13 @@ class InterviewScoreSheetTest extends TestCase
         Livewire::test(InterviewScoreSheet::class)->dispatch('open-score-sheet', panelistId: $second->id)->assertSee('Send scores');
     }
 
-    public function test_sending_needs_required_factors_and_a_recommendation(): void
+    public function test_sending_needs_every_question_and_a_recommendation(): void
     {
         $this->actingAs($this->salmaLogin);
 
         Livewire::test(InterviewScoreSheet::class)
             ->dispatch('open-score-sheet', panelistId: $this->salma->id)
-            ->set("scores.{$this->technical->id}", '3')   // Communication (required) missing
+            ->set("scores.{$this->technical->id}", '3')   // Communication missing
             ->call('send')
             ->assertHasErrors(["scores.{$this->communication->id}", 'recommendation'])
             ->set("scores.{$this->technical->id}", '9')   // above the scale
@@ -160,7 +168,7 @@ class InterviewScoreSheetTest extends TestCase
 
     public function test_a_sent_sheet_is_locked(): void
     {
-        $this->salma->scores()->create(['interview_factor_id' => $this->communication->id, 'score' => 4, 'weight' => 40]);
+        $this->salma->scores()->create(['interview_question_id' => $this->communication->id, 'score' => 4, 'weight' => 40]);
         $this->salma->forceFill(['submitted_at' => now()])->save();
         $this->actingAs($this->salmaLogin);
 
@@ -214,8 +222,8 @@ class InterviewScoreSheetTest extends TestCase
         $this->assertSame(InterviewStatus::Scheduled, $this->interview->fresh()->status);
 
         // Salma sends 4 and 3 → (0.8×40 + 0.6×60) = 68 %
-        $this->salma->scores()->create(['interview_factor_id' => $this->communication->id, 'score' => 4, 'weight' => 40]);
-        $this->salma->scores()->create(['interview_factor_id' => $this->technical->id, 'score' => 3, 'weight' => 60]);
+        $this->salma->scores()->create(['interview_question_id' => $this->communication->id, 'score' => 4, 'weight' => 40]);
+        $this->salma->scores()->create(['interview_question_id' => $this->technical->id, 'score' => 3, 'weight' => 60]);
         $this->salma->forceFill(['submitted_at' => now()])->save();
 
         $page->call('complete', $this->interview->id)
@@ -225,5 +233,58 @@ class InterviewScoreSheetTest extends TestCase
         $this->assertSame(InterviewStatus::Completed, $this->interview->fresh()->status);
 
         $page->call('cancel', $this->interview->id)->assertDispatched('toast', variant: 'danger');   // completed: not cancelled
+    }
+
+    public function test_the_ranking_shows_each_stage_and_the_sum_and_sorts_by_any_column(): void
+    {
+        $posting = $this->interview->application->jobPosting;
+        $karima = app(ApplyToPosting::class)->handle(Applicant::factory()->create(['first_name' => 'Karima', 'last_name' => 'Ali']), $posting);
+        $stage2 = $this->stageFor($posting, 'Stage 2', QuestionSet::factory()->withQuestions([$this->technical->id => 100])->create());
+
+        // Rahim: Stage 1 = 68 %, Stage 2 = 100 %. Karima: Stage 1 only = 80 %.
+        $this->sentAndCompleted($this->interview, [4, 3]);
+        $this->sentAndCompleted($this->scheduled($this->interview->application->fresh(), $stage2), [null, 5]);
+        $this->sentAndCompleted($this->scheduled($karima, $this->interview->stage), [4, 4]);
+
+        $page = Livewire::test(PostingInterviews::class, ['postingId' => $posting->id])
+            ->assertSee('Stage 1')->assertSee('Stage 2')
+            ->assertSeeInOrder(['Rank', 'Applicant', 'Stage 1', 'Stage 2', 'Total'])
+            ->assertSeeInOrder(['Rahim', '68%', '100%', '168'])     // the sum, not the average
+            ->assertSeeInOrder(['Karima', '80%', '—', '80']);
+        $page->assertViewHas('ranking', fn ($rows) => $rows->pluck('application.applicant.first_name')->all() === ['Rahim', 'Karima']);
+
+        $page->call('sortRanking', 'stage-'.$this->interview->interview_stage_id)   // Stage 1, best first
+            ->assertViewHas('ranking', fn ($rows) => $rows->pluck('application.applicant.first_name')->all() === ['Karima', 'Rahim'])
+            ->call('sortRanking', 'stage-'.$stage2->id)                       // no Stage 2 score: last
+            ->assertViewHas('ranking', fn ($rows) => $rows->pluck('application.applicant.first_name')->all() === ['Rahim', 'Karima'])
+            ->call('sortRanking', 'total')->call('sortRanking', 'total')     // total, lowest first
+            ->assertViewHas('ranking', fn ($rows) => $rows->pluck('application.applicant.first_name')->all() === ['Karima', 'Rahim']);
+
+        // Interviews card: tabs per stage.
+        $page->assertSeeInOrder(['All', '3', 'Stage 1', '2', 'Stage 2', '1'])
+            // Each tab button selects ITS stage (the ids, not their positions).
+            ->assertSeeHtml("\$set('stageTab', '".$this->interview->interview_stage_id."')\" wire:key=\"stage-tab-".$this->interview->interview_stage_id."\"")
+            ->assertSeeHtml("\$set('stageTab', '".$stage2->id."')\" wire:key=\"stage-tab-".$stage2->id."\"")
+            ->set('stageTab', (string) $stage2->id)
+            ->assertViewHas('interviews', fn ($list) => $list->count() === 1);
+    }
+
+    private function scheduled(Application $application, InterviewStage $stage): Interview
+    {
+        return app(ScheduleInterview::class)->handle($application, ['interview_stage_id' => $stage->id, 'scheduled_at' => now()->addDays(4)->toDateTimeString()], [$this->salma->employee_id]);
+    }
+
+    /** @param  array{0: ?int, 1: ?int}  $scores  Communication, Technical (null = not on this stage's sheet) */
+    private function sentAndCompleted(Interview $interview, array $scores): void
+    {
+        $seat = $interview->panelists()->firstOrFail();
+        $items = $interview->stage->questionSet->items->keyBy('interview_question_id');
+        foreach ([$this->communication->id => $scores[0], $this->technical->id => $scores[1]] as $questionId => $score) {
+            if ($score !== null) {
+                $seat->scores()->create(['interview_question_id' => $questionId, 'score' => $score, 'weight' => $items[$questionId]->weight]);
+            }
+        }
+        $seat->forceFill(['submitted_at' => now()])->save();
+        $interview->complete();
     }
 }

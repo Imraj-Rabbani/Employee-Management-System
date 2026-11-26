@@ -9,8 +9,8 @@
                         <x-ui.badge :color="$status->color()">{{ $status->label() }}</x-ui.badge>
                     </div>
                     <flux:text class="mt-1">
-                        <a href="{{ route('hrm.recruitment.applicants.show', $offer->application->applicant_id) }}" wire:navigate class="font-medium text-brand-800 hover:underline dark:text-brand-200">{{ $offer->application->applicant->name }}</a>
-                        · <a href="{{ route('hrm.recruitment.postings.show', $offer->application->job_posting_id) }}" wire:navigate class="hover:underline">{{ $offer->application->jobPosting->title }}</a>
+                        <a href="{{ route('hrm.recruitment.applicants.show', $offer->application->applicant_id) }}" wire:navigate class="font-medium text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400">{{ $offer->application->applicant->name }}</a>
+                        · <a href="{{ route('hrm.recruitment.postings.show', $offer->application->job_posting_id) }}" wire:navigate class="underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400">{{ $offer->application->jobPosting->title }}</a>
                     </flux:text>
                     <flux:text class="mt-1 text-xs">
                         @if ($offer->letter_sent_at) {{ __('Letter emailed :when', ['when' => format_datetime($offer->letter_sent_at)]) }} @endif
@@ -39,7 +39,7 @@
                                 {{ __('Employee :code', ['code' => $offer->application->hiredEmployee->code]) }}
                             </flux:button>
                         @elseif (auth()->user()->can('create', \App\Modules\Hrm\Models\Employee::class))
-                            <flux:button variant="primary" icon="user-plus" x-on:click="$dispatch('hire', { offerId: {{ $offer->id }} })">{{ __('Hire') }}</flux:button>
+                            <flux:button variant="primary" icon="user-plus" x-on:click="$dispatch('hire', { offerId: {{ $offer->id }} })">{{ __('Onboard') }}</flux:button>
                         @endif
                     @endif
 

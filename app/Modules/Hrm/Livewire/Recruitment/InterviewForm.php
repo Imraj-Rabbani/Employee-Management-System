@@ -8,12 +8,17 @@ use App\Modules\Hrm\Enums\InterviewStatus;
 use App\Modules\Hrm\Models\Application;
 use App\Modules\Hrm\Models\Employee;
 use App\Modules\Hrm\Models\Interview;
+use App\Modules\Hrm\Models\InterviewStage;
+use App\Modules\Hrm\Models\JobPosting;
+use App\Modules\Hrm\Models\QuestionSet;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -25,7 +30,12 @@ use Livewire\Component;
  *     $dispatch('schedule-interview', { applicationIds: [12, 13] })   several applicants at once (ticked rows)
  *     $dispatch('edit-interview', { id: 4 })                          change a planned round (from the Interviews card)
  *
- * Several applicants: each gets their OWN round with the same panel, place and length, either one after
+ * Stage: every interview goes in a stage of the posting. Either "New stage" (a name, e.g. "Stage 2", and a
+ * question set: the questions its interviewers score) or an existing stage of this posting (its question set
+ * comes with it). An applicant who was already in that stage is skipped and named (a cancelled interview does
+ * not count). The stage of a planned interview cannot change.
+ *
+ * Several applicants: each gets their OWN interview with the same panel, place and length, either one after
  * another (back-to-back slots from the start time, the default) or all at the same time (a group interview).
  * Applicants who cannot be scheduled (closed, a round already planned) are skipped and named in the message.
  *
@@ -39,6 +49,14 @@ class InterviewForm extends Component
     /** @var list<int> the applications a NEW round is planned for, in this order */
     #[Locked]
     public array $applicationIds = [];
+
+    /** The stage: 'new', or the id of one of this posting's stages. */
+    public int|string $stageId = 'new';
+
+    /** New stage: its name and question set. */
+    public string $stageName = '';
+
+    public int|string $questionSetId = '';
 
     /** Several applicants: 'one_after_another' (back-to-back slots) or 'same_time'. */
     public string $timing = 'one_after_another';
@@ -66,6 +84,10 @@ class InterviewForm extends Component
         abort_if($this->applicationIds === [], 404);
         $this->interviewId = null;
         $this->timing = 'one_after_another';
+        $stages = $this->posting()?->interviewStages()->count() ?? 0;
+        $this->stageId = 'new';
+        $this->stageName = __('Stage :n', ['n' => $stages + 1]);
+        $this->questionSetId = '';
         $this->form = ['scheduled_at' => now()->addDay()->setTime(10, 0)->format('Y-m-d\TH:i'), 'duration_minutes' => 30, 'location' => '', 'notes' => ''];
         $this->panel = [];
         $this->search = '';
@@ -128,12 +150,16 @@ class InterviewForm extends Component
             $skipped = false;
         } else {
             $this->validate(['timing' => ['required', 'in:one_after_another,same_time']]);
+            $stage = $this->chosenStage();
+            if ($stage === null) {
+                return;   // the stage fields showed their errors
+            }
 
             // Check every applicant first: when NONE can be scheduled (e.g. no panel), nothing is saved.
             $problems = [];
             $ready = [];
             foreach ($this->applications() as $application) {
-                if ($problem = $action->problem($application, $this->panel)) {
+                if ($problem = $action->problem($application, $this->panel, $stage)) {
                     $problems[] = (count($this->applicationIds) > 1 ? $application->applicant->name.': ' : '').$problem;
                 } else {
                     $ready[] = $application;
@@ -145,9 +171,14 @@ class InterviewForm extends Component
                 return;
             }
 
-            foreach ($ready as $i => $application) {
-                $action->handle($application, [...$details, 'scheduled_at' => $this->startOf($i)], $this->panel, Auth::id());
-            }
+            DB::connection('tenant')->transaction(function () use ($stage, $ready, $details, $action) {
+                if (! $stage->exists) {
+                    $stage->save();   // a new stage is made only when someone is scheduled in it
+                }
+                foreach ($ready as $i => $application) {
+                    $action->handle($application, [...$details, 'interview_stage_id' => $stage->id, 'scheduled_at' => $this->startOf($i)], $this->panel, Auth::id());
+                }
+            });
             $message = implode(' ', [
                 count($ready) === 1 && count($this->applicationIds) === 1
                     ? __('Interview scheduled. The panel has been told.')
@@ -160,6 +191,59 @@ class InterviewForm extends Component
         Flux::modal('interview-form')->close();
         $this->dispatch('interview-saved');   // the pipeline and the Interviews card redraw
         $this->dispatch('toast', message: $message, variant: $skipped ? 'warning' : 'success');
+    }
+
+    /**
+     * The stage the new interviews go in: an existing one of this posting, or a new one (NOT saved yet).
+     * Null when the stage fields are not right (the errors are added).
+     */
+    private function chosenStage(): ?InterviewStage
+    {
+        $posting = $this->posting();
+        if ($posting === null) {
+            return null;
+        }
+
+        if ($this->stageId !== 'new') {
+            $stage = $posting->interviewStages()->find((int) $this->stageId);
+            if ($stage === null) {
+                $this->addError('stageId', __('Choose a stage of this posting.'));
+            }
+
+            return $stage;
+        }
+
+        $this->validate([
+            'stageName' => ['required', 'string', 'max:100', Rule::unique(InterviewStage::class, 'name')->where('job_posting_id', $posting->id)],
+            'questionSetId' => ['required', Rule::in(array_keys($this->questionSetOptions()))],
+        ], [
+            'stageName.unique' => __('This posting already has a stage with this name. Choose it from the list instead.'),
+        ], ['stageName' => __('stage name'), 'questionSetId' => __('question set')]);
+
+        return new InterviewStage([
+            'job_posting_id' => $posting->id, 'name' => trim($this->stageName),
+            'question_set_id' => (int) $this->questionSetId, 'created_by_user_id' => Auth::id(),
+        ]);
+    }
+
+    /** The posting of the chosen applications (they come from one posting's pipeline). */
+    private function posting(): ?JobPosting
+    {
+        $first = $this->applications()->first();
+
+        return $first ? JobPosting::query()->visibleTo(Auth::user())->find($first->job_posting_id) : null;
+    }
+
+    /**
+     * Active question sets with at least one question. "Technical – Software (6 questions)"
+     *
+     * @return array<int, string>
+     */
+    private function questionSetOptions(): array
+    {
+        return QuestionSet::query()->where('is_active', true)->withCount('items')->having('items_count', '>', 0)->orderBy('name')->get()
+            ->mapWithKeys(fn (QuestionSet $s) => [$s->id => trans_choice(':name (:count question)|:name (:count questions)', $s->items_count, ['name' => $s->name, 'count' => $s->items_count])])
+            ->all();
     }
 
     /** Start of the $i-th applicant's interview: back-to-back slots, or all at the start time. */
@@ -196,12 +280,28 @@ class InterviewForm extends Component
                 ->orWhere('code', 'like', trim($this->search).'%'))
             ->orderBy('first_name')->limit(8)->get();
 
+        $posting = $this->interviewId ? null : $this->posting();
+        $stages = $posting ? $posting->interviewStages()->with('questionSet')->get() : collect();
+        $chosen = $this->stageId !== 'new' ? $stages->firstWhere('id', (int) $this->stageId) : null;
+        // Applicants already in the chosen existing stage: marked in the list, skipped when saving.
+        $alreadyIn = $chosen ? $chosen->interviews()->where('status', '!=', InterviewStatus::Cancelled)->pluck('application_id')->all() : [];
+
+        // Each applicant with the start of their slot; those already in the stage are skipped, so they get no slot.
+        $slot = 0;
+        $schedule = $this->interviewId ? collect() : $this->applications()->map(function (Application $a) use ($alreadyIn, &$slot) {
+            $already = in_array($a->id, $alreadyIn, true);
+            $at = ! $already && $this->form['scheduled_at'] !== '' && is_numeric($this->form['duration_minutes'])
+                ? rescue(fn () => format_datetime(Carbon::parse($this->startOf($slot))), '', false) : '';
+
+            return ['name' => $a->applicant->name, 'already' => $already, 'at' => $at, 'slot' => $already ? null : $slot++];
+        });
+
         return view('hrm::livewire.recruitment.interview-form', [
+            'stages' => $stages,
+            'chosenStage' => $chosen,
+            'questionSets' => $this->interviewId ? [] : $this->questionSetOptions(),
             // New: each applicant with the start of their slot (redrawn as the time / length / timing change).
-            'schedule' => $this->interviewId ? collect() : $this->applications()->map(fn (Application $a, int $i) => [
-                'name' => $a->applicant->name,
-                'at' => $this->form['scheduled_at'] !== '' && is_numeric($this->form['duration_minutes']) ? rescue(fn () => format_datetime(Carbon::parse($this->startOf($i))), '', false) : '',
-            ]),
+            'schedule' => $schedule,
             'interview' => $this->interviewId ? Interview::with('panelists')->find($this->interviewId) : null,
             'chosen' => $this->panel === [] ? collect() : $employees()->whereKey($this->panel)->get(),
             'results' => $results,

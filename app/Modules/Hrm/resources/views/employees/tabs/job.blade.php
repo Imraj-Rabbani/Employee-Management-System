@@ -12,7 +12,7 @@
         }
 
         return new \Illuminate\Support\HtmlString(sprintf(
-            '<a href="%s" wire:navigate class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">%s</a>',
+            '<a href="%s" wire:navigate class="font-medium text-brand-800 underline-offset-4 dark:text-brand-200 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">%s</a>',
             e(route('hrm.employees.show', $person)),
             e($person->name.' ('.$person->code.')'),
         ));

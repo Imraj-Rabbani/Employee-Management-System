@@ -27,9 +27,10 @@ class NotificationPresenter
                 'rejected' => __(':type ":subject" was rejected.', $replace),
                 default => __(':type ":subject" was sent back to you.', $replace),
             },
+            // 'stage' = the stage's name; entries saved before stages existed have 'round' (a number).
             'interview_scheduled' => ($data['changed'] ?? false)
-                ? __('Interview changed: :name, round :round, :when.', ['name' => $data['applicant'] ?? '', 'round' => $data['round'] ?? '', 'when' => $data['when'] ?? ''])
-                : __('You are on the interview panel for :name, round :round, :when.', ['name' => $data['applicant'] ?? '', 'round' => $data['round'] ?? '', 'when' => $data['when'] ?? '']),
+                ? __('Interview changed: :name, :stage, :when.', ['name' => $data['applicant'] ?? '', 'stage' => $data['stage'] ?? __('round :round', ['round' => $data['round'] ?? '']), 'when' => $data['when'] ?? ''])
+                : __('You are on the interview panel for :name, :stage, :when.', ['name' => $data['applicant'] ?? '', 'stage' => $data['stage'] ?? __('round :round', ['round' => $data['round'] ?? '']), 'when' => $data['when'] ?? '']),
             default => (string) ($data['message'] ?? __('Notification')),
         };
     }

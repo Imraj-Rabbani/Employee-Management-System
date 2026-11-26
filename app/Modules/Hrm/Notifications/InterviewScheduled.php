@@ -21,7 +21,7 @@ class InterviewScheduled extends Notification implements ShouldQueue
     public function __construct(
         public readonly string $applicantName,
         public readonly string $postingTitle,   // "JOB-0003 · Sales Officer"
-        public readonly int $round,
+        public readonly string $stage,   // the stage's name, e.g. "Stage 1"
         public readonly string $when,           // already formatted in the company's date format / timezone
         public readonly ?string $location,
         public readonly ?string $notes,
@@ -39,15 +39,15 @@ class InterviewScheduled extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $subject = $this->changed
-            ? __('Interview changed: :name, round :round', ['name' => $this->applicantName, 'round' => $this->round])
-            : __('Interview: :name, round :round', ['name' => $this->applicantName, 'round' => $this->round]);
+            ? __('Interview changed: :name, :stage', ['name' => $this->applicantName, 'stage' => $this->stage])
+            : __('Interview: :name, :stage', ['name' => $this->applicantName, 'stage' => $this->stage]);
 
         return (new MailMessage)
             ->subject($subject)
             ->line($this->changed
                 ? __('An interview you are on the panel of has changed.')
                 : __('You are on the interview panel for :name (:posting).', ['name' => $this->applicantName, 'posting' => $this->postingTitle]))
-            ->line(__('Round :round · :when', ['round' => $this->round, 'when' => $this->when]))
+            ->line(__(':stage · :when', ['stage' => $this->stage, 'when' => $this->when]))
             ->when($this->location, fn (MailMessage $m) => $m->line(__('Where: :place', ['place' => $this->location])))
             ->when($this->notes, fn (MailMessage $m) => $m->line(__('Note from HR: :note', ['note' => $this->notes])))
             ->when($this->url, fn (MailMessage $m) => $m->action(__('Open the score sheet'), (string) $this->url));
@@ -63,7 +63,7 @@ class InterviewScheduled extends Notification implements ShouldQueue
         return [
             'kind' => 'interview_scheduled',
             'applicant' => $this->applicantName,
-            'round' => $this->round,
+            'stage' => $this->stage,
             'when' => $this->when,
             'changed' => $this->changed,
         ];

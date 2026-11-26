@@ -71,7 +71,7 @@
                     <tr wire:key="approval-{{ $approval->getKey() }}" class="border-b border-white/40 text-zinc-800 last:border-0 hover:bg-white/40 dark:border-white/5 dark:text-zinc-100 dark:hover:bg-white/5">
                         <td class="px-4 py-3">{{ $approval->step->workflow->approvalType->name }}</td>
                         <td class="px-4 py-3">
-                            <button type="button" x-on:click="$dispatch('open-approval', { id: {{ $approval->id }} })" class="text-left font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">
+                            <button type="button" x-on:click="$dispatch('open-approval', { id: {{ $approval->id }} })" class="text-left font-medium text-brand-800 underline-offset-4 dark:text-brand-200 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">
                                 {{ $this->subject($approval) }}
                             </button>
                         </td>

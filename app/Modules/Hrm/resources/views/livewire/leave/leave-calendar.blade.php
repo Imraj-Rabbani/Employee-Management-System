@@ -50,7 +50,7 @@
                         @foreach ($employees as $employee)
                             <tr wire:key="leave-cal-{{ $employee->id }}" class="border-t border-zinc-100 dark:border-white/5">
                                 <td class="sticky left-0 bg-white px-3 py-1 whitespace-nowrap dark:bg-zinc-900">
-                                    <a href="{{ route('hrm.employees.show', ['employee' => $employee->id, 'tab' => 'leave']) }}" wire:navigate class="text-brand-800 hover:underline dark:text-brand-200">{{ $employee->code }} · {{ $employee->name }}</a>
+                                    <a href="{{ route('hrm.employees.show', ['employee' => $employee->id, 'tab' => 'leave']) }}" wire:navigate class="text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400">{{ $employee->code }} · {{ $employee->name }}</a>
                                 </td>
                                 @foreach ($dates as $date)
                                     @php $day = $matrix[$employee->id][$date->toDateString()] ?? null; @endphp

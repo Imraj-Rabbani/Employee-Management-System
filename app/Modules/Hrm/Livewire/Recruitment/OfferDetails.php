@@ -107,7 +107,7 @@ class OfferDetails extends Component
     {
         $this->validate([
             'answer' => ['required', 'in:'.JobOffer::ACCEPTED.','.JobOffer::DECLINED],
-            'answeredOn' => ['required', 'date', 'before_or_equal:today'],
+            'answeredOn' => ['required', 'date'],
             'reasonId' => [$this->answer === JobOffer::DECLINED ? 'required' : 'nullable'],
             'note' => ['nullable', 'string', 'max:2000'],
         ], [], ['answer' => __('answer'), 'answeredOn' => __('date'), 'reasonId' => __('reason')]);

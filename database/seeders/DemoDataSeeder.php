@@ -24,11 +24,13 @@ use App\Modules\Hrm\Models\Entity;
 use App\Modules\Hrm\Models\EntityType;
 use App\Modules\Hrm\Models\Grade;
 use App\Modules\Hrm\Models\Interview;
-use App\Modules\Hrm\Models\InterviewFactor;
+use App\Modules\Hrm\Models\InterviewQuestion;
+use App\Modules\Hrm\Models\InterviewStage;
 use App\Modules\Hrm\Models\JobOffer;
 use App\Modules\Hrm\Models\JobPosting;
 use App\Modules\Hrm\Models\ManpowerRequest;
 use App\Modules\Hrm\Models\Position;
+use App\Modules\Hrm\Models\QuestionSet;
 use App\Modules\Hrm\Models\RejectionReason;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -41,7 +43,7 @@ use Illuminate\Support\Facades\DB;
  *
  * Creates: entities (Branches, Divisions, Departments with a Division as parent, with heads),
  * employment types, grades, designations, positions, ~30 employees with supervisors,
- * interview factors, rejection reasons, manpower requests, job postings, applicants and
+ * interview questions and question sets, rejection reasons, manpower requests, job postings, applicants and
  * applications at every pipeline stage, interviews with scores, and one approved offer.
  *
  * Also gives the company's first login the Administrator role (if it has no role) and links it
@@ -282,10 +284,18 @@ class DemoDataSeeder extends Seeder
         $d = $org['designations'];
         $g = $org['grades'];
 
-        $factors = collect([
-            ['Communication', 20, true], ['Technical skill', 35, true], ['Attitude', 15, false],
-            ['Relevant experience', 20, true], ['Leadership', 10, false],
-        ])->map(fn ($f, $i) => InterviewFactor::create(['name' => $f[0], 'weight' => $f[1], 'is_required' => $f[2], 'sequence' => $i + 1]));
+        // Interview questions, and a question set "General interview" with all of them (weights add up to 100).
+        $questions = collect([
+            ['Communicates clearly', 20], ['Technical skill for the job', 35], ['Attitude and motivation', 15],
+            ['Relevant experience', 20], ['Leadership potential', 10],
+        ])->map(fn ($q, $i) => [InterviewQuestion::create(['name' => $q[0], 'sequence' => $i + 1]), $q[1]]);
+        $generalSet = QuestionSet::create(['name' => 'General interview', 'description' => 'Every applicant, first stage.']);
+        foreach ($questions as $i => [$question, $weight]) {
+            $generalSet->items()->create(['interview_question_id' => $question->id, 'weight' => $weight, 'sequence' => $i + 1]);
+        }
+        $technicalSet = QuestionSet::create(['name' => 'Technical']);
+        $technicalSet->items()->create(['interview_question_id' => $questions[1][0]->id, 'weight' => 70, 'sequence' => 1]);
+        $technicalSet->items()->create(['interview_question_id' => $questions[3][0]->id, 'weight' => 30, 'sequence' => 2]);
 
         $reasons = collect(['Not enough experience', 'Salary expectation too high', 'Did not attend interview', 'Accepted another offer', 'Failed technical test'])
             ->mapWithKeys(fn ($n) => [$n => RejectionReason::create(['name' => $n])]);
@@ -365,7 +375,7 @@ class DemoDataSeeder extends Seeder
                 }
                 $move->bySystem($app->refresh(), $stage, $reason ? $reasons[$reason]->id : null, 'Demo data', $this->userId);
                 if ($stage === ApplicationStage::Interview) {
-                    $this->interview($app, $post === $pQc ? [$people['qc_lead'], $people['prd_mgr']] : $panel, $factors, completed: $i !== 2);
+                    $this->interview($app, $post === $pQc ? [$people['qc_lead'], $people['prd_mgr']] : $panel, $post === $pQc ? $technicalSet : $generalSet, completed: $i !== 2);
                 }
             }
         }
@@ -401,11 +411,12 @@ class DemoDataSeeder extends Seeder
         return $applicant;
     }
 
-    /** @param  iterable<InterviewFactor>  $factors */
-    private function interview(Application $app, array $panel, iterable $factors, bool $completed): void
+    /** Stage 1 of the application's posting, scored with $set. */
+    private function interview(Application $app, array $panel, QuestionSet $set, bool $completed): void
     {
+        $stage = InterviewStage::firstOrCreate(['job_posting_id' => $app->job_posting_id, 'name' => 'Stage 1'], ['question_set_id' => $set->id]);
         $interview = Interview::create([
-            'application_id' => $app->id, 'round' => 1,
+            'application_id' => $app->id, 'interview_stage_id' => $stage->id, 'round' => 1,
             'scheduled_at' => $completed ? now()->subDays(5)->setTime(11, 0) : now()->addDays(2)->setTime(15, 0),
             'duration_minutes' => 45, 'location' => 'Board room, Dhaka HQ',
             'status' => $completed ? InterviewStatus::Completed : InterviewStatus::Scheduled,
@@ -417,8 +428,8 @@ class DemoDataSeeder extends Seeder
             if (! $completed) {
                 continue;
             }
-            foreach ($factors as $factor) {
-                $seat->scores()->create(['interview_factor_id' => $factor->id, 'score' => fake()->numberBetween(3, 5), 'weight' => $factor->weight]);
+            foreach ($set->items as $item) {
+                $seat->scores()->create(['interview_question_id' => $item->interview_question_id, 'score' => fake()->numberBetween(3, 5), 'weight' => $item->weight]);
             }
             $seat->forceFill([
                 'recommendation' => fake()->randomElement([InterviewRecommendation::Recommend, InterviewRecommendation::Consider]),

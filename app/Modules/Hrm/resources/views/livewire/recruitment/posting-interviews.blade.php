@@ -8,12 +8,28 @@
                 <flux:icon.chevron-down class="mt-1 size-5 shrink-0 text-zinc-500 transition" x-bind:class="open || '-rotate-90'" />
                 <span>
                     <flux:heading size="lg">{{ __('Interviews') }}</flux:heading>
-                    <flux:text class="mt-1">{{ __('Plan rounds from the pipeline: the calendar button, or tick several applicants → Schedule interviews.') }}</flux:text>
+                    <flux:text class="mt-1">{{ __('Plan interviews from the pipeline: tick applicants → Schedule interview, and choose or start a stage.') }}</flux:text>
                 </span>
             </button>
         </div>
 
         <div x-show="open" x-collapse>
+            {{-- Tabs: All + one per stage (the stage's name), each with its count. --}}
+            @if ($stages->isNotEmpty())
+                <nav class="flex flex-wrap gap-1 border-b border-white/50 px-4 dark:border-white/10" aria-label="{{ __('Interview stages') }}">
+                    {{-- "+" (not "..."): spreading would renumber the stage ids 1, 2 … into 0, 1 … and the tabs would show the wrong stage. --}}
+                    @foreach (['all' => [__('All'), $interviewCount]] + $stages->mapWithKeys(fn ($st) => [$st->id => [$st->name, $stageCounts[$st->id] ?? 0]])->all() as $key => [$tabLabel, $tabCount])
+                        <button type="button" wire:click="$set('stageTab', '{{ $key }}')" wire:key="stage-tab-{{ $key }}" @class([
+                            '-mb-px border-b-2 px-3 py-2 text-sm font-medium transition',
+                            'border-brand-800 text-brand-900 dark:border-white dark:text-white' => $stageTab === (string) $key,
+                            'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200' => $stageTab !== (string) $key,
+                        ]) @if ($stageTab === (string) $key) aria-current="true" @endif>
+                            {{ $tabLabel }} <span class="ml-1 rounded-full bg-zinc-500/10 px-1.5 text-xs tabular-nums">{{ $tabCount }}</span>
+                        </button>
+                    @endforeach
+                </nav>
+            @endif
+
 
         @if ($interviews->isEmpty())
             <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
@@ -54,7 +70,7 @@
                                         @foreach ($interview->panelists as $panelist)
                                             <li wire:key="panelist-{{ $panelist->id }}">
                                                 <button type="button" x-on:click="$dispatch('open-score-sheet', { panelistId: {{ $panelist->id }} })"
-                                                    class="inline-flex items-center gap-1 text-left text-brand-800 hover:underline dark:text-brand-200">
+                                                    class="inline-flex items-center gap-1 text-left text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400">
                                                     @if ($panelist->isSubmitted())
                                                         <flux:icon.check-circle variant="micro" class="text-green-600" />
                                                     @else
@@ -98,7 +114,7 @@
                 <flux:icon.chevron-down class="mt-1 size-5 shrink-0 text-zinc-500 transition" x-bind:class="open || '-rotate-90'" />
                 <span>
                     <flux:heading size="lg">{{ __('Ranking') }}</flux:heading>
-                    <flux:text class="mt-1">{{ __('Average of completed rounds') }}</flux:text>
+                    <flux:text class="mt-1">{{ __('Each stage\'s result (completed interviews) and their total. Click a heading to sort.') }}</flux:text>
                 </span>
             </button>
         </div>
@@ -111,21 +127,69 @@
                     <flux:icon name="trophy" />
                 </div>
                 <flux:heading size="lg" class="mt-4">{{ __('No results yet') }}</flux:heading>
-                <flux:text class="mt-1 max-w-sm">{{ __('Applicants appear here once a round is completed.') }}</flux:text>
+                <flux:text class="mt-1 max-w-sm">{{ __('Applicants appear here once one of their interviews is completed.') }}</flux:text>
             </div>
         @else
-            <ol class="divide-y divide-white/50 dark:divide-white/10">
-                @foreach ($ranking as $row)
-                    <li class="flex items-center gap-3 px-6 py-3 text-sm" wire:key="rank-{{ $row['application']->id }}">
-                        <span class="grid size-7 shrink-0 place-items-center rounded-full bg-brand-500/10 font-semibold tabular-nums">{{ $row['rank'] }}</span>
-                        <div class="min-w-0 flex-1">
-                            <a href="{{ route('hrm.recruitment.applicants.show', $row['application']->applicant_id) }}" wire:navigate class="font-medium text-brand-800 hover:underline dark:text-brand-200">{{ $row['application']->applicant->name }}</a>
-                            <div class="text-xs text-zinc-500">{{ $row['application']->stage->label() }}</div>
-                        </div>
-                        <span class="font-semibold tabular-nums">{{ $row['score'] }}%</span>
-                    </li>
-                @endforeach
-            </ol>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="text-left text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                        <tr class="border-b border-white/50 dark:border-white/10">
+                            <th class="px-6 py-3 font-medium">{{ __('Rank') }}</th>
+                            <th class="px-6 py-3 font-medium">
+                                <button type="button" wire:click="sortRanking('name')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
+                                    {{ __('Applicant') }}
+                                    @if ($rankSort === 'name')
+                                        <flux:icon :name="$rankDir === 'asc' ? 'chevron-up' : 'chevron-down'" variant="micro" />
+                                    @else
+                                        <flux:icon.chevron-up-down variant="micro" class="opacity-40" />
+                                    @endif
+                                </button>
+                            </th>
+                            @foreach ($stages as $stage)
+                                <th class="px-6 py-3 text-right font-medium" wire:key="rank-head-{{ $stage->id }}">
+                                    <button type="button" wire:click="sortRanking('stage-{{ $stage->id }}')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
+                                    {{ $stage->name }}
+                                    @if ($rankSort === 'stage-'.$stage->id)
+                                        <flux:icon :name="$rankDir === 'asc' ? 'chevron-up' : 'chevron-down'" variant="micro" />
+                                    @else
+                                        <flux:icon.chevron-up-down variant="micro" class="opacity-40" />
+                                    @endif
+                                </button>
+                                </th>
+                            @endforeach
+                            <th class="px-6 py-3 text-right font-medium">
+                                <button type="button" wire:click="sortRanking('total')" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
+                                    {{ __('Total') }}
+                                    @if ($rankSort === 'total')
+                                        <flux:icon :name="$rankDir === 'asc' ? 'chevron-up' : 'chevron-down'" variant="micro" />
+                                    @else
+                                        <flux:icon.chevron-up-down variant="micro" class="opacity-40" />
+                                    @endif
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($ranking as $row)
+                            <tr class="border-b border-white/50 last:border-0 dark:border-white/10" wire:key="rank-{{ $row['application']->id }}">
+                                <td class="px-6 py-3">
+                                    <span class="grid size-7 place-items-center rounded-full bg-brand-500/10 font-semibold tabular-nums">{{ $row['rank'] }}</span>
+                                </td>
+                                <td class="px-6 py-3">
+                                    <a href="{{ route('hrm.recruitment.applicants.show', $row['application']->applicant_id) }}" wire:navigate class="font-medium text-brand-800 dark:text-brand-200 underline decoration-current/50 hover:decoration-current underline-offset-4 hover:text-blue-600 dark:hover:text-blue-400">{{ $row['application']->applicant->name }}</a>
+                                    <div class="text-xs text-zinc-500">{{ $row['application']->stage->label() }}</div>
+                                </td>
+                                @foreach ($stages as $stage)
+                                    <td class="px-6 py-3 text-right tabular-nums" wire:key="rank-{{ $row['application']->id }}-{{ $stage->id }}">
+                                        {{ isset($row['scores'][$stage->id]) ? $row['scores'][$stage->id].'%' : '—' }}
+                                    </td>
+                                @endforeach
+                                <td class="px-6 py-3 text-right font-semibold tabular-nums">{{ $row['total'] }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         @endif
         </div>
     </div>

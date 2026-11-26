@@ -31,7 +31,7 @@ class Documents extends EmployeeRecords
             'type' => ['required', Rule::enum(DocumentType::class)],
             'title' => ['nullable', 'required_if:form.type,'.DocumentType::Other->value, 'string', 'max:150'],
             'number' => ['nullable', 'string', 'max:100'],
-            'issue_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'issue_date' => ['nullable', 'date'],
             'expiry_date' => ['nullable', 'date', 'after_or_equal:form.issue_date'],
         ];
     }

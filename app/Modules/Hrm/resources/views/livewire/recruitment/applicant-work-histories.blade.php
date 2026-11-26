@@ -20,7 +20,7 @@
             <ul class="divide-y divide-white/50 dark:divide-white/10">
                 @foreach ($rows as $row)
                     <li class="px-6 py-3 text-sm" wire:key="work-{{ $row->id }}">
-                        <button type="button" wire:click="edit({{ $row->id }})" class="text-left font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $row->organization }}</button>
+                        <button type="button" wire:click="edit({{ $row->id }})" class="text-left font-medium text-brand-800 underline-offset-4 dark:text-brand-200 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">{{ $row->organization }}</button>
                         <span class="text-zinc-500">{{ $row->designation ? '· '.$row->designation : '' }}</span>
                         <div class="text-xs text-zinc-500">
                             {{ $row->from_date ? format_date($row->from_date) : '?' }} – {{ $row->to_date ? format_date($row->to_date) : __('now') }}

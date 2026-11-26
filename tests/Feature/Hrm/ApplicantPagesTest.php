@@ -5,9 +5,11 @@ namespace Tests\Feature\Hrm;
 use App\Core\Support\TenantUploads;
 use App\Models\Tenant;
 use App\Modules\Core\Models\Role;
+use App\Modules\Hrm\Actions\ApplyToPosting;
 use App\Modules\Hrm\Livewire\Recruitment\ApplicantEducations;
 use App\Modules\Hrm\Livewire\Recruitment\ApplicantForm;
 use App\Modules\Hrm\Livewire\Recruitment\ApplicantProfile;
+use App\Modules\Hrm\Livewire\Recruitment\ApplicantTable;
 use App\Modules\Hrm\Livewire\Recruitment\ApplicantWorkHistories;
 use App\Modules\Hrm\Livewire\Recruitment\ApplicationPipeline;
 use App\Modules\Hrm\Models\Applicant;
@@ -64,6 +66,34 @@ class ApplicantPagesTest extends TestCase
         $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.recruitment.request']);
         $this->get('/hrm/recruitment/applicants')->assertForbidden();
         $this->get(route('hrm.recruitment.applicants.show', $applicant))->assertForbidden();
+    }
+
+    public function test_the_list_filters_by_job_posting(): void
+    {
+        $apply = app(ApplyToPosting::class);
+        $other = JobPosting::factory()->open()->create(['title' => 'Accountant']);
+        $apply->handle(Applicant::factory()->create(['first_name' => 'Rahim']), $this->posting);
+        $apply->handle(Applicant::factory()->create(['first_name' => 'Karima']), $other);
+        Applicant::factory()->create(['first_name' => 'Nadia']);   // talent pool only
+
+        Livewire::test(ApplicantTable::class)
+            ->assertSee('Rahim')->assertSee('Karima')->assertSee('Nadia')
+            ->assertSee($this->posting->number().' · Sales Officer')
+            ->set('posting', (string) $this->posting->id)
+            ->call('applyFilters')
+            ->assertSee('Rahim')->assertDontSee('Karima')->assertDontSee('Nadia')
+            ->assertSee('Filter (1)')
+            ->call('clearFilters')
+            ->assertSet('posting', '')
+            ->assertSee('Karima');
+
+        // A posting in a unit the user cannot see is not offered, and typing its id does not filter.
+        $this->actingAsTenantUser(tenant: $this->tenant, permissions: ['hrm.recruitment.manage']);
+        Role::where('name', 'like', 'Test role%')->latest('id')->firstOrFail()->update(['entity_id' => Entity::factory()->create()->id]);
+        Livewire::test(ApplicantTable::class)
+            ->assertDontSee('Sales Officer')
+            ->set('posting', (string) $this->posting->id)
+            ->assertSee('Karima');
     }
 
     public function test_a_new_applicant_with_cv_applies_to_the_chosen_posting(): void

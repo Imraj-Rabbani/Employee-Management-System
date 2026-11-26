@@ -60,7 +60,7 @@ return [
                 ['label' => 'Job postings', 'route' => 'hrm.recruitment.postings', 'current' => ['hrm.recruitment.postings*', 'hrm.recruitment.offers.*'], 'can' => 'hrm.recruitment.manage'],
                 ['label' => 'Applicants', 'route' => 'hrm.recruitment.applicants', 'current' => 'hrm.recruitment.applicants*', 'can' => 'hrm.recruitment.manage'],
                 ['label' => 'Reports', 'route' => 'hrm.recruitment.reports.open-positions', 'current' => 'hrm.recruitment.reports.*', 'can' => 'hrm.recruitment.manage'],
-                ['label' => 'Setup', 'route' => 'hrm.recruitment.setup.factors', 'current' => 'hrm.recruitment.setup.*', 'can' => 'hrm.recruitment.setup'],
+                ['label' => 'Config', 'route' => 'hrm.recruitment.config.questions', 'current' => 'hrm.recruitment.config.*', 'can' => 'hrm.recruitment.setup'],
             ],
         ],
 

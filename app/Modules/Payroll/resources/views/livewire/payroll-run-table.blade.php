@@ -129,7 +129,7 @@
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap">
                             {{-- The run's own page: register, exceptions, per-employee breakdown (10.8). --}}
-                            <a href="{{ route('payroll.runs.show', $run->id) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $run->code }}</a>
+                            <a href="{{ route('payroll.runs.show', $run->id) }}" wire:navigate class="font-medium text-brand-800 underline-offset-4 dark:text-brand-200 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">{{ $run->code }}</a>
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap">{{ $run->period()->label() }}</td>
                         <td class="px-4 py-3">{{ $run->run_type->label() }}@if ($run->head) <span class="text-zinc-500 dark:text-zinc-400">· {{ $run->head->name }}</span>@endif</td>

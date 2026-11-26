@@ -1,10 +1,11 @@
 {{--
-    HRM → Recruitment → Setup. One view for both sections; the route passes $section (routes/web.php).
+    HRM → Recruitment → Config. One view for all sections; the route passes $section (routes/web.php).
     Each section = a DataTable + its modal form (App\Modules\Hrm\Livewire\Recruitment). Same layout as Organization.
 --}}
 @php
     $sections = [
-        'factors' => [__('Interview factors'), 'interview-factor-table', 'interview-factor-form', __('What interviewers score, e.g. Communication. Weights of the active factors should add up to 100%.')],
+        'questions' => [__('Interview questions'), 'interview-question-table', 'interview-question-form', __('All questions interviewers can score (1–5). Group them into a question set to use them in a stage.')],
+        'sets' => [__('Question sets'), 'question-set-table', 'question-set-form', __('A named group of questions with a weight each (adding up to 100%). Each interview stage uses one set.')],
         'reasons' => [__('Rejection reasons'), 'rejection-reason-table', 'rejection-reason-form', __('Picked when an application is rejected or withdrawn.')],
     ];
     [$label, $table, $form, $intro] = $sections[$section];
@@ -15,9 +16,9 @@
         <x-ui.section-tabs section="hrm.recruitment" />
 
         {{-- Second row of tabs: each one is its own page. --}}
-        <nav class="flex gap-1 overflow-x-auto border-b border-zinc-200 [scrollbar-width:none] dark:border-white/10" aria-label="{{ __('Recruitment setup') }}">
+        <nav class="flex gap-1 overflow-x-auto border-b border-zinc-200 [scrollbar-width:none] dark:border-white/10" aria-label="{{ __('Recruitment config') }}">
             @foreach ($sections as $key => $tab)
-                <a href="{{ route('hrm.recruitment.setup.'.$key) }}" wire:navigate @class([
+                <a href="{{ route('hrm.recruitment.config.'.$key) }}" wire:navigate @class([
                     '-mb-px shrink-0 whitespace-nowrap border-b-2 px-2.5 py-1.5 text-xs font-medium transition',
                     'border-brand-800 text-brand-900 dark:border-white dark:text-white' => $key === $section,
                     'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200' => $key !== $section,

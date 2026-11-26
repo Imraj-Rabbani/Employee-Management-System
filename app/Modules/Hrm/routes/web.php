@@ -166,11 +166,11 @@ Route::middleware('can:hrm.recruitment.manage')->prefix('recruitment/reports')->
     }
 });
 
-// HRM → Recruitment → Setup: interview factors and rejection reasons. Same idea as Organization:
-// one page view, one URL per section.
-Route::middleware('can:hrm.recruitment.setup')->prefix('recruitment/setup')->name('recruitment.setup.')->group(function () {
-    foreach (['factors', 'reasons'] as $section) {
-        Route::view($section, 'hrm::recruitment.setup', ['section' => $section])->name($section);
+// HRM → Recruitment → Config: interview questions, question sets and rejection reasons. Same idea as
+// Organization: one page view, one URL per section. (The permission key stays hrm.recruitment.setup.)
+Route::middleware('can:hrm.recruitment.setup')->prefix('recruitment/config')->name('recruitment.config.')->group(function () {
+    foreach (['questions', 'sets', 'reasons'] as $section) {
+        Route::view($section, 'hrm::recruitment.config', ['section' => $section])->name($section);
     }
 });
 

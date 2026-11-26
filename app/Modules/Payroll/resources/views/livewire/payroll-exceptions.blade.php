@@ -12,7 +12,7 @@
             <ul class="divide-y divide-white/40 text-sm dark:divide-white/5">
                 @foreach (array_slice($group['items'], 0, $perGroup) as $i => $item)
                     <li class="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-6 py-3" wire:key="exceptions-{{ $key }}-{{ $i }}">
-                        <button type="button" x-on:click="$dispatch('show-payroll-employee', { id: {{ $item['row']->id }} })" class="shrink-0 font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">
+                        <button type="button" x-on:click="$dispatch('show-payroll-employee', { id: {{ $item['row']->id }} })" class="shrink-0 font-medium text-brand-800 underline-offset-4 dark:text-brand-200 underline decoration-current/50 hover:decoration-current hover:text-blue-600 dark:hover:text-blue-400">
                             {{ $item['row']->employee->code ?? '?' }} · {{ $item['row']->employee->name ?? '' }}
                         </button>
                         <span class="text-zinc-700 dark:text-zinc-200">{{ $item['message'] }}</span>
