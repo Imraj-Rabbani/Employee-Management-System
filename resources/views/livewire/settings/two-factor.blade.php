@@ -163,9 +163,9 @@ new class extends Component {
                                 <flux:button size="sm" icon="eye" wire:click="$set('showRecoveryCodes', true)">{{ __('Show recovery codes') }}</flux:button>
                             @endunless
                             <flux:button size="sm" icon="arrow-path" x-on:click="$dispatch('confirm', {
-                                title: @js(__('Create new recovery codes?')),
-                                message: @js(__('Your current recovery codes will stop working.')),
-                                confirmText: @js(__('Create new codes')),
+                                title: {{ Js::from(__('Create new recovery codes?')) }},
+                                message: {{ Js::from(__('Your current recovery codes will stop working.')) }},
+                                confirmText: {{ Js::from(__('Create new codes')) }},
                                 onConfirm: () => $wire.regenerateRecoveryCodes(),
                             })">{{ __('New recovery codes') }}</flux:button>
                         </div>
@@ -173,9 +173,9 @@ new class extends Component {
                 </div>
 
                 <flux:button variant="danger" x-on:click="$dispatch('confirm', {
-                    title: @js(__('Turn off two-factor authentication?')),
-                    message: @js(__('Your account will only be protected by your password.')),
-                    confirmText: @js(__('Turn off')),
+                    title: {{ Js::from(__('Turn off two-factor authentication?')) }},
+                    message: {{ Js::from(__('Your account will only be protected by your password.')) }},
+                    confirmText: {{ Js::from(__('Turn off')) }},
                     onConfirm: () => $wire.disable(),
                 })">{{ __('Disable two-factor authentication') }}</flux:button>
             @endif

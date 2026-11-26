@@ -100,8 +100,8 @@
                                     @endif
                                     @if ($encashment->isActive() && $encashment->approved_at === null)
                                         <flux:button size="xs" variant="ghost" class="!text-red-600" x-on:click="$dispatch('confirm', {
-                                            title: @js(__('Withdraw :no?', ['no' => $encashment->number()])),
-                                            confirmText: @js(__('Withdraw')),
+                                            title: {{ Js::from(__('Withdraw :no?', ['no' => $encashment->number()])) }},
+                                            confirmText: {{ Js::from(__('Withdraw')) }},
                                             onConfirm: () => $dispatch('withdraw-encashment', { id: {{ $encashment->id }} }),
                                         })">{{ __('Withdraw') }}</flux:button>
                                     @endif

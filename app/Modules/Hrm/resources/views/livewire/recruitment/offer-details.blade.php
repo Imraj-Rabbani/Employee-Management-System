@@ -22,9 +22,9 @@
                     @if ($offer->isEditable())
                         <flux:button icon="pencil-square" x-on:click="$dispatch('edit-offer', { id: {{ $offer->id }} })">{{ __('Edit') }}</flux:button>
                         <flux:button variant="primary" icon="paper-airplane" x-on:click="$dispatch('confirm', {
-                            title: @js(__('Send for approval?')),
-                            message: @js(__('You cannot change the offer while it is waiting for approval.')),
-                            confirmText: @js(__('Send')),
+                            title: {{ Js::from(__('Send for approval?')) }},
+                            message: {{ Js::from(__('You cannot change the offer while it is waiting for approval.')) }},
+                            confirmText: {{ Js::from(__('Send')) }},
                             onConfirm: () => $wire.submit(),
                         })">{{ $status === OfferStatus::SentBack ? __('Send again') : __('Send for approval') }}</flux:button>
                     @endif
@@ -45,9 +45,9 @@
 
                     @if (in_array($status, [OfferStatus::Approved, OfferStatus::LetterSent], true))
                         <flux:button icon="envelope" x-on:click="$dispatch('confirm', {
-                            title: @js(__('Email the offer letter?')),
-                            message: @js(__('To :email, with the letter as a PDF.', ['email' => $offer->application->applicant->email ?? '—'])),
-                            confirmText: @js(__('Send email')),
+                            title: {{ Js::from(__('Email the offer letter?')) }},
+                            message: {{ Js::from(__('To :email, with the letter as a PDF.', ['email' => $offer->application->applicant->email ?? '—'])) }},
+                            confirmText: {{ Js::from(__('Send email')) }},
                             onConfirm: () => $wire.emailLetter(),
                         })">{{ $status === OfferStatus::LetterSent ? __('Email again') : __('Email letter') }}</flux:button>
                         <flux:button variant="primary" icon="check-badge" wire:click="openAnswer">{{ __('Record answer') }}</flux:button>

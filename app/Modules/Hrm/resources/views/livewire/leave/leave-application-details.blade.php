@@ -70,9 +70,9 @@
                                 </flux:field>
                             </div>
                             <flux:button variant="danger" icon="x-mark" x-on:click="$dispatch('confirm', {
-                                title: @js(__('Withdraw this leave?')),
-                                message: @js($application->approved_at ? __('The days go back to the balance and attendance is processed again.') : __('The approvers are no longer asked.')),
-                                confirmText: @js(__('Withdraw')),
+                                title: {{ Js::from(__('Withdraw this leave?')) }},
+                                message: {{ Js::from($application->approved_at ? __('The days go back to the balance and attendance is processed again.') : __('The approvers are no longer asked.')) }},
+                                confirmText: {{ Js::from(__('Withdraw')) }},
                                 onConfirm: () => $wire.withdraw(),
                             })">{{ __('Withdraw') }}</flux:button>
                         </div>

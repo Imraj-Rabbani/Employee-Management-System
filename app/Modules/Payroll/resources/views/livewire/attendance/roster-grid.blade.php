@@ -90,16 +90,16 @@
                             <flux:button size="sm" icon="arrow-up-tray">{{ __('Import from Excel') }}</flux:button>
                         </flux:modal.trigger>
                         <flux:button size="sm" variant="primary" icon="paper-airplane" x-on:click="needsSave(() => $dispatch('confirm', {
-                            title: @js(__('Send for approval?')),
-                            message: @js(__('You cannot change the roster while it is waiting for approval.')),
-                            confirmText: @js(__('Send')),
+                            title: {{ Js::from(__('Send for approval?')) }},
+                            message: {{ Js::from(__('You cannot change the roster while it is waiting for approval.')) }},
+                            confirmText: {{ Js::from(__('Send')) }},
                             onConfirm: () => $wire.submit(),
                         }))">{{ $roster->approvalStatus() ? __('Send again') : __('Send for approval') }}</flux:button>
                     @elseif ($roster->isApproved())
                         <flux:button size="sm" variant="primary" icon="document-duplicate" x-on:click="$dispatch('confirm', {
-                            title: @js(__('Plan a change?')),
-                            message: @js(__('A copy of this roster is made as a new draft. Change it and send it for approval; once approved, it replaces this plan.')),
-                            confirmText: @js(__('Make a copy')),
+                            title: {{ Js::from(__('Plan a change?')) }},
+                            message: {{ Js::from(__('A copy of this roster is made as a new draft. Change it and send it for approval; once approved, it replaces this plan.')) }},
+                            confirmText: {{ Js::from(__('Make a copy')) }},
                             onConfirm: () => $wire.planChange(),
                         })">{{ __('Plan a change') }}</flux:button>
                     @endif

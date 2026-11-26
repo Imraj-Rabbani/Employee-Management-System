@@ -63,7 +63,7 @@ class JobOfferPagesTest extends TestCase
     public function test_make_offer_is_prefilled_compares_live_and_opens_the_offer_page(): void
     {
         Livewire::test(ApplicationPipeline::class, ['postingId' => $this->application->job_posting_id])
-            ->assertSeeHtml("create-offer', { applicationId: {$this->application->id} }");
+            ->assertViewHas('allowed', fn (array $allowed) => $allowed['offer']->contains((string) $this->application->id));
 
         Livewire::test(OfferForm::class)
             ->dispatch('create-offer', applicationId: $this->application->id)

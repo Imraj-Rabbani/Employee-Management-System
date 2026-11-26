@@ -20,8 +20,8 @@
             @if ($employee?->photo_path)
                 <flux:separator />
                 <flux:button size="sm" variant="ghost" icon="trash" class="!text-red-600" x-on:click="$dispatch('confirm', {
-                    title: @js(__('Remove the photo?')),
-                    confirmText: @js(__('Remove')),
+                    title: {{ Js::from(__('Remove the photo?')) }},
+                    confirmText: {{ Js::from(__('Remove')) }},
                     onConfirm: () => $wire.remove(),
                 })">{{ __('Remove photo') }}</flux:button>
             @endif

@@ -22,9 +22,9 @@
                         <div class="flex gap-1">
                             <flux:button size="xs" icon="envelope" wire:click="resend({{ $invited->id }})">{{ __('Resend') }}</flux:button>
                             <flux:button size="xs" variant="ghost" icon="x-mark" x-on:click="$dispatch('confirm', {
-                                title: @js(__('Cancel this invitation?')),
-                                message: @js(__('The link in the email stops working.')),
-                                confirmText: @js(__('Cancel invitation')),
+                                title: {{ Js::from(__('Cancel this invitation?')) }},
+                                message: {{ Js::from(__('The link in the email stops working.')) }},
+                                confirmText: {{ Js::from(__('Cancel invitation')) }},
                                 onConfirm: () => $wire.cancel({{ $invited->id }}),
                             })">{{ __('Cancel') }}</flux:button>
                         </div>

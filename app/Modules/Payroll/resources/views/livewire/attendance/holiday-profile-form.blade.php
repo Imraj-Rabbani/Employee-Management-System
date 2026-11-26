@@ -22,9 +22,9 @@
             @if ($record)
                 <flux:separator />
                 <flux:button size="sm" variant="ghost" icon="trash" class="!text-red-600" x-on:click="$dispatch('confirm', {
-                    title: @js(__('Delete this record?')),
-                    message: @js(__('Its holidays stay; only the calendar is removed. Not possible while employees use it.')),
-                    confirmText: @js(__('Delete')),
+                    title: {{ Js::from(__('Delete this record?')) }},
+                    message: {{ Js::from(__('Its holidays stay; only the calendar is removed. Not possible while employees use it.')) }},
+                    confirmText: {{ Js::from(__('Delete')) }},
                     onConfirm: () => $wire.delete(),
                 })">{{ __('Delete') }}</flux:button>
             @endif

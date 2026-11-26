@@ -28,7 +28,8 @@
     x-on:confirm.window="open($event.detail); $flux.modal('confirm').show()"
 >
     <flux:modal name="confirm" variant="bare" class="w-full max-w-md">
-        <div class="glass space-y-6 rounded-2xl p-6">
+        {{-- Solid like the other forms (not "glass"): the page behind must not show through the text. --}}
+        <div class="space-y-6 rounded-2xl bg-white p-6 shadow-xl ring-1 ring-black/5 dark:bg-brand-900 dark:ring-white/10">
             <div class="flex items-start gap-4">
                 <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-500/20">
                     <flux:icon.exclamation-triangle class="size-5 text-red-600 dark:text-red-400" />

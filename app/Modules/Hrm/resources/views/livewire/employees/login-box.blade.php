@@ -16,9 +16,9 @@
                     <flux:button size="xs" icon="envelope" wire:click="resend">{{ __('Resend invitation') }}</flux:button>
                 @endif
                 <flux:button size="xs" variant="ghost" icon="link-slash" x-on:click="$dispatch('confirm', {
-                    title: @js(__('Unlink this login?')),
-                    message: @js(__('The person can still log in, but no longer sees this employee record as their own. The login itself is not deleted.')),
-                    confirmText: @js(__('Unlink')),
+                    title: {{ Js::from(__('Unlink this login?')) }},
+                    message: {{ Js::from(__('The person can still log in, but no longer sees this employee record as their own. The login itself is not deleted.')) }},
+                    confirmText: {{ Js::from(__('Unlink')) }},
                     onConfirm: () => $wire.unlink(),
                 })">{{ __('Unlink') }}</flux:button>
             </div>

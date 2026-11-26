@@ -98,6 +98,50 @@ class InterviewScoreSheetTest extends TestCase
         Livewire::test(MyInterviews::class)->assertSee('Sent');
     }
 
+    public function test_the_interviewer_ticks_several_sheets_and_sends_them_at_once(): void
+    {
+        $salmaEmployee = $this->salma->employee;
+        $second = app(ScheduleInterview::class)->handle(
+            app(ApplyToPosting::class)->handle(Applicant::factory()->create(['first_name' => 'Karim', 'last_name' => 'Ali']), $this->interview->application->jobPosting),
+            ['scheduled_at' => now()->addDays(2)->toDateTimeString()], [$salmaEmployee->id],
+        )->panelists()->sole();
+        $notMine = app(ScheduleInterview::class)->handle(
+            app(ApplyToPosting::class)->handle(Applicant::factory()->create(['first_name' => 'Nadia']), $this->interview->application->jobPosting),
+            ['scheduled_at' => now()->addDays(3)->toDateTimeString()], [Employee::factory()->create()->id],
+        )->panelists()->sole();
+        $this->actingAs($this->salmaLogin);
+
+        // Rahim: complete. Karim: Communication (required) not scored.
+        Livewire::test(InterviewScoreSheet::class)
+            ->dispatch('open-score-sheet', panelistId: $this->salma->id)
+            ->assertDontSee('Send scores')->assertSee('Save and close')   // the interviewer sends from the list
+            ->set("scores.{$this->communication->id}", '4')
+            ->set('recommendation', 'recommend')
+            ->call('saveDraft', true)
+            ->assertHasNoErrors();
+        Livewire::test(InterviewScoreSheet::class)
+            ->dispatch('open-score-sheet', panelistId: $second->id)
+            ->set("scores.{$this->technical->id}", '3')
+            ->set('recommendation', 'consider')
+            ->call('saveDraft');
+
+        Livewire::test(MyInterviews::class)
+            ->assertSee('Ready to send')
+            ->assertSee('Not scored: Communication.')
+            ->set('selected', [(string) $this->salma->id, (string) $second->id, (string) $notMine->id])
+            ->call('sendSelected')
+            ->assertDispatched('toast', variant: 'warning', message: '1 score sheet sent. Thank you. Karim Ali: Not scored: Communication.')
+            ->assertSet('selected', []);
+
+        $this->assertNotNull($this->salma->fresh()?->submitted_at);
+        $this->assertNull($second->fresh()?->submitted_at);
+        $this->assertNull($notMine->fresh()?->submitted_at);   // someone else's sheet is never touched
+
+        // HR entering a sheet on someone's behalf still sends it from the window.
+        $this->actingAs($this->hr);
+        Livewire::test(InterviewScoreSheet::class)->dispatch('open-score-sheet', panelistId: $second->id)->assertSee('Send scores');
+    }
+
     public function test_sending_needs_required_factors_and_a_recommendation(): void
     {
         $this->actingAs($this->salmaLogin);

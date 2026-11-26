@@ -3,6 +3,7 @@
 namespace App\Modules\Hrm\Livewire\Recruitment;
 
 use App\Models\User;
+use App\Modules\Hrm\Actions\SubmitScoreSheet;
 use App\Modules\Hrm\Enums\InterviewRecommendation;
 use App\Modules\Hrm\Enums\InterviewStatus;
 use App\Modules\Hrm\Models\Application;
@@ -31,7 +32,9 @@ use Livewire\Component;
  *
  *   Save draft  keeps the scores, still editable
  *   Send        checks every REQUIRED factor is scored + a recommendation is chosen, then locks it
- *               (submitted_at). Only sent sheets count in the results.
+ *               (submitted_at, Hrm\Actions\SubmitScoreSheet). Only sent sheets count in the results.
+ *               The button is shown to HR entering a sheet on someone's behalf; interviewers save here and
+ *               send from My Interviews, where they tick several sheets and send them at once.
  * Editable only while the interview is planned (not completed / cancelled) and the sheet is not sent.
  * Each score stores the factor's weight of that moment (InterviewScoring keeps old results stable).
  */
@@ -80,9 +83,14 @@ class InterviewScoreSheet extends Component
         Flux::modal('interview-score-sheet')->show();
     }
 
-    public function saveDraft(): void
+    /** @param  bool  $close  "Save and close" (the interviewer's button): close the window when it saved */
+    public function saveDraft(bool $close = false): void
     {
         $this->store(send: false);
+
+        if ($close && $this->getErrorBag()->isEmpty()) {
+            Flux::modal('interview-score-sheet')->close();
+        }
     }
 
     public function send(): void
@@ -137,7 +145,7 @@ class InterviewScoreSheet extends Component
                 'comment' => trim($this->comment) ?: null,
             ]);
             if ($send) {
-                $panelist->forceFill(['submitted_at' => now()])->save();
+                app(SubmitScoreSheet::class)->handle($panelist);   // the same rules as sending from My Interviews
             }
         });
 

@@ -59,9 +59,9 @@
             @if ($record)
                 <flux:separator />
                 <flux:button size="sm" variant="ghost" icon="trash" class="!text-red-600" x-on:click="$dispatch('confirm', {
-                    title: @js(__('Delete this record?')),
-                    message: @js(__('Its punches are kept. Make it inactive instead if it is only switched off for a while.')),
-                    confirmText: @js(__('Delete')),
+                    title: {{ Js::from(__('Delete this record?')) }},
+                    message: {{ Js::from(__('Its punches are kept. Make it inactive instead if it is only switched off for a while.')) }},
+                    confirmText: {{ Js::from(__('Delete')) }},
                     onConfirm: () => $wire.delete(),
                 })">{{ __('Delete') }}</flux:button>
             @endif

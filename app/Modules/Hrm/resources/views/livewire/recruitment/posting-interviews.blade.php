@@ -1,13 +1,19 @@
 @php use App\Modules\Hrm\Enums\InterviewStatus; @endphp
-<div class="grid gap-4 lg:grid-cols-3">
+{{-- Interviews, then the Ranking below it; both full width and collapsible (remembered in this browser). --}}
+<div class="space-y-4">
     {{-- Interviews --}}
-    <div class="glass overflow-hidden rounded-2xl lg:col-span-2">
-        <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
-            <div>
-                <flux:heading size="lg">{{ __('Interviews') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Plan a round with the calendar button in the pipeline.') }}</flux:text>
-            </div>
+    <div class="glass overflow-hidden rounded-2xl" x-data="{ open: $persist(true).as('posting-card-interviews') }">
+        <div class="px-6 py-4" x-bind:class="open && 'border-b border-white/50 dark:border-white/10'">
+            <button type="button" x-on:click="open = ! open" x-bind:aria-expanded="open" class="flex items-start gap-2 text-left">
+                <flux:icon.chevron-down class="mt-1 size-5 shrink-0 text-zinc-500 transition" x-bind:class="open || '-rotate-90'" />
+                <span>
+                    <flux:heading size="lg">{{ __('Interviews') }}</flux:heading>
+                    <flux:text class="mt-1">{{ __('Plan rounds from the pipeline: the calendar button, or tick several applicants → Schedule interviews.') }}</flux:text>
+                </span>
+            </button>
         </div>
+
+        <div x-show="open" x-collapse>
 
         @if ($interviews->isEmpty())
             <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
@@ -67,9 +73,9 @@
                                             <flux:button size="sm" variant="ghost" icon="pencil-square" :tooltip="__('Change')"
                                                 x-on:click="$dispatch('edit-interview', { id: {{ $interview->id }} })" />
                                             <flux:button size="sm" variant="ghost" icon="x-mark" :tooltip="__('Cancel')" x-on:click="$dispatch('confirm', {
-                                                title: @js(__('Cancel this interview?')),
-                                                message: @js(__('The round keeps its number. Scores already sent no longer count.')),
-                                                confirmText: @js(__('Cancel interview')),
+                                                title: {{ Js::from(__('Cancel this interview?')) }},
+                                                message: {{ Js::from(__('The round keeps its number. Scores already sent no longer count.')) }},
+                                                confirmText: {{ Js::from(__('Cancel interview')) }},
                                                 onConfirm: () => $wire.cancel({{ $interview->id }}),
                                             })" />
                                             <flux:button size="sm" icon="check" wire:click="complete({{ $interview->id }})">{{ __('Complete') }}</flux:button>
@@ -82,16 +88,22 @@
                 </table>
             </div>
         @endif
+        </div>
     </div>
 
     {{-- Ranking --}}
-    <div class="glass overflow-hidden rounded-2xl">
-        <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
-            <div>
-                <flux:heading size="lg">{{ __('Ranking') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Average of completed rounds') }}</flux:text>
-            </div>
+    <div class="glass overflow-hidden rounded-2xl" x-data="{ open: $persist(true).as('posting-card-ranking') }">
+        <div class="px-6 py-4" x-bind:class="open && 'border-b border-white/50 dark:border-white/10'">
+            <button type="button" x-on:click="open = ! open" x-bind:aria-expanded="open" class="flex items-start gap-2 text-left">
+                <flux:icon.chevron-down class="mt-1 size-5 shrink-0 text-zinc-500 transition" x-bind:class="open || '-rotate-90'" />
+                <span>
+                    <flux:heading size="lg">{{ __('Ranking') }}</flux:heading>
+                    <flux:text class="mt-1">{{ __('Average of completed rounds') }}</flux:text>
+                </span>
+            </button>
         </div>
+
+        <div x-show="open" x-collapse>
 
         @if ($ranking->isEmpty())
             <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
@@ -115,5 +127,6 @@
                 @endforeach
             </ol>
         @endif
+        </div>
     </div>
 </div>

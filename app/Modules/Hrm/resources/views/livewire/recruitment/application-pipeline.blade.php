@@ -1,18 +1,27 @@
-@php use App\Modules\Hrm\Enums\ApplicationStage; @endphp
+@php
+    use App\Modules\Hrm\Enums\ApplicationStage;
+    use App\Modules\Hrm\Enums\InterviewStatus;
+@endphp
 <div>
-    <div class="glass overflow-hidden rounded-2xl">
-        <div class="flex items-start justify-between gap-4 border-b border-white/50 px-6 py-4 dark:border-white/10">
-            <div>
-                <flux:heading size="lg">{{ __('Pipeline') }}</flux:heading>
-                <flux:text class="mt-1">{{ trans_choice(':count application|:count applications', $counts['all'], ['count' => $counts['all']]) }}</flux:text>
-            </div>
-            @if ($posting->isAcceptingApplications())
-                <div class="flex shrink-0 items-center gap-2">
+    {{-- Collapsible: the arrow hides the card's body; the choice is remembered in this browser. --}}
+    <div class="glass overflow-hidden rounded-2xl" x-data="{ open: $persist(true).as('posting-card-pipeline') }">
+        <div class="flex flex-wrap items-start justify-between gap-4 px-6 py-4" x-bind:class="open && 'border-b border-white/50 dark:border-white/10'">
+            <button type="button" x-on:click="open = ! open" x-bind:aria-expanded="open" class="flex items-start gap-2 text-left">
+                <flux:icon.chevron-down class="mt-1 size-5 shrink-0 text-zinc-500 transition" x-bind:class="open || '-rotate-90'" />
+                <span>
+                    <flux:heading size="lg">{{ __('Pipeline') }}</flux:heading>
+                    <flux:text class="mt-1">{{ trans_choice(':count application|:count applications', $counts['all'], ['count' => $counts['all']]) }}</flux:text>
+                </span>
+            </button>
+            <div class="flex shrink-0 flex-wrap items-center gap-2" x-show="open">
+                @if ($posting->isAcceptingApplications())
                     <flux:button size="sm" icon="plus" x-on:click="$dispatch('create-applicant', { postingId: {{ $posting->id }} })">{{ __('Add applicant') }}</flux:button>
                     <flux:button size="sm" icon="arrow-up-tray" x-on:click="$dispatch('import-applicants')">{{ __('Import') }}</flux:button>
-                </div>
-            @endif
+                @endif
+            </div>
         </div>
+
+        <div x-show="open" x-collapse>
 
         {{-- Tabs: "Open" (still in the running), each stage, "All". The count is shown on each. --}}
         <nav class="flex flex-wrap gap-1 border-b border-white/50 px-4 dark:border-white/10" aria-label="{{ __('Stages') }}">
@@ -26,6 +35,26 @@
                 </button>
             @endforeach
         </nav>
+
+        {{-- Toolbar: works on the ticked rows ($wire.selected). History and Make offer need exactly one row;
+             Schedule interview and Move take several. A button is off when the ticked rows do not allow it. --}}
+        <div class="flex flex-wrap items-center gap-2 border-b border-white/50 px-4 py-3 dark:border-white/10"
+            x-data="{ allowed: {{ Js::from($allowed) }} }" wire:key="pipeline-toolbar-{{ md5(json_encode($allowed)) }}">
+            <flux:button size="sm" icon="clock" x-bind:disabled="$wire.selected.length !== 1"
+                x-on:click="$dispatch('show-application-history', { id: Number($wire.selected[0]) })">{{ __('History') }}</flux:button>
+            <flux:button size="sm" icon="calendar-days"
+                x-bind:disabled="! $wire.selected.some(id => allowed.schedule.includes(id))"
+                x-on:click="$dispatch('schedule-interview', { applicationIds: $wire.selected.filter(id => allowed.schedule.includes(id)).map(Number) })">
+                {{ __('Schedule interview') }}
+            </flux:button>
+            <flux:button size="sm" icon="banknotes"
+                x-bind:disabled="$wire.selected.length !== 1 || ! allowed.offer.includes($wire.selected[0])"
+                x-on:click="$dispatch('create-offer', { applicationId: Number($wire.selected[0]) })">{{ __('Make offer') }}</flux:button>
+            <flux:button size="sm" variant="primary" icon="arrow-right"
+                x-bind:disabled="$wire.selected.length === 0 || ! $wire.selected.every(id => allowed.move.includes(id))"
+                wire:click="startMove">{{ __('Move') }}</flux:button>
+            <span x-show="$wire.selected.length > 0" x-cloak class="text-xs text-zinc-500 dark:text-zinc-400" x-text="$wire.selected.length + ' ' + {{ Js::from(__('selected')) }}"></span>
+        </div>
 
         @if ($rows->isEmpty())
             <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
@@ -42,17 +71,27 @@
                 <table class="w-full text-sm">
                     <thead class="text-left text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                         <tr class="border-b border-white/50 dark:border-white/10">
+                            {{-- Tick all rows of this tab. --}}
+                            <th class="w-10 py-3 ps-6" x-data="{ ids: {{ Js::from($rows->map(fn ($a) => (string) $a->id)->values()) }} }" wire:key="pipeline-tick-all-{{ $tab }}-{{ $rows->count() }}">
+                                <input type="checkbox" class="size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 disabled:opacity-40 dark:border-white/20 dark:bg-white/10" aria-label="{{ __('Tick all') }}"
+                                    x-bind:disabled="ids.length === 0"
+                                    x-bind:checked="ids.length > 0 && ids.every(id => $wire.selected.includes(id))"
+                                    x-on:change="$wire.selected = $event.target.checked ? [...new Set([...$wire.selected, ...ids])] : $wire.selected.filter(id => ! ids.includes(id))">
+                            </th>
                             <th class="px-6 py-3 font-medium">{{ __('Applicant') }}</th>
                             <th class="px-6 py-3 font-medium">{{ __('Current job') }}</th>
                             <th class="px-6 py-3 text-right font-medium">{{ __('Expected salary') }}</th>
                             <th class="px-6 py-3 font-medium">{{ __('Applied') }}</th>
                             <th class="px-6 py-3 font-medium">{{ __('Stage') }}</th>
-                            <th class="px-6 py-3"></th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($rows as $application)
-                            <tr class="border-b border-white/50 last:border-0 dark:border-white/10" wire:key="pipe-{{ $application->id }}">
+                            <tr class="border-b border-white/50 last:border-0 dark:border-white/10" wire:key="pipe-{{ $application->id }}"
+                                x-bind:class="$wire.selected.includes('{{ $application->id }}') && '!bg-brand-50/70 dark:!bg-white/10'">
+                                <td class="py-3 ps-6">
+                                    <input type="checkbox" wire:model="selected" value="{{ $application->id }}" class="size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 dark:border-white/20 dark:bg-white/10" aria-label="{{ __('Tick :name', ['name' => $application->applicant->name]) }}">
+                                </td>
                                 <td class="px-6 py-3">
                                     <a href="{{ route('hrm.recruitment.applicants.show', $application->applicant_id) }}" wire:navigate class="font-medium text-brand-800 hover:underline dark:text-brand-200">{{ $application->applicant->name }}</a>
                                     <div class="text-xs text-zinc-500">{{ $application->applicant->phone ?? $application->applicant->email }}</div>
@@ -79,34 +118,19 @@
                                         @endif
                                     </div>
                                 </td>
-                                <td class="px-6 py-3 text-right">
-                                    <div class="flex justify-end gap-1">
-                                        <flux:button size="sm" variant="ghost" icon="clock" :tooltip="__('History')"
-                                            x-on:click="$dispatch('show-application-history', { id: {{ $application->id }} })" />
-                                        @if (! $application->stage->isFinal() && ! $planned)
-                                            <flux:button size="sm" variant="ghost" icon="calendar-days" :tooltip="__('Schedule interview')"
-                                                x-on:click="$dispatch('schedule-interview', { applicationId: {{ $application->id }} })" />
-                                        @endif
-                                        @if (! $offer && ! $application->stage->isFinal() && (int) $application->stage->step() >= 2)
-                                            <flux:button size="sm" variant="ghost" icon="banknotes" :tooltip="__('Make offer')"
-                                                x-on:click="$dispatch('create-offer', { applicationId: {{ $application->id }} })" />
-                                        @endif
-                                        @if ($canMove($application))
-                                            <flux:button size="sm" icon="arrow-right" wire:click="startMove({{ $application->id }})">{{ __('Move') }}</flux:button>
-                                        @endif
-                                    </div>
-                                </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
         @endif
+        </div>
     </div>
 
     {{-- Move modal --}}
-    <x-ui.modal name="application-move" :heading="$moving ? __('Move :name', ['name' => $moving->applicant->name]) : __('Move')"
-        :subheading="$moving ? __('Now: :stage', ['stage' => $moving->stage->label()]) : null">
+    <x-ui.modal name="application-move"
+        :heading="$moving->count() === 1 ? __('Move :name', ['name' => $moving->first()->applicant->name]) : __('Move :count applicants', ['count' => $moving->count()])"
+        :subheading="$moving->count() === 1 ? __('Now: :stage', ['stage' => $moving->first()->stage->label()]) : $moving->map(fn ($a) => $a->applicant->name.' ('.$a->stage->label().')')->join(', ')">
         <form wire:submit="move" id="application-move" class="space-y-4">
             <flux:field>
                 <flux:label>{{ __('Move to') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>

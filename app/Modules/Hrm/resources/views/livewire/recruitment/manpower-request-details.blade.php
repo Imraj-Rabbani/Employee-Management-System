@@ -21,9 +21,9 @@
                     <div class="flex gap-2">
                         <flux:button icon="pencil-square" x-on:click="$dispatch('edit-manpower-request', { id: {{ $request->id }} })">{{ __('Edit') }}</flux:button>
                         <flux:button variant="primary" icon="paper-airplane" x-on:click="$dispatch('confirm', {
-                            title: @js(__('Send for approval?')),
-                            message: @js(__('You cannot change the request while it is waiting for approval.')),
-                            confirmText: @js(__('Send')),
+                            title: {{ Js::from(__('Send for approval?')) }},
+                            message: {{ Js::from(__('You cannot change the request while it is waiting for approval.')) }},
+                            confirmText: {{ Js::from(__('Send')) }},
                             onConfirm: () => $wire.submit(),
                         })">{{ $status ? __('Send again') : __('Send for approval') }}</flux:button>
                     </div>

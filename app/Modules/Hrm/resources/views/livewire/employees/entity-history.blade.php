@@ -49,9 +49,9 @@
                             <td class="px-6 py-3 text-right">
                                 @if ($canUpdate && isset($undoable[$row->id]))
                                     <flux:button size="xs" variant="ghost" icon="arrow-uturn-left" x-on:click="$dispatch('confirm', {
-                                        title: @js(__('Undo this change?')),
-                                        message: @js(__('The row is deleted and the employee goes back to the previous :type.', ['type' => $row->type?->name])),
-                                        confirmText: @js(__('Undo')),
+                                        title: {{ Js::from(__('Undo this change?')) }},
+                                        message: {{ Js::from(__('The row is deleted and the employee goes back to the previous :type.', ['type' => $row->type?->name])) }},
+                                        confirmText: {{ Js::from(__('Undo')) }},
                                         onConfirm: () => $wire.undo({{ $undoable[$row->id] }}),
                                     })">{{ __('Undo') }}</flux:button>
                                 @endif

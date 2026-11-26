@@ -155,9 +155,9 @@
                     @if ($record)
                         <flux:separator />
                         <flux:button size="sm" variant="ghost" icon="trash" class="!text-red-600" x-on:click="$dispatch('confirm', {
-                            title: @js(__('Delete this record?')),
-                            message: @js(__('The nominee is removed. Remember to share their percentage among the others.')),
-                            confirmText: @js(__('Delete')),
+                            title: {{ Js::from(__('Delete this record?')) }},
+                            message: {{ Js::from(__('The nominee is removed. Remember to share their percentage among the others.')) }},
+                            confirmText: {{ Js::from(__('Delete')) }},
                             onConfirm: () => $wire.delete(),
                         })">{{ __('Delete') }}</flux:button>
                     @endif

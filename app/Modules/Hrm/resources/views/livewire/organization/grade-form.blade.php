@@ -47,9 +47,9 @@
             @if ($record)
                 <flux:separator />
                 <flux:button size="sm" variant="ghost" icon="trash" class="!text-red-600" x-on:click="$dispatch('confirm', {
-                    title: @js(__('Delete this record?')),
-                    message: @js(__('Only possible when nothing uses it any more.')),
-                    confirmText: @js(__('Delete')),
+                    title: {{ Js::from(__('Delete this record?')) }},
+                    message: {{ Js::from(__('Only possible when nothing uses it any more.')) }},
+                    confirmText: {{ Js::from(__('Delete')) }},
                     onConfirm: () => $wire.delete(),
                 })">{{ __('Delete') }}</flux:button>
             @endif

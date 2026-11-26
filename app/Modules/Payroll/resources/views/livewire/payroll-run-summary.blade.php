@@ -27,25 +27,25 @@
             @endcan
             @can('submit', $run)
                 <flux:button size="sm" variant="primary" icon="paper-airplane" x-on:click="$dispatch('confirm', {
-                    title: @js(__('Submit :code for approval?', ['code' => $run->code])),
-                    message: @js(__('From now on its numbers cannot change, unless an approver sends it back or you take it back.')),
-                    confirmText: @js(__('Submit')),
+                    title: {{ Js::from(__('Submit :code for approval?', ['code' => $run->code])) }},
+                    message: {{ Js::from(__('From now on its numbers cannot change, unless an approver sends it back or you take it back.')) }},
+                    confirmText: {{ Js::from(__('Submit')) }},
                     onConfirm: () => $wire.submit(),
                 })">{{ __('Submit for approval') }}</flux:button>
             @endcan
             @can('withdraw', $run)
                 <flux:button size="sm" icon="arrow-uturn-left" x-on:click="$dispatch('confirm', {
-                    title: @js(__('Take :code back?', ['code' => $run->code])),
-                    message: @js(__('The approvers are no longer asked; the run can be changed and submitted again.')),
-                    confirmText: @js(__('Take back')),
+                    title: {{ Js::from(__('Take :code back?', ['code' => $run->code])) }},
+                    message: {{ Js::from(__('The approvers are no longer asked; the run can be changed and submitted again.')) }},
+                    confirmText: {{ Js::from(__('Take back')) }},
                     onConfirm: () => $wire.withdraw(),
                 })">{{ __('Take back') }}</flux:button>
             @endcan
             @can('lock', $run)
                 <flux:button size="sm" variant="primary" icon="lock-closed" x-on:click="$dispatch('confirm', {
-                    title: @js(__('Lock :code?', ['code' => $run->code])),
-                    message: @js(__('Locking is final: the run and the attendance of its period can never change again. Later changes are paid as arrears.')),
-                    confirmText: @js(__('Lock')),
+                    title: {{ Js::from(__('Lock :code?', ['code' => $run->code])) }},
+                    message: {{ Js::from(__('Locking is final: the run and the attendance of its period can never change again. Later changes are paid as arrears.')) }},
+                    confirmText: {{ Js::from(__('Lock')) }},
                     onConfirm: () => $wire.lock(),
                 })">{{ __('Lock') }}</flux:button>
             @endcan

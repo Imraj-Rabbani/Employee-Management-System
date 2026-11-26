@@ -62,7 +62,7 @@
                                     @if ($import->total_rows)
                                         · {{ trans_choice(':count row checked|:count rows checked', $import->total_rows) }}
                                     @endif
-                                    <flux:button size="xs" variant="ghost" x-on:click="open = ! open" x-text="open ? @js(__('Hide')) : @js(__('Show'))" />
+                                    <flux:button size="xs" variant="ghost" x-on:click="open = ! open" x-text="open ? {{ Js::from(__('Hide')) }} : {{ Js::from(__('Show')) }}" />
                                 @elseif ($import->status === $pending)
                                     {{ __('Waiting for the queue worker…') }}
                                 @endif

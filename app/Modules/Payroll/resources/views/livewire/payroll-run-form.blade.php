@@ -142,9 +142,9 @@
             @if ($run?->status->isEditable())
                 <flux:separator />
                 <flux:button size="sm" variant="ghost" icon="trash" class="!text-red-600" x-on:click="$dispatch('confirm', {
-                    title: @js(__('Delete this run?')),
-                    message: @js(__('Its employees and calculated amounts are deleted too.')),
-                    confirmText: @js(__('Delete')),
+                    title: {{ Js::from(__('Delete this run?')) }},
+                    message: {{ Js::from(__('Its employees and calculated amounts are deleted too.')) }},
+                    confirmText: {{ Js::from(__('Delete')) }},
                     onConfirm: () => $wire.delete(),
                 })">{{ __('Delete') }}</flux:button>
             @endif

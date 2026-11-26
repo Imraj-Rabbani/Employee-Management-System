@@ -121,8 +121,8 @@
                                 <flux:icon.paper-clip variant="micro" class="text-zinc-500" />
                                 <a href="{{ route('hrm.employees.attachment', [$employee, $section, $record->id]) }}" class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $record->attachment_name ?? __('Attachment') }}</a>
                                 <flux:button size="xs" variant="ghost" class="!text-red-600" x-on:click="$dispatch('confirm', {
-                                    title: @js(__('Remove this file?')),
-                                    confirmText: @js(__('Remove')),
+                                    title: {{ Js::from(__('Remove this file?')) }},
+                                    confirmText: {{ Js::from(__('Remove')) }},
                                     onConfirm: () => $wire.removeAttachment(),
                                 })">{{ __('Remove') }}</flux:button>
                             </div>
@@ -141,9 +141,9 @@
                     @if ($record)
                         <flux:separator />
                         <flux:button size="sm" variant="ghost" icon="trash" class="!text-red-600" x-on:click="$dispatch('confirm', {
-                            title: @js(__('Delete this record?')),
-                            message: @js(__('The document and its file are deleted.')),
-                            confirmText: @js(__('Delete')),
+                            title: {{ Js::from(__('Delete this record?')) }},
+                            message: {{ Js::from(__('The document and its file are deleted.')) }},
+                            confirmText: {{ Js::from(__('Delete')) }},
                             onConfirm: () => $wire.delete(),
                         })">{{ __('Delete') }}</flux:button>
                     @endif

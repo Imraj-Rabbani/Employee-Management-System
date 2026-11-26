@@ -119,8 +119,8 @@
                         <flux:icon.paper-clip variant="micro" class="text-zinc-500" />
                         <a href="{{ route('hrm.recruitment.applicants.cv', $applicant) }}" class="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-200">{{ $applicant->cv_name ?? __('CV') }}</a>
                         <flux:button size="xs" variant="ghost" class="!text-red-600" x-on:click="$dispatch('confirm', {
-                            title: @js(__('Remove the CV?')),
-                            confirmText: @js(__('Remove')),
+                            title: {{ Js::from(__('Remove the CV?')) }},
+                            confirmText: {{ Js::from(__('Remove')) }},
                             onConfirm: () => $wire.removeCv(),
                         })">{{ __('Remove') }}</flux:button>
                     </div>
@@ -148,9 +148,9 @@
             @if ($applicant)
                 <flux:separator />
                 <flux:button size="sm" variant="ghost" icon="trash" class="!text-red-600" x-on:click="$dispatch('confirm', {
-                    title: @js(__('Delete this applicant?')),
-                    message: @js(__('Only possible when they have no applications. Their CV, education and work history are deleted too.')),
-                    confirmText: @js(__('Delete')),
+                    title: {{ Js::from(__('Delete this applicant?')) }},
+                    message: {{ Js::from(__('Only possible when they have no applications. Their CV, education and work history are deleted too.')) }},
+                    confirmText: {{ Js::from(__('Delete')) }},
                     onConfirm: () => $wire.delete(),
                 })">{{ __('Delete') }}</flux:button>
             @endif

@@ -11,6 +11,8 @@ use App\Modules\Hrm\Models\Interview;
 use App\Modules\Hrm\Scopes\VisibleToCurrentUser;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -19,8 +21,13 @@ use Livewire\Component;
 /**
  * Schedule an interview round / change a planned one (modal "interview-form").
  *
- *     $dispatch('schedule-interview', { applicationId: 12 })   new round (from the pipeline)
- *     $dispatch('edit-interview', { id: 4 })                   change a planned round (from the Interviews card)
+ *     $dispatch('schedule-interview', { applicationId: 12 })          new round (the row's calendar button)
+ *     $dispatch('schedule-interview', { applicationIds: [12, 13] })   several applicants at once (ticked rows)
+ *     $dispatch('edit-interview', { id: 4 })                          change a planned round (from the Interviews card)
+ *
+ * Several applicants: each gets their OWN round with the same panel, place and length, either one after
+ * another (back-to-back slots from the start time, the default) or all at the same time (a group interview).
+ * Applicants who cannot be scheduled (closed, a round already planned) are skipped and named in the message.
  *
  * The panel is picked with a search box (name or code) → "Add"; any ACTIVE employee can be invited,
  * also from departments outside the user's own access. The rules are in ScheduleInterview.
@@ -29,8 +36,12 @@ use Livewire\Component;
  */
 class InterviewForm extends Component
 {
+    /** @var list<int> the applications a NEW round is planned for, in this order */
     #[Locked]
-    public ?int $applicationId = null;
+    public array $applicationIds = [];
+
+    /** Several applicants: 'one_after_another' (back-to-back slots) or 'same_time'. */
+    public string $timing = 'one_after_another';
 
     /** null = scheduling a new round */
     #[Locked]
@@ -44,13 +55,17 @@ class InterviewForm extends Component
 
     public string $search = '';
 
+    /** @param  list<int|string>  $applicationIds */
     #[On('schedule-interview')]
-    public function schedule(int $applicationId): void
+    public function schedule(?int $applicationId = null, array $applicationIds = []): void
     {
-        $application = $this->application($applicationId);
+        $ids = array_map('intval', $applicationIds !== [] ? $applicationIds : [(int) $applicationId]);
+        $found = Application::query()->visibleTo(Auth::user())->whereKey($ids)->pluck('id')->all();
 
-        $this->applicationId = $application->id;
+        $this->applicationIds = array_values(array_filter($ids, fn (int $id) => in_array($id, $found, true)));   // the pipeline's order
+        abort_if($this->applicationIds === [], 404);
         $this->interviewId = null;
+        $this->timing = 'one_after_another';
         $this->form = ['scheduled_at' => now()->addDay()->setTime(10, 0)->format('Y-m-d\TH:i'), 'duration_minutes' => 30, 'location' => '', 'notes' => ''];
         $this->panel = [];
         $this->search = '';
@@ -64,7 +79,7 @@ class InterviewForm extends Component
     {
         $interview = $this->interview($id);
 
-        $this->applicationId = $interview->application_id;
+        $this->applicationIds = [$interview->application_id];
         $this->interviewId = $interview->id;
         $this->form = [
             'scheduled_at' => $interview->scheduled_at->format('Y-m-d\TH:i'),
@@ -110,25 +125,57 @@ class InterviewForm extends Component
             }
             $action->update($interview, $details, $this->panel);
             $message = __(':round changed. The panel has been told.', ['round' => $interview->title()]);
+            $skipped = false;
         } else {
-            $application = $this->application((int) $this->applicationId);
-            if ($problem = $action->problem($application, $this->panel)) {
-                $this->addError('panel', $problem);
+            $this->validate(['timing' => ['required', 'in:one_after_another,same_time']]);
+
+            // Check every applicant first: when NONE can be scheduled (e.g. no panel), nothing is saved.
+            $problems = [];
+            $ready = [];
+            foreach ($this->applications() as $application) {
+                if ($problem = $action->problem($application, $this->panel)) {
+                    $problems[] = (count($this->applicationIds) > 1 ? $application->applicant->name.': ' : '').$problem;
+                } else {
+                    $ready[] = $application;
+                }
+            }
+            if ($ready === []) {
+                $this->addError('panel', implode(' ', array_unique($problems)));
 
                 return;
             }
-            $interview = $action->handle($application, $details, $this->panel, Auth::id());
-            $message = __(':round scheduled. The panel has been told.', ['round' => $interview->title()]);
+
+            foreach ($ready as $i => $application) {
+                $action->handle($application, [...$details, 'scheduled_at' => $this->startOf($i)], $this->panel, Auth::id());
+            }
+            $message = implode(' ', [
+                count($ready) === 1 && count($this->applicationIds) === 1
+                    ? __('Interview scheduled. The panel has been told.')
+                    : trans_choice(':count interview scheduled. The panel has been told.|:count interviews scheduled. The panel has been told.', count($ready)),
+                ...$problems,
+            ]);
+            $skipped = $problems !== [];
         }
 
         Flux::modal('interview-form')->close();
         $this->dispatch('interview-saved');   // the pipeline and the Interviews card redraw
-        $this->dispatch('toast', message: $message, variant: 'success');
+        $this->dispatch('toast', message: $message, variant: $skipped ? 'warning' : 'success');
     }
 
-    private function application(int $id): Application
+    /** Start of the $i-th applicant's interview: back-to-back slots, or all at the start time. */
+    private function startOf(int $i): string
     {
-        return Application::query()->visibleTo(Auth::user())->with('applicant')->findOrFail($id);
+        $start = Carbon::parse($this->form['scheduled_at']);
+
+        return ($this->timing === 'same_time' ? $start : $start->addMinutes($i * (int) $this->form['duration_minutes']))->toDateTimeString();
+    }
+
+    /** @return Collection<int, Application> the chosen applications, in the chosen order */
+    private function applications(): Collection
+    {
+        $found = Application::query()->visibleTo(Auth::user())->with('applicant')->whereKey($this->applicationIds)->get()->keyBy('id');
+
+        return collect($this->applicationIds)->map(fn (int $id) => $found->get($id))->filter()->values();
     }
 
     private function interview(int $id): Interview
@@ -150,7 +197,11 @@ class InterviewForm extends Component
             ->orderBy('first_name')->limit(8)->get();
 
         return view('hrm::livewire.recruitment.interview-form', [
-            'application' => $this->applicationId ? Application::with('applicant')->find($this->applicationId) : null,
+            // New: each applicant with the start of their slot (redrawn as the time / length / timing change).
+            'schedule' => $this->interviewId ? collect() : $this->applications()->map(fn (Application $a, int $i) => [
+                'name' => $a->applicant->name,
+                'at' => $this->form['scheduled_at'] !== '' && is_numeric($this->form['duration_minutes']) ? rescue(fn () => format_datetime(Carbon::parse($this->startOf($i))), '', false) : '',
+            ]),
             'interview' => $this->interviewId ? Interview::with('panelists')->find($this->interviewId) : null,
             'chosen' => $this->panel === [] ? collect() : $employees()->whereKey($this->panel)->get(),
             'results' => $results,

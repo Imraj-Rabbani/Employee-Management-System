@@ -125,9 +125,9 @@
                             @can('payroll.adjustment.manage')
                                 @if ($adjustment->isActive() && ($adjustment->run === null || $adjustment->run->status->isEditable()))
                                     <flux:button size="xs" variant="ghost" class="!text-red-600" x-on:click="$dispatch('confirm', {
-                                        title: @js(__('Withdraw :no?', ['no' => $adjustment->number()])),
-                                        message: @js($adjustment->run ? __('Payroll run :run took it: calculate the run again afterwards.', ['run' => $adjustment->run->code]) : __('It will not be paid.')),
-                                        confirmText: @js(__('Withdraw')),
+                                        title: {{ Js::from(__('Withdraw :no?', ['no' => $adjustment->number()])) }},
+                                        message: {{ Js::from($adjustment->run ? __('Payroll run :run took it: calculate the run again afterwards.', ['run' => $adjustment->run->code]) : __('It will not be paid.')) }},
+                                        confirmText: {{ Js::from(__('Withdraw')) }},
                                         onConfirm: () => $dispatch('withdraw-adjustment', { id: {{ $adjustment->id }} }),
                                     })">{{ __('Withdraw') }}</flux:button>
                                 @endif

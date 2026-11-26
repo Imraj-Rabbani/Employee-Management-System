@@ -146,7 +146,7 @@ class ScheduleInterviewTest extends TestCase
     public function test_the_form_from_the_pipeline(): void
     {
         Livewire::test(ApplicationPipeline::class, ['postingId' => $this->application->job_posting_id])
-            ->assertSeeHtml("schedule-interview', { applicationId: {$this->application->id} }");
+            ->assertViewHas('allowed', fn (array $allowed) => $allowed['schedule']->contains((string) $this->application->id));
 
         Livewire::test(InterviewForm::class)
             ->dispatch('schedule-interview', applicationId: $this->application->id)
@@ -163,5 +163,56 @@ class ScheduleInterviewTest extends TestCase
             ->assertDispatched('interview-saved');
 
         $this->assertSame('Room 2', $this->application->interviews()->sole()->location);
+    }
+
+    public function test_several_ticked_applicants_get_their_own_rounds(): void
+    {
+        $posting = $this->application->jobPosting;
+        $karim = app(ApplyToPosting::class)->handle(Applicant::factory()->create(['first_name' => 'Karim', 'last_name' => 'Ali']), $posting);
+        $nadia = app(ApplyToPosting::class)->handle(Applicant::factory()->create(['first_name' => 'Nadia', 'last_name' => 'Islam']), $posting);
+        $this->schedule->handle($nadia, $this->details(), [$this->withLogin->id]);   // Nadia already has a round planned
+
+        // "Schedule interview" in the toolbar takes only the ticked rows where a round can be planned (not Nadia).
+        Livewire::test(ApplicationPipeline::class, ['postingId' => $posting->id])
+            ->assertSee('Schedule interview')
+            ->assertViewHas('allowed', fn (array $allowed) => $allowed['schedule']->contains((string) $karim->id)
+                && ! $allowed['schedule']->contains((string) $nadia->id));
+
+        $form = Livewire::test(InterviewForm::class)
+            ->dispatch('schedule-interview', applicationIds: [$this->application->id, $karim->id, $nadia->id])
+            ->assertSee('Schedule 3 interviews')
+            ->set('form.scheduled_at', '2030-01-10T10:00')
+            ->set('form.duration_minutes', 45)
+            ->assertSee('One after another')
+            ->call('save')
+            ->assertHasErrors(['panel']);   // no panel: nobody can be scheduled, nothing saved
+        $this->assertSame(0, $karim->interviews()->count());
+
+        $form->call('addPanelist', $this->withoutLogin->id)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('toast', variant: 'warning', message: '2 interviews scheduled. The panel has been told. Nadia Islam: A round is already planned. Complete or cancel it first.');
+
+        // Back-to-back: 10:00, then 10:45.
+        $this->assertSame('2030-01-10 10:00:00', $this->application->interviews()->sole()->scheduled_at->toDateTimeString());
+        $this->assertSame('2030-01-10 10:45:00', $karim->interviews()->sole()->scheduled_at->toDateTimeString());
+        $this->assertSame(1, $nadia->interviews()->count());
+    }
+
+    public function test_several_applicants_can_also_be_seen_at_the_same_time(): void
+    {
+        $karim = app(ApplyToPosting::class)->handle(Applicant::factory()->create(), $this->application->jobPosting);
+
+        Livewire::test(InterviewForm::class)
+            ->dispatch('schedule-interview', applicationIds: [$this->application->id, $karim->id])
+            ->set('form.scheduled_at', '2030-01-10T10:00')
+            ->set('timing', 'same_time')
+            ->call('addPanelist', $this->withLogin->id)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('toast', variant: 'success');
+
+        $this->assertSame('2030-01-10 10:00:00', $karim->interviews()->sole()->scheduled_at->toDateTimeString());
+        $this->assertSame('2030-01-10 10:00:00', $this->application->interviews()->sole()->scheduled_at->toDateTimeString());
     }
 }

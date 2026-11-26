@@ -25,9 +25,9 @@
 
                     @if ($posting->status === JobPostingStatus::Open)
                         <flux:button icon="lock-closed" x-on:click="$dispatch('confirm', {
-                            title: @js(__('Close this posting?')),
-                            message: @js(__('No new applicants can be added. Applicants already in the pipeline carry on.')),
-                            confirmText: @js(__('Close')),
+                            title: {{ Js::from(__('Close this posting?')) }},
+                            message: {{ Js::from(__('No new applicants can be added. Applicants already in the pipeline carry on.')) }},
+                            confirmText: {{ Js::from(__('Close')) }},
                             onConfirm: () => $wire.close(),
                         })">{{ __('Close') }}</flux:button>
                     @else
@@ -40,9 +40,14 @@
         </div>
     </div>
 
-    <div class="grid gap-4 lg:grid-cols-3">
-        <div class="glass overflow-hidden rounded-2xl space-y-6 lg:col-span-2">
-            <div class="p-6">
+    <div class="grid items-start gap-4 lg:grid-cols-3">
+        {{-- Collapsible cards (the arrow; remembered in this browser). --}}
+        <div class="glass overflow-hidden rounded-2xl lg:col-span-2" x-data="{ open: $persist(true).as('posting-card-details') }">
+            <button type="button" x-on:click="open = ! open" x-bind:aria-expanded="open" class="flex w-full items-center gap-2 px-6 py-4 text-left" x-bind:class="open && 'border-b border-white/50 dark:border-white/10'">
+                <flux:icon.chevron-down class="size-5 shrink-0 text-zinc-500 transition" x-bind:class="open || '-rotate-90'" />
+                <flux:heading size="lg">{{ __('Details') }}</flux:heading>
+            </button>
+            <div class="space-y-6 p-6" x-show="open" x-collapse>
                 <dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ([
                             __('Opens') => format_date($posting->open_date),
@@ -63,7 +68,7 @@
                 </dl>
 
                 @if ($posting->form_url || $posting->responses_url)
-                    <div class="my-6 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                    <div class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
                         @if ($posting->form_url)
                             <a href="{{ $posting->form_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-brand-800 hover:underline dark:text-brand-200"><flux:icon.clipboard-document-list variant="micro" /> {{ __('Application form') }}</a>
                         @endif
@@ -85,12 +90,15 @@
         </div>
 
         <div class="space-y-4">
-            <div class="glass overflow-hidden rounded-2xl">
-                <div class="p-6">
-                    <div class="mb-4 flex items-center justify-between gap-2">
-                        <flux:heading>{{ __('Manpower request') }}</flux:heading>
-                        <flux:link :href="route('hrm.recruitment.requests.show', $request->id)" wire:navigate class="text-sm">{{ $request->number() }}</flux:link>
-                    </div>
+            <div class="glass overflow-hidden rounded-2xl" x-data="{ open: $persist(true).as('posting-card-request') }">
+                <div class="flex items-center justify-between gap-2 px-6 py-4" x-bind:class="open && 'border-b border-white/50 dark:border-white/10'">
+                    <button type="button" x-on:click="open = ! open" x-bind:aria-expanded="open" class="flex items-center gap-2 text-left">
+                        <flux:icon.chevron-down class="size-5 shrink-0 text-zinc-500 transition" x-bind:class="open || '-rotate-90'" />
+                        <flux:heading size="lg">{{ __('Manpower request') }}</flux:heading>
+                    </button>
+                    <flux:link :href="route('hrm.recruitment.requests.show', $request->id)" wire:navigate class="text-sm">{{ $request->number() }}</flux:link>
+                </div>
+                <div class="space-y-6 p-6" x-show="open" x-collapse>
                     <dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3 !grid-cols-1">
                         @foreach ([
                                 __('For') => $request->headcount.' × '.($request->designation?->name ?? '?'),

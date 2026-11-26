@@ -120,9 +120,9 @@
                             {{-- Withdraw: only while the request is still open and not paid. EncashmentForm listens for withdraw-encashment. --}}
                             @if ($leaveEncashment->isActive() && $leaveEncashment->paid_at === null)
                                 <flux:button size="xs" variant="ghost" class="!text-red-600" x-on:click="$dispatch('confirm', {
-                                    title: @js(__('Withdraw :no?', ['no' => $leaveEncashment->number()])),
-                                    message: @js($leaveEncashment->approved_at ? __('The days go back to the balance.') : __('The approvers are no longer asked.')),
-                                    confirmText: @js(__('Withdraw')),
+                                    title: {{ Js::from(__('Withdraw :no?', ['no' => $leaveEncashment->number()])) }},
+                                    message: {{ Js::from($leaveEncashment->approved_at ? __('The days go back to the balance.') : __('The approvers are no longer asked.')) }},
+                                    confirmText: {{ Js::from(__('Withdraw')) }},
                                     onConfirm: () => $dispatch('withdraw-encashment', { id: {{ $leaveEncashment->id }} }),
                                 })">{{ __('Withdraw') }}</flux:button>
                             @endif

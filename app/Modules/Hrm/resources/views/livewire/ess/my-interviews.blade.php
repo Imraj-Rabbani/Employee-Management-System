@@ -23,10 +23,30 @@
                     <flux:text class="mt-1 max-w-sm">{{ __('When HR puts you on an interview panel, it appears here and you get an email.') }}</flux:text>
                 </div>
             @else
+                {{-- Toolbar: send the ticked score sheets at once ($wire.selected = their ids). --}}
+                <div class="flex flex-wrap items-center gap-2 border-b border-white/50 p-4 dark:border-white/10">
+                    <flux:button variant="primary" size="sm" icon="paper-airplane" x-bind:disabled="$wire.selected.length === 0" x-on:click="$dispatch('confirm', {
+                        title: {{ Js::from(__('Send the ticked score sheets?')) }},
+                        message: {{ Js::from(__('After sending you cannot change them. Sheets that are not complete stay as drafts.')) }},
+                        confirmText: {{ Js::from(__('Send')) }},
+                        onConfirm: () => $wire.sendSelected(),
+                    })">{{ __('Send scores') }}</flux:button>
+                    <span x-show="$wire.selected.length > 0" x-cloak class="text-xs text-zinc-500 dark:text-zinc-400" x-text="$wire.selected.length + ' ' + {{ Js::from(__('selected')) }}"></span>
+                    <flux:spacer />
+                    <flux:text class="text-xs">{{ __('Score each applicant, then tick the sheets and send them together.') }}</flux:text>
+                </div>
+
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead class="text-left text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                             <tr class="border-b border-white/50 dark:border-white/10">
+                                {{-- Tick all sheets that can still be sent. --}}
+                                <th class="w-10 px-4 py-3" x-data="{ ids: {{ Js::from($sendableIds) }} }">
+                                    <input type="checkbox" class="size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 disabled:opacity-40 dark:border-white/20 dark:bg-white/10" aria-label="{{ __('Tick all') }}"
+                                        x-bind:disabled="ids.length === 0"
+                                        x-bind:checked="ids.length > 0 && ids.every(id => $wire.selected.includes(id))"
+                                        x-on:change="$wire.selected = $event.target.checked ? [...ids] : []">
+                                </th>
                                 <th class="px-6 py-3 font-medium">{{ __('When') }}</th>
                                 <th class="px-6 py-3 font-medium">{{ __('Applicant') }}</th>
                                 <th class="px-6 py-3 font-medium">{{ __('Job') }}</th>
@@ -38,7 +58,13 @@
                         <tbody>
                             @foreach ($seats as $seat)
                                 @php $interview = $seat->interview; @endphp
-                                <tr class="border-b border-white/50 last:border-0 dark:border-white/10" wire:key="seat-{{ $seat->id }}">
+                                <tr class="border-b border-white/50 last:border-0 dark:border-white/10" wire:key="seat-{{ $seat->id }}"
+                                    x-bind:class="$wire.selected.includes('{{ $seat->id }}') && '!bg-brand-50/70 dark:!bg-white/10'">
+                                    <td class="px-4 py-3">
+                                        @if ($sendableIds->contains((string) $seat->id))
+                                            <input type="checkbox" wire:model="selected" value="{{ $seat->id }}" class="size-4 rounded border-zinc-300 text-brand-800 focus:ring-brand-700 dark:border-white/20 dark:bg-white/10" aria-label="{{ __('Tick this score sheet') }}">
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-3">
                                         <div class="font-medium tabular-nums">{{ format_datetime($interview->scheduled_at) }}</div>
                                         <div class="text-xs text-zinc-500">{{ $interview->title() }} · {{ $interview->duration_minutes }} {{ __('min') }}</div>
@@ -59,8 +85,11 @@
                                             <x-ui.badge>{{ __('Interview cancelled') }}</x-ui.badge>
                                         @elseif ($seat->isSubmitted())
                                             <x-ui.badge color="success">{{ __('Sent') }}</x-ui.badge>
+                                        @elseif ($seat->scores->isNotEmpty() && ! $missing->has($seat->id))
+                                            <x-ui.badge color="brand">{{ __('Ready to send') }}</x-ui.badge>
                                         @elseif ($seat->scores->isNotEmpty())
                                             <x-ui.badge color="warning">{{ __('Draft') }}</x-ui.badge>
+                                            <div class="mt-1 text-xs text-amber-700 dark:text-amber-300">{{ $missing[$seat->id] }}</div>
                                         @else
                                             <x-ui.badge color="info">{{ __('To do') }}</x-ui.badge>
                                         @endif

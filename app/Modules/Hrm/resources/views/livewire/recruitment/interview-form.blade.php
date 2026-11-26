@@ -1,21 +1,37 @@
 <div>
     <x-ui.modal name="interview-form" size="lg"
-        :heading="$interview ? __('Change :round', ['round' => $interview->title()]) : __('Schedule interview')"
-        :subheading="$application?->applicant->name">
+        :heading="$interview ? __('Change :round', ['round' => $interview->title()]) : ($schedule->count() > 1 ? __('Schedule :count interviews', ['count' => $schedule->count()]) : __('Schedule interview'))"
+        :subheading="$interview ? $interview->application->applicant->name : ($schedule->count() === 1 ? $schedule->first()['name'] : __('Each applicant gets their own round with the same panel.'))">
         <form wire:submit="save" id="interview-form" class="space-y-6">
             <div class="grid gap-4 sm:grid-cols-[2fr_1fr]">
                 <flux:field>
                     <flux:label>{{ __('Date and time') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                    <flux:input aria-required="true" wire:model="form.scheduled_at" type="datetime-local" />
+                    <flux:input aria-required="true" wire:model.live.blur="form.scheduled_at" type="datetime-local" />
                     <flux:error name="form.scheduled_at" />
                 </flux:field>
 
                 <flux:field>
                     <flux:label>{{ __('Minutes') }} <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span></flux:label>
-                    <flux:input aria-required="true" wire:model="form.duration_minutes" type="number" min="5" step="5" />
+                    <flux:input aria-required="true" wire:model.live.blur="form.duration_minutes" type="number" min="5" step="5" />
                     <flux:error name="form.duration_minutes" />
                 </flux:field>
             </div>
+            @if ($schedule->count() > 1)
+                {{-- Several applicants: back-to-back slots or one group session; the times below follow the choice. --}}
+                <flux:radio.group wire:model.live="timing" :label="__('Timing')" variant="segmented">
+                    <flux:radio value="one_after_another" :label="__('One after another')" />
+                    <flux:radio value="same_time" :label="__('All at the same time')" />
+                </flux:radio.group>
+                <ol class="divide-y divide-zinc-500/10 rounded-lg ring-1 ring-zinc-500/15">
+                    @foreach ($schedule as $scheduled)
+                        <li class="flex items-center justify-between gap-2 px-3 py-2 text-sm" wire:key="slot-{{ $loop->index }}">
+                            <span class="font-medium">{{ $scheduled['name'] }}</span>
+                            <span class="tabular-nums text-zinc-500">{{ $scheduled['at'] }}</span>
+                        </li>
+                    @endforeach
+                </ol>
+            @endif
+
             <flux:field>
                 <flux:label>{{ __('Where') }}</flux:label>
                 <flux:description>{{ __('A room, an address or a video-call link') }}</flux:description>

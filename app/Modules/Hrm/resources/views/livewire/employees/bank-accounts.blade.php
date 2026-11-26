@@ -97,9 +97,9 @@
                     @if ($record)
                         <flux:separator />
                         <flux:button size="sm" variant="ghost" icon="trash" class="!text-red-600" x-on:click="$dispatch('confirm', {
-                            title: @js(__('Delete this record?')),
-                            message: @js(__('If this is the primary account, the next account becomes primary.')),
-                            confirmText: @js(__('Delete')),
+                            title: {{ Js::from(__('Delete this record?')) }},
+                            message: {{ Js::from(__('If this is the primary account, the next account becomes primary.')) }},
+                            confirmText: {{ Js::from(__('Delete')) }},
                             onConfirm: () => $wire.delete(),
                         })">{{ __('Delete') }}</flux:button>
                     @endif

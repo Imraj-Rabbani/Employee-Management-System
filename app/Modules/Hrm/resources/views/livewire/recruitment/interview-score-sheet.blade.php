@@ -89,12 +89,17 @@
             <x-slot:footer>
                 <div class="flex gap-2">
                     <flux:button wire:click="saveDraft">{{ __('Save draft') }}</flux:button>
+                    @if ($onBehalf)
                     <flux:button variant="primary" x-on:click="$dispatch('confirm', {
-                        title: @js(__('Send your scores?')),
-                        message: @js(__('After sending you cannot change them.')),
-                        confirmText: @js(__('Send')),
+                        title: {{ Js::from(__('Send your scores?')) }},
+                        message: {{ Js::from(__('After sending you cannot change them.')) }},
+                        confirmText: {{ Js::from(__('Send')) }},
                         onConfirm: () => $wire.send(),
                     })">{{ __('Send scores') }}</flux:button>
+                    @else
+                    {{-- The interviewer sends from My Interviews: tick one or more sheets → Send scores. --}}
+                    <flux:button variant="primary" wire:click="saveDraft(true)">{{ __('Save and close') }}</flux:button>
+                    @endif
                 </div>
             </x-slot:footer>
         @endif
