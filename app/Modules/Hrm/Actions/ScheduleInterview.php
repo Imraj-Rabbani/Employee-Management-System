@@ -86,7 +86,7 @@ class ScheduleInterview
      */
     public function handle(Application $application, array $details, array $employeeIds, ?int $byUserId = null): Interview
     {
-        $stage = InterviewStage::findOrFail($details['interview_stage_id'] ?? 0);
+        $stage = InterviewStage::findOrFail($details['interview_stage_id']);
         if ($problem = $this->problem($application, $employeeIds, $stage)) {
             throw new LogicException($problem);
         }

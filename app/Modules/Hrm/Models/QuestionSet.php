@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property string|null $description
  * @property bool $is_active
+ * @property-read string|null $items_sum_weight only after ->withSum('items', 'weight')
  */
 #[UseFactory(QuestionSetFactory::class)]
 class QuestionSet extends TenantModel

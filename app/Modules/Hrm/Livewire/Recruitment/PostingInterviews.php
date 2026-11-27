@@ -120,8 +120,8 @@ class PostingInterviews extends Component
     /**
      * The ranking rows in the chosen order. A missing stage score sorts after every real score.
      *
-     * @param  Collection<int, array{application: Application, scores: array<int, float>, total: float, rank: int}>  $rows
-     * @return Collection<int, array{application: Application, scores: array<int, float>, total: float, rank: int}>
+     * @param  Collection<int, array{application: Application, scores: non-empty-array<int, float>, total: float, rank: int}>  $rows
+     * @return Collection<int, array{application: Application, scores: non-empty-array<int, float>, total: float, rank: int}>
      */
     private function sortedRanking(Collection $rows): Collection
     {

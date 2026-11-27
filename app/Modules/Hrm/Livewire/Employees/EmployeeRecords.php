@@ -8,6 +8,7 @@ use App\Core\Support\TenantUploads;
 use App\Modules\Hrm\Models\Employee;
 use BackedEnum;
 use Flux\Flux;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
@@ -88,7 +89,7 @@ abstract class EmployeeRecords extends Component
         return null;
     }
 
-    /** @return list<string> */
+    /** @return list<string|ValidationRule> */
     protected function attachmentRules(): array
     {
         return ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,docx', 'max:5120', new FitsInStorage];

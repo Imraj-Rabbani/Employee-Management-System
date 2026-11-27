@@ -75,7 +75,7 @@ class InterviewScoring
     /**
      * The posting's ranking table: its stages (the columns) and one row per application with a result.
      *
-     * @return array{stages: Collection<int, InterviewStage>, rows: Collection<int, array{application: Application, scores: array<int, float>, total: float, rank: int}>}
+     * @return array{stages: Collection<int, InterviewStage>, rows: Collection<int, array{application: Application, scores: non-empty-array<int, float>, total: float, rank: int}>}
      */
     public function ranking(JobPosting $posting): array
     {

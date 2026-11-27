@@ -8,6 +8,7 @@ use App\Modules\Hrm\Enums\InterviewRecommendation;
 use App\Modules\Hrm\Enums\InterviewStatus;
 use App\Modules\Hrm\Models\Application;
 use App\Modules\Hrm\Models\InterviewPanelist;
+use App\Modules\Hrm\Models\InterviewQuestion;
 use App\Modules\Hrm\Models\InterviewScore;
 use App\Modules\Hrm\Models\QuestionSetItem;
 use App\Modules\Hrm\Services\InterviewScoring;
@@ -172,18 +173,22 @@ class InterviewScoreSheet extends Component
     private function factors(InterviewPanelist $panelist): Collection
     {
         $items = $panelist->interview->stage?->questionSet?->items()->with('question')->get() ?? collect();
-        $questions = $items->map(fn (QuestionSetItem $item) => (object) [
-            'id' => $item->interview_question_id, 'name' => $item->question->name, 'description' => $item->question->description,
-            'weight' => (string) $item->weight, 'is_required' => true,
-        ]);
+        $questions = $items->map(fn (QuestionSetItem $item) => self::factor($item->interview_question_id, $item->question, (string) $item->weight, true));
 
         $extra = $panelist->scores->whereNotIn('interview_question_id', $questions->pluck('id'))->load('question')
-            ->map(fn (InterviewScore $score) => (object) [
-                'id' => $score->interview_question_id, 'name' => $score->question->name, 'description' => $score->question->description,
-                'weight' => (string) $score->weight, 'is_required' => false,
-            ]);
+            ->map(fn (InterviewScore $score) => self::factor($score->interview_question_id, $score->question, (string) $score->weight, false));
 
         return $questions->concat($extra)->values();
+    }
+
+    /**
+     * One row of the score sheet.
+     *
+     * @return object{id: int, name: string, description: ?string, weight: string, is_required: bool}
+     */
+    private static function factor(int $id, InterviewQuestion $question, string $weight, bool $isRequired): object
+    {
+        return (object) ['id' => $id, 'name' => $question->name, 'description' => $question->description, 'weight' => $weight, 'is_required' => $isRequired];
     }
 
     /** 404 when it does not exist, 403 when this login may not open it. */

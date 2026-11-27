@@ -53,7 +53,7 @@ class RegisterCompany extends Component
 
     public function mount(): void
     {
-        $this->plan = Plan::tryFrom((string) request()->query('plan'))?->value ?? Plan::Free->value;
+        $this->plan = (Plan::tryFrom((string) request()->query('plan')) ?? Plan::Free)->value;
     }
 
     /** @return array<string, mixed> */

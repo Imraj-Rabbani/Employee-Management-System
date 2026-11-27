@@ -37,7 +37,7 @@ class EmployeeImportTemplate implements Export, WithMultipleSheets
 
         // The lists, keyed by the Employees column they feed: [heading, [[value, code], ...]].
         $lists = [
-            'gender' => [__('Gender'), array_map(fn (string $label) => [$label, ''], Gender::options())],
+            'gender' => [__('Gender'), array_map(fn (string $label) => [$label, ''], array_values(Gender::options()))],
             'designation' => [__('Designation'), Designation::query()->orderBy('name')->get(['code', 'name'])->map(fn ($d) => [$d->name, $d->code])->all()],
             'grade' => [__('Grade'), Grade::ordered()->get(['code', 'name'])->map(fn ($g) => [$g->name, $g->code])->all()],
             'employment_type' => [__('Employment type'), EmploymentType::query()->orderBy('name')->pluck('name')->map(fn ($n) => [$n, ''])->all()],
@@ -97,9 +97,9 @@ class EmployeeImportTemplate implements Export, WithMultipleSheets
     {
         $counts = array_count_values(array_map(fn (array $item) => mb_strtolower($item[0]), $items));
 
-        return array_values(array_map(
+        return array_map(
             fn (array $item) => $counts[mb_strtolower($item[0])] > 1 && $item[1] !== '' ? [$item[1], $item[1]] : $item,
             $items,
-        ));
+        );
     }
 }

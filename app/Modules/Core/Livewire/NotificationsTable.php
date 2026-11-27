@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Modules\Core\Services\NotificationPresenter;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Notifications\DatabaseNotification;
 use Livewire\Attributes\Url;
@@ -84,7 +83,11 @@ class NotificationsTable extends Component
         $this->resetPage();
     }
 
-    /** Only the logged-in user's own notifications, ever. */
+    /**
+     * Only the logged-in user's own notifications, ever.
+     *
+     * @return MorphMany<DatabaseNotification, User>
+     */
     private function notifications(): MorphMany
     {
         /** @var User $user */
@@ -93,8 +96,8 @@ class NotificationsTable extends Component
         return $user->notifications();
     }
 
-    /** @return MorphMany<DatabaseNotification, User>|Builder<DatabaseNotification> */
-    private function filteredQuery(): MorphMany|Builder
+    /** @return MorphMany<DatabaseNotification, User> */
+    private function filteredQuery(): MorphMany
     {
         return $this->notifications()
             ->reorder()

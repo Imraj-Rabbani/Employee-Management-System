@@ -145,7 +145,7 @@ class QuestionSetForm extends LookupForm
         }
 
         $record->items()->delete();
-        foreach (array_values($this->items) as $i => $item) {
+        foreach ($this->items as $i => $item) {
             $record->items()->create(['interview_question_id' => (int) $item['question_id'], 'weight' => $item['weight'], 'sequence' => $i + 1]);
         }
     }
