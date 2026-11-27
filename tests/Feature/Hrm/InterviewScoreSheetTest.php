@@ -263,8 +263,8 @@ class InterviewScoreSheetTest extends TestCase
         // Interviews card: tabs per stage.
         $page->assertSeeInOrder(['All', '3', 'Stage 1', '2', 'Stage 2', '1'])
             // Each tab button selects ITS stage (the ids, not their positions).
-            ->assertSeeHtml("\$set('stageTab', '".$this->interview->interview_stage_id."')\" wire:key=\"stage-tab-".$this->interview->interview_stage_id."\"")
-            ->assertSeeHtml("\$set('stageTab', '".$stage2->id."')\" wire:key=\"stage-tab-".$stage2->id."\"")
+            ->assertSeeHtml("\$set('stageTab', '".$this->interview->interview_stage_id."')\" wire:key=\"stage-tab-".$this->interview->interview_stage_id.'"')
+            ->assertSeeHtml("\$set('stageTab', '".$stage2->id."')\" wire:key=\"stage-tab-".$stage2->id.'"')
             ->set('stageTab', (string) $stage2->id)
             ->assertViewHas('interviews', fn ($list) => $list->count() === 1);
     }

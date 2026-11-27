@@ -15,6 +15,7 @@ use App\Modules\Workflow\Notifications\ApprovalDecided;
 use App\Modules\Workflow\Notifications\ApprovalNeeded;
 use App\Modules\Workflow\Services\WorkflowEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Tests\Concerns\CreatesTenantDatabases;
 use Tests\Concerns\MakesWorkflows;
@@ -81,7 +82,7 @@ class WorkflowNotificationsTest extends TestCase
 
         $bell = $this->mina->notifications()->sole();
         $this->assertSame('approval_needed', $bell->data['kind']);
-        $this->assertSame(1, \Illuminate\Support\Facades\DB::connection(config('queue.connections.database.connection'))->table('jobs')->count());   // the email
+        $this->assertSame(1, DB::connection(config('queue.connections.database.connection'))->table('jobs')->count());   // the email
     }
 
     public function test_with_send_email_off_only_the_in_app_notification_is_sent(): void

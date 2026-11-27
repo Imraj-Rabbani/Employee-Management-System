@@ -8,15 +8,18 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * "/" sends everyone to the right start page; there is no public registration.
+ * "/" shows guests the landing page and sends signed-in users to their start page.
  */
 class StartPageTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guests_go_to_login(): void
+    public function test_guests_see_the_landing_page(): void
     {
-        $this->get('/')->assertRedirect(route('login'));
+        $this->get('/')
+            ->assertOk()
+            ->assertViewIs('landing')
+            ->assertSee(route('login'));
     }
 
     public function test_company_users_go_to_their_dashboard(): void
